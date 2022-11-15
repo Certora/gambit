@@ -1,3 +1,9 @@
+# Kotlin stuff
 build/*
 .gradle/
 .idea/
+
+
+# Added by cargo
+Cargo.lock
+/target
