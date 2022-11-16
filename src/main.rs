@@ -1,37 +1,31 @@
-
 /*!
- * Workflow:
- * Let's mainly focus on the mutation
- * generation part for now.
- * This tool should take as input, a solidity file,
- * then compile it to generate it's AST and do various mutations of it.
- * All the mutated files should be in some directory that the user will
- * pass from the commandline.
- !*/ 
-
+* Workflow:
+* Let's mainly focus on the mutation
+* generation part for now.
+* This tool should take as input, a solidity file,
+* then compile it to generate it's AST and do various mutations of it.
+* All the mutated files should be in some directory that the user will
+* pass from the commandline.
+!*/
 
 use clap::Parser;
 use rand::SeedableRng;
-use serde::{Deserialize, Serialize};
 use rand_pcg::Pcg64;
+use serde::{Deserialize, Serialize};
 
-
-
- #[derive(Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct MutantGenerator {
     pub params: MutationParams,
     // will need this for randomization
     pub rng: Pcg64,
 }
 
-
 impl MutantGenerator {
     pub fn new(params: MutationParams) -> Self {
-        let mut_gen = MutantGenerator {
+        MutantGenerator {
             rng: rand_pcg::Pcg64::seed_from_u64(params.seed),
             params,
-        };
-        mut_gen
+        }
     }
 
     pub fn run(self) {
@@ -48,23 +42,19 @@ pub struct MutationParams {
     #[clap(long, default_value = "out")]
     pub outdir: String,
     /// file(s) to mutate
-    #[clap(long, required=true, multiple=true)]
-    pub filename: String,   
+    #[clap(long, required = true, multiple = true)]
+    pub filename: String,
     /// Seed for random number generator
     #[clap(long, default_value = "0")]
     pub seed: u64,
-
 }
-
 
 /// Different commands we will support
 #[derive(Parser)]
 #[clap(rename_all = "kebab-case")]
 pub enum Command {
-    Mutate(MutationParams)
-    // Maybe we want to do other things in the future like support checking mutants?
+    Mutate(MutationParams), // Maybe we want to do other things in the future like support checking mutants?
 }
-
 
 /// Entry point
 fn main() {
@@ -73,6 +63,6 @@ fn main() {
         Command::Mutate(params) => {
             let mutant_gen = MutantGenerator::new(params);
             mutant_gen.run();
-        },
+        }
     }
 }
