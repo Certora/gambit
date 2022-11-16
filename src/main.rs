@@ -29,8 +29,11 @@ impl MutantGenerator {
     }
 
     pub fn run(self) {
-        println!("{}", self.params.filename);
         // TODO: this is where we will likely start adding code to actually do the mutation generation.
+        for f in self.params.filenames {
+            println!("{}", f);
+        }
+        
     }
 }
 
@@ -42,8 +45,8 @@ pub struct MutationParams {
     #[clap(long, default_value = "out")]
     pub outdir: String,
     /// file(s) to mutate
-    #[clap(long, required = true, multiple = true)]
-    pub filename: String,
+    #[clap(short, long, required = true, multiple = true)]
+    pub filenames: Vec<String>,
     /// Seed for random number generator
     #[clap(long, default_value = "0")]
     pub seed: u64,
