@@ -33,7 +33,6 @@ impl MutantGenerator {
         for f in self.params.filenames {
             println!("{}", f);
         }
-        
     }
 }
 
