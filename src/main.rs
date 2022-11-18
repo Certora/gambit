@@ -12,6 +12,14 @@ use clap::Parser;
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
+use serde_json::{Value};
+use std::fs::File;
+
+mod ast;
+pub use ast::*;
+
+mod mutation;
+pub use mutation::*;
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
@@ -28,10 +36,19 @@ impl MutantGenerator {
         }
     }
 
+    pub fn parse_json(&self, sol: File) -> SolAST {
+        let ast_json: Value = serde_json::from_reader(sol).expect("AST json is not well-formed.");
+        return SolAST {
+            element: Some(ast_json),
+        };
+    }
+
     pub fn run(self) {
         // TODO: this is where we will likely start adding code to actually do the mutation generation.
-        for f in self.params.filenames {
-            println!("{}", f);
+        // TODO: figure out how to compile, assuming json is available rn.
+        for f in &self.params.filenames {
+            let ast = self.parse_json(File::open(f).ok().unwrap());
+            println!("{:?}", ast.get_node("exportedSymbols").get_object() == None);
         }
     }
 }
