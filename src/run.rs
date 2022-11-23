@@ -1,7 +1,6 @@
 use itertools::Itertools;
 use rand::seq::SliceRandom;
 use std::{
-    borrow::{Borrow, Cow},
     collections::{HashMap, VecDeque},
     fs::File,
     io::Read,
@@ -25,7 +24,7 @@ pub struct RunMutations {
     pub mutations: Vec<MutationType>,
 }
 
-impl<'a> RunMutations {
+impl RunMutations {
     pub fn new(
         fnm: String,
         node: SolAST,
@@ -34,14 +33,14 @@ impl<'a> RunMutations {
         out: PathBuf,
         muts: Vec<MutationType>,
     ) -> Self {
-        return Self {
+        Self {
             fnm,
             node,
             num_mutants,
             rand,
             out,
             mutations: muts,
-        };
+        }
     }
 
     pub fn is_assert_call(node: &SolAST) -> bool {
@@ -53,7 +52,7 @@ impl<'a> RunMutations {
             let mapping: Vec<(mutation::MutationType, ast::SolAST)> = self
                 .mutations
                 .iter()
-                .filter(|m| m.is_mutation_point(&node))
+                .filter(|m| m.is_mutation_point(node))
                 .map(|m| (m.clone(), node.clone()))
                 .into_iter()
                 .collect();
@@ -63,11 +62,11 @@ impl<'a> RunMutations {
                 Some(mapping)
             }
         };
-        let skip = |node: &SolAST| Self::is_assert_call(node);
+        let skip = Self::is_assert_call;
         // TODO: add the case where we have specific functions from the user to mutate.
         let accept = |node: &SolAST| {
             node.node_type()
-                .map_or_else(|| false, |n| n == "FunctionDefinition".to_string())
+                .map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
         };
         let mutations = self.node.traverse(visitor, skip, accept);
 
@@ -101,7 +100,7 @@ impl<'a> RunMutations {
             for s in selected {
                 mutation_points_todo.push_back(s);
             }
-            remaining = remaining - point_list.len();
+            remaining -= point_list.len();
         }
 
         let mut source = Vec::new();
@@ -117,7 +116,7 @@ impl<'a> RunMutations {
         while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
             let mutation = mutation_points_todo.remove(0);
             let points = &mutation_points
-                .get(&mutation.unwrap())
+                .get(mutation.unwrap())
                 .expect("Found unexpected mutation");
             let point = points.choose(&mut self.rand).unwrap();
             let mutant = mutation
@@ -125,7 +124,7 @@ impl<'a> RunMutations {
                 .mutate_randomly(point, &source, &mut self.rand);
             let mut_file = self
                 .out
-                .join(self.fnm.clone() + &attempts.to_string() + &".sol".to_string());
+                .join(self.fnm.clone() + &attempts.to_string() + ".sol");
             if seen.contains(&mutant) {
                 // skip this mutant.
             } else {
@@ -134,6 +133,6 @@ impl<'a> RunMutations {
             seen.push(mutant);
             attempts += 1;
         }
-        return mutants;
+        mutants
     }
 }

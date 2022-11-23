@@ -1,8 +1,6 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::MutationType;
-
 pub struct TypeDescriptions {
     pub(crate) element: Option<Value>,
 }
@@ -134,8 +132,9 @@ impl SolAST {
         mut visitor: F,
         mut skip: impl Fn(&SolAST) -> bool,
         mut accept: impl Fn(&SolAST) -> bool,
-    ) -> Vec<T> 
-    where F: FnMut(&SolAST) -> Option<T>,
+    ) -> Vec<T>
+    where
+        F: FnMut(&SolAST) -> Option<T>,
     {
         let mut result: Vec<T> = vec![];
         self.traverse_internal(&mut visitor, &mut skip, &mut accept, false, &mut result);
@@ -149,8 +148,7 @@ impl SolAST {
         accept: &mut impl FnMut(&SolAST) -> bool,
         accepted: bool,
         acc: &mut Vec<T>,
-    )
-    {
+    ) {
         let mut new_accepted = accepted;
         if accept(&self) {
             new_accepted = true
