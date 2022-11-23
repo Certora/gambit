@@ -3,14 +3,10 @@ use rand_pcg::*;
 
 pub trait Mutation {
     fn is_mutation_point(&self, node: &SolAST) -> bool;
-    fn mutate_randomly(
-        &self,
-        node: &SolAST,
-        source: &[u8],
-        rand: &mut Pcg64,
-    ) -> String;
+    fn mutate_randomly(&self, node: &SolAST, source: &[u8], rand: &mut Pcg64) -> String;
 }
 
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
 pub enum MutationType {
     BinaryOpMutation,
     RequireMutation,
@@ -38,29 +34,23 @@ impl Mutation for MutationType {
                 );
             }
         }
-        return false;
+        false
     }
 
-    fn mutate_randomly(
-        &self,
-        node: &SolAST,
-        source: &[u8],
-        _rand: &mut Pcg64,
-    ) -> String {
+    fn mutate_randomly(&self, node: &SolAST, source: &[u8], _rand: &mut Pcg64) -> String {
         match self {
             MutationType::BinaryOpMutation => {
-                assert!(&self.is_mutation_point(&node));
+                assert!(&self.is_mutation_point(node));
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 // TODO: actually do this randomly!
-                return node.replace_part(source, " ".to_string() + "-" + " ", endl, startr)
-
-            },
+                node.replace_part(source, " ".to_string() + "-" + " ", endl, startr)
+            }
             MutationType::RequireMutation => {
-                assert!(&self.is_mutation_point(&node));
+                assert!(&self.is_mutation_point(node));
                 let arg = &node.arguments()[0];
-                return arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")");
-            },
+                arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
+            }
         }
     }
 }

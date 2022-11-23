@@ -12,7 +12,7 @@ use clap::Parser;
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value};
+use serde_json::Value;
 use std::fs::File;
 
 mod ast;
@@ -20,6 +20,9 @@ pub use ast::*;
 
 mod mutation;
 pub use mutation::*;
+
+mod run;
+pub use run::*;
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
@@ -38,9 +41,9 @@ impl MutantGenerator {
 
     pub fn parse_json(&self, sol: File) -> SolAST {
         let ast_json: Value = serde_json::from_reader(sol).expect("AST json is not well-formed.");
-        return SolAST {
+        SolAST {
             element: Some(ast_json),
-        };
+        }
     }
 
     pub fn run(self) {
@@ -57,15 +60,22 @@ impl MutantGenerator {
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[clap(rename_all = "kebab-case")]
 pub struct MutationParams {
-    /// directory to store all mutants
+    /// Directory to store all mutants
     #[clap(long, default_value = "out")]
     pub outdir: String,
-    /// file(s) to mutate
+    /// Json file(s) to mutate
+    // TODO: this should eventually be a sol file when we figure out how to compile and get the json AST properly.
     #[clap(short, long, required = true, multiple = true)]
     pub filenames: Vec<String>,
     /// Seed for random number generator
     #[clap(long, default_value = "0")]
     pub seed: u64,
+    /// Num mutants
+    #[clap(long, default_value = "5")]
+    pub num_mutants: usize,
+    /// Mutation types to enable
+    #[clap(long, required = true, multiple = true)]
+    pub mutations: Vec<String>,
 }
 
 /// Different commands we will support
