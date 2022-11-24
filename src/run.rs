@@ -62,12 +62,12 @@ impl RunMutations {
                 Some(mapping)
             }
         };
-        
+
         let skip = Self::is_assert_call;
         // TODO: add the case where we have specific functions from the user to mutate.
         let accept = |_: &SolAST| true;
-            // node.node_type()
-            //     .map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
+        // node.node_type()
+        //     .map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
         log::info!("starting AST traversal for node: {:?}", self.node);
         let mutations = self.node.traverse(visitor, skip, accept);
         log::info!("found {} mutations", mutations.len());

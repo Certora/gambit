@@ -53,11 +53,8 @@ impl SolAST {
         match obj {
             Some(o) => {
                 let v = o[fnm].as_str();
-                match v {
-                    Some(s) => Some(s.to_string()),
-                    None => None,
-                }
-            },
+                v.map(|s| s.to_string())
+            }
             None => None,
         }
     }
