@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::SolAST;
 use rand_pcg::*;
 
@@ -10,6 +12,18 @@ pub trait Mutation {
 pub enum MutationType {
     BinaryOpMutation,
     RequireMutation,
+}
+
+impl FromStr for MutationType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "BinaryOpMutation" => Ok(MutationType::BinaryOpMutation),
+            "RequireMutation" => Ok(MutationType::RequireMutation),
+            _ => panic!("Undefined mutant!"),
+        }
+    }
 }
 
 impl Mutation for MutationType {

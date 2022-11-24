@@ -62,14 +62,15 @@ impl RunMutations {
                 Some(mapping)
             }
         };
+        
         let skip = Self::is_assert_call;
         // TODO: add the case where we have specific functions from the user to mutate.
-        let accept = |node: &SolAST| {
-            node.node_type()
-                .map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
-        };
+        let accept = |_: &SolAST| true;
+            // node.node_type()
+            //     .map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
+        log::info!("starting AST traversal for node: {:?}", self.node);
         let mutations = self.node.traverse(visitor, skip, accept);
-
+        log::info!("found {} mutations", mutations.len());
         let mut flatten: Vec<(MutationType, SolAST)> = vec![];
         for inner in mutations {
             for elem in inner {
@@ -125,6 +126,8 @@ impl RunMutations {
             let mut_file = self
                 .out
                 .join(self.fnm.clone() + &attempts.to_string() + ".sol");
+            log::info!("attempting to write to {}", mut_file.to_str().unwrap());
+            std::fs::write(&mut_file, mutant.clone()).expect("Failed to write mutant to file.");
             if seen.contains(&mutant) {
                 // skip this mutant.
             } else {

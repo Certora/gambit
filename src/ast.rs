@@ -49,7 +49,17 @@ impl SolAST {
     }
 
     pub fn get_string(&self, fnm: &str) -> Option<String> {
-        self.get_object().map(|o| o[fnm].to_string())
+        let obj = self.get_object();
+        match obj {
+            Some(o) => {
+                let v = o[fnm].as_str();
+                match v {
+                    Some(s) => Some(s.to_string()),
+                    None => None,
+                }
+            },
+            None => None,
+        }
     }
 
     pub fn src(&self) -> Option<String> {
@@ -137,6 +147,7 @@ impl SolAST {
         F: FnMut(&SolAST) -> Option<T>,
     {
         let mut result: Vec<T> = vec![];
+        log::info!("Entering traverse_internal");
         self.traverse_internal(&mut visitor, &mut skip, &mut accept, false, &mut result);
         result
     }
@@ -150,30 +161,42 @@ impl SolAST {
         acc: &mut Vec<T>,
     ) {
         let mut new_accepted = accepted;
+        // log::info!("accepted = {}", new_accepted);
         if accept(&self) {
-            new_accepted = true
+            new_accepted = true;
         }
         if skip(&self) {
             return;
         }
         if new_accepted {
+            log::info!("about to visit {:?}", &self);
             let res = visitor(&self);
             if let Some(r) = res {
+                log::info!("adding results to list of accepted nodes");
                 acc.push(r)
+            } else {
+                log::info!("no mutation points found");
             }
         }
         if self.element.is_some() {
-            if self.element.as_ref().unwrap().is_object() {
-                self.element.as_ref().into_iter().for_each(|v| {
+            // log::info!("element is not none");
+            let e = self.element.unwrap();
+            if e.is_object() {
+                log::info!("element is object");
+                let e_obj = e.as_object().unwrap();
+                for v in e_obj.values() {
                     let child: SolAST = SolAST::new(v.clone());
+                    log::info!("child: {:?}", child);
                     child.traverse_internal(visitor, skip, accept, accepted, acc);
-                });
-            }
-            if self.element.as_ref().unwrap().is_array() {
-                self.element.as_ref().into_iter().for_each(|v| {
-                    let child: SolAST = SolAST::new(v.clone());
+                }
+            } else if e.is_array() {
+                log::info!("element is array");
+                let e_arr = e.as_array().unwrap();
+                for a in e_arr {
+                    let child: SolAST = SolAST::new(a.clone());
+                    log::info!("child: {:?}", child.name());
                     child.traverse_internal(visitor, skip, accept, accepted, acc);
-                });
+                }
             }
         }
     }

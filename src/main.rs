@@ -13,7 +13,7 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::fs::File;
+use std::{fs::File, path::PathBuf, str::FromStr};
 
 mod ast;
 pub use ast::*;
@@ -46,12 +46,34 @@ impl MutantGenerator {
         }
     }
 
+    fn run_one(&self, file_to_mutate: &String) {
+        let ast = self.parse_json(File::open(file_to_mutate).ok().unwrap());
+        let rand = self.rng.clone();
+        let mut_types = self
+            .params
+            .mutations
+            .iter()
+            .map(|m| MutationType::from_str(m).unwrap())
+            .collect();
+
+        let run_mutation = RunMutations::new(
+            file_to_mutate.to_string(),
+            ast,
+            self.params.num_mutants,
+            rand,
+            PathBuf::from_str(&self.params.outdir).unwrap(),
+            mut_types,
+        );
+        log::info!("running mutations on file: {}", file_to_mutate);
+        run_mutation.get_mutations();
+    }
+
     pub fn run(self) {
         // TODO: this is where we will likely start adding code to actually do the mutation generation.
         // TODO: figure out how to compile, assuming json is available rn.
+        log::info!("starting run()");
         for f in &self.params.filenames {
-            let ast = self.parse_json(File::open(f).ok().unwrap());
-            println!("{:?}", ast.get_node("exportedSymbols").get_object() == None);
+            self.run_one(f);
         }
     }
 }
