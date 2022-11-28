@@ -26,12 +26,14 @@ pub use run::*;
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
+    /// Params for controlling the mutants.
     pub params: MutationParams,
-    // will need this for randomization
+    /// will need this for randomization
     pub rng: Pcg64,
 }
 
 impl MutantGenerator {
+    /// Initialize the MutantGenerator
     pub fn new(params: MutationParams) -> Self {
         MutantGenerator {
             rng: rand_pcg::Pcg64::seed_from_u64(params.seed),
@@ -39,6 +41,8 @@ impl MutantGenerator {
         }
     }
 
+    /// Parse the input solc files and get json ASTs.
+    // TODO: need to figure out how to parse the solidity files, using json as input for now.
     pub fn parse_json(&self, sol: File) -> SolAST {
         let ast_json: Value = serde_json::from_reader(sol).expect("AST json is not well-formed.");
         SolAST {
@@ -46,6 +50,7 @@ impl MutantGenerator {
         }
     }
 
+    /// Generate mutations for a single file.
     fn run_one(&self, file_to_mutate: &String) {
         let ast = self.parse_json(File::open(file_to_mutate).ok().unwrap());
         let rand = self.rng.clone();
@@ -68,6 +73,7 @@ impl MutantGenerator {
         run_mutation.get_mutations();
     }
 
+    /// Calls run_one for each file to mutate.
     pub fn run(self) {
         // TODO: this is where we will likely start adding code to actually do the mutation generation.
         // TODO: figure out how to compile, assuming json is available rn.

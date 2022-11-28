@@ -19,6 +19,7 @@ impl TypeDescriptions {
     }
 }
 
+/// AST representation.
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct SolAST {

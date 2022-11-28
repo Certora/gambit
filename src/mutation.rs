@@ -3,11 +3,13 @@ use std::str::FromStr;
 use crate::SolAST;
 use rand_pcg::*;
 
+/// Every kind of mutation implements this trait.
 pub trait Mutation {
     fn is_mutation_point(&self, node: &SolAST) -> bool;
     fn mutate_randomly(&self, node: &SolAST, source: &[u8], rand: &mut Pcg64) -> String;
 }
 
+/// Kinds of mutations.
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
 pub enum MutationType {
     BinaryOpMutation,
@@ -58,6 +60,7 @@ impl Mutation for MutationType {
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 // TODO: actually do this randomly!
+                log::info!("mutating {:?}", String::from_utf8(source.to_vec()));
                 node.replace_part(source, " ".to_string() + "-" + " ", endl, startr)
             }
             MutationType::RequireMutation => {
