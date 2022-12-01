@@ -130,7 +130,7 @@ impl RunMutations {
             std::fs::create_dir_all(mut_file.parent().unwrap())
                 .expect("Unable to create output directory");
             log::info!("attempting to write to {}", mut_file.to_str().unwrap());
-            std::fs::write(&mut_file, mutant.clone()).expect("Failed to write mutant to file.");
+            std::fs::write(mut_file, mutant.clone()).expect("Failed to write mutant to file.");
             if seen.contains(&mutant) {
                 // skip this mutant.
             } else {
