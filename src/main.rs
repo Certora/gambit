@@ -75,7 +75,6 @@ impl MutantGenerator {
 
     /// Calls run_one for each file to mutate.
     pub fn run(self) {
-        // TODO: this is where we will likely start adding code to actually do the mutation generation.
         // TODO: figure out how to compile, assuming json is available rn.
         log::info!("starting run()");
         for f in &self.params.filenames {

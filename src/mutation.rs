@@ -60,7 +60,7 @@ impl Mutation for MutationType {
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 // TODO: actually do this randomly!
-                log::info!("mutating {:?}", String::from_utf8(source.to_vec()));
+                // log::info!("mutating {:?}", String::from_utf8(source.to_vec()));
                 node.replace_part(source, " ".to_string() + "-" + " ", endl, startr)
             }
             MutationType::RequireMutation => {

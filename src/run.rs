@@ -124,15 +124,17 @@ impl RunMutations {
             let mutant = mutation
                 .unwrap()
                 .mutate_randomly(point, &source, &mut self.rand);
-            let mut_file = self
+            let mut_file = &self
                 .out
-                .join(self.fnm.clone() + &attempts.to_string() + ".sol");
+                .join(self.fnm.clone() + &attempts.to_string() + ".json");
+            std::fs::create_dir_all(mut_file.parent().unwrap())
+                .expect("Unable to create output directory");
             log::info!("attempting to write to {}", mut_file.to_str().unwrap());
             std::fs::write(&mut_file, mutant.clone()).expect("Failed to write mutant to file.");
             if seen.contains(&mutant) {
                 // skip this mutant.
             } else {
-                mutants.push(mut_file);
+                mutants.push(mut_file.to_path_buf());
             }
             seen.push(mutant);
             attempts += 1;
