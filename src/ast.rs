@@ -145,7 +145,7 @@ impl SolAST {
         F: FnMut(&SolAST) -> Option<T>,
     {
         let mut result: Vec<T> = vec![];
-        log::info!("Entering traverse_internal");
+        log::info!("entering traverse_internal");
         self.traverse_internal(&mut visitor, &mut skip, &mut accept, false, &mut result);
         result
     }
@@ -177,10 +177,8 @@ impl SolAST {
             }
         }
         if self.element.is_some() {
-            // log::info!("element is not none");
             let e = self.element.unwrap();
             if e.is_object() {
-                log::info!("element is object");
                 let e_obj = e.as_object().unwrap();
                 for v in e_obj.values() {
                     let child: SolAST = SolAST::new(v.clone());
@@ -188,7 +186,6 @@ impl SolAST {
                     child.traverse_internal(visitor, skip, accept, accepted, acc);
                 }
             } else if e.is_array() {
-                log::info!("element is array");
                 let e_arr = e.as_array().unwrap();
                 for a in e_arr {
                     let child: SolAST = SolAST::new(a.clone());

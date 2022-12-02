@@ -108,36 +108,37 @@ impl RunMutations {
         let mut source = Vec::new();
         let mut f = File::open(&self.fnm).expect("File cannot be opened.");
         f.read_to_end(&mut source)
-            .expect("Cannot read from file {}");
+            .expect("Cannot read from file {}.");
 
         let mut attempts = 0;
         let mut mutants: Vec<PathBuf> = vec![];
         let mut seen: Vec<String> = vec![];
-        let source_to_str = std::str::from_utf8(&source).ok().unwrap().to_string();
+        let source_to_str = std::str::from_utf8(&source)
+            .expect("Cannot convert byte slice to string!")
+            .to_string();
         seen.push(source_to_str);
         while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
-            let mutation = mutation_points_todo.remove(0);
+            let mutation = mutation_points_todo.remove(0).unwrap();
             let points = &mutation_points
-                .get(mutation.unwrap())
-                .expect("Found unexpected mutation");
-            let point = points.choose(&mut self.rand).unwrap();
-            let mutant = mutation
-                .unwrap()
-                .mutate_randomly(point, &source, &mut self.rand);
-            let mut_file = &self
-                .out
-                .join(self.fnm.clone() + &attempts.to_string() + ".json");
-            std::fs::create_dir_all(mut_file.parent().unwrap())
-                .expect("Unable to create output directory");
-            log::info!("attempting to write to {}", mut_file.to_str().unwrap());
-            std::fs::write(mut_file, mutant.clone()).expect("Failed to write mutant to file.");
-            if seen.contains(&mutant) {
-                // skip this mutant.
-            } else {
-                mutants.push(mut_file.to_path_buf());
+                .get(mutation)
+                .expect("Found unexpected mutation.");
+            if let Some(point) = points.choose(&mut self.rand) {
+                let mutant = mutation.mutate_randomly(point, &source, &mut self.rand);
+                let mut_file = &self
+                    .out
+                    .join(self.fnm.clone() + &attempts.to_string() + ".sol");
+                std::fs::create_dir_all(mut_file.parent().unwrap())
+                    .expect("Unable to create output directory.");
+                log::info!("attempting to write to {}", mut_file.to_str().unwrap());
+                std::fs::write(mut_file, mutant.clone()).expect("Failed to write mutant to file.");
+                if seen.contains(&mutant) {
+                    // skip this mutant.
+                } else {
+                    mutants.push(mut_file.to_path_buf());
+                }
+                seen.push(mutant);
+                attempts += 1;
             }
-            seen.push(mutant);
-            attempts += 1;
         }
         mutants
     }

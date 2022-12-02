@@ -13,7 +13,11 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{fs::File, path::PathBuf, str::FromStr};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 mod ast;
 pub use ast::*;
@@ -41,10 +45,36 @@ impl MutantGenerator {
         }
     }
 
-    /// Parse the input solc files and get json ASTs.
-    // TODO: need to figure out how to parse the solidity files, using json as input for now.
-    pub fn parse_json(&self, sol: File) -> SolAST {
-        let ast_json: Value = serde_json::from_reader(sol).expect("AST json is not well-formed.");
+    /// Compile the input solc files and get json ASTs.
+    // TODO: need to do a more "best effort" invocation of solc.
+    pub fn compile_solc(&self, sol: &String, out: PathBuf) -> SolAST {
+        let sol_path = out.join("input_json/".to_owned() + sol);
+        std::fs::create_dir_all(sol_path.parent().unwrap())
+            .expect("Unable to create directory for storing input jsons.");
+        log::info!(
+            "made parent directories for writing the json file at {}.",
+            sol_path.to_str().unwrap()
+        );
+        std::process::Command::new(&self.params.solc)
+            .arg("--ast-compact-json")
+            .arg(sol.to_string())
+            .arg("-o")
+            .arg(sol_path.to_str().unwrap().to_string())
+            .arg("--overwrite")
+            .status()
+            .unwrap_or_else(|_| panic!("Failed to invoke {}.", self.params.solc));
+        let sol_fnm = Path::new(sol).file_name().unwrap().to_str().unwrap();
+        let ast_fnm = sol_fnm.to_owned() + "_json.ast";
+        let ast_path = sol_path.join(ast_fnm.to_owned());
+        let json_fnm = sol_path.join(ast_fnm.to_owned() + ".json");
+        println!("{:?}", &ast_path);
+        std::fs::copy(ast_path, &json_fnm).expect("Could not copy .ast content to .json");
+        let json_f = File::open(json_fnm).unwrap_or_else(|_| {
+            panic!("Cannot open the json file {}", &sol_path.to_str().unwrap())
+        });
+        // TODO: fix this
+        let ast_json: Value =
+            serde_json::from_reader(json_f).expect("AST json is not well-formed.");
         SolAST {
             element: Some(ast_json),
         }
@@ -52,8 +82,9 @@ impl MutantGenerator {
 
     /// Generate mutations for a single file.
     fn run_one(&self, file_to_mutate: &String) {
-        let ast = self.parse_json(File::open(file_to_mutate).ok().unwrap());
         let rand = self.rng.clone();
+        let outdir = Path::new(&self.params.outdir);
+        let ast = self.compile_solc(file_to_mutate, outdir.to_path_buf());
         let mut_types = self
             .params
             .mutations
@@ -66,7 +97,7 @@ impl MutantGenerator {
             ast,
             self.params.num_mutants,
             rand,
-            PathBuf::from_str(&self.params.outdir).unwrap(),
+            outdir.to_path_buf(),
             mut_types,
         );
         log::info!("running mutations on file: {}", file_to_mutate);
@@ -103,6 +134,8 @@ pub struct MutationParams {
     /// Mutation types to enable
     #[clap(long, required = true, multiple = true)]
     pub mutations: Vec<String>,
+    #[clap(long, default_value = "solc")]
+    pub solc: String,
 }
 
 /// Different commands we will support
