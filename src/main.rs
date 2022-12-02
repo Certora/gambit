@@ -57,16 +57,16 @@ impl MutantGenerator {
         );
         std::process::Command::new(&self.params.solc)
             .arg("--ast-compact-json")
-            .arg(sol.to_string())
+            .arg(sol)
             .arg("-o")
-            .arg(sol_path.to_str().unwrap().to_string())
+            .arg(sol_path.to_str().unwrap())
             .arg("--overwrite")
             .status()
             .unwrap_or_else(|_| panic!("Failed to invoke {}.", self.params.solc));
         let sol_fnm = Path::new(sol).file_name().unwrap().to_str().unwrap();
         let ast_fnm = sol_fnm.to_owned() + "_json.ast";
-        let ast_path = sol_path.join(ast_fnm.to_owned());
-        let json_fnm = sol_path.join(ast_fnm.to_owned() + ".json");
+        let ast_path = sol_path.join(&ast_fnm);
+        let json_fnm = sol_path.join(ast_fnm + ".json");
         println!("{:?}", &ast_path);
         std::fs::copy(ast_path, &json_fnm).expect("Could not copy .ast content to .json");
         let json_f = File::open(json_fnm).unwrap_or_else(|_| {
