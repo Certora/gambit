@@ -5,15 +5,12 @@ pub fn get_path_normals(path: &str) -> PathBuf {
     let comps = path.components().collect::<Vec<_>>();
     let normals: Vec<PathBuf> = comps
         .iter()
-        .filter(|c| match c {
-            std::path::Component::Normal(_) => true,
-            _ => false,
-        })
+        .filter(|c| matches!(c, std::path::Component::Normal(_)))
         .map(|c| Path::new(c).to_path_buf())
         .collect();
     let mut root = normals[0].clone();
-    for i in 1..normals.len() {
-        root.push(&normals[i]);
+    for item in normals.iter().skip(1) {
+        root.push(&item);
     }
     root.to_path_buf()
 }
