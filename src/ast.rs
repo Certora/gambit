@@ -127,7 +127,7 @@ impl SolAST {
     pub fn condition(&self) -> SolAST {
         self.get_node("condition")
     }
-    
+
     pub fn true_body(&self) -> SolAST {
         self.get_node("trueBody")
     }

@@ -52,7 +52,7 @@ impl Mutation for MutationType {
         match self {
             MutationType::BinaryOpMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "BinaryOperation"
+                    return n == "BinaryOperation";
                 }
             }
             MutationType::RequireMutation => {
@@ -70,46 +70,48 @@ impl Mutation for MutationType {
             }
             MutationType::AssignmentMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "Assignment"
+                    return n == "Assignment";
                 }
-            },
+            }
             MutationType::DeleteExpressionMutation => {
                 if let Some(n) = node.node_type() {
-                    return  n == "ExpressionStatement"
+                    return n == "ExpressionStatement";
                 }
-            },
+            }
             MutationType::FunctionCallMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && !node.arguments().is_empty()
+                    return n == "FunctionCall" && !node.arguments().is_empty();
                 }
-            },
+            }
             MutationType::IfStatementMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "IfStatement"
+                    return n == "IfStatement";
                 }
-            },
+            }
             MutationType::SwapArgumentsFunctionMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && node.arguments().len() > 1
+                    return n == "FunctionCall" && node.arguments().len() > 1;
                 }
-            },
+            }
             MutationType::SwapArgumentsOperatorMutation => {
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
-                    let op = node.operator().unwrap_or_else(|| panic!("Binary operator must have an operator!"));
-                    return n == "BinaryOperation" && non_comm_ops.contains(&op.as_str())
+                    let op = node
+                        .operator()
+                        .unwrap_or_else(|| panic!("Binary operator must have an operator!"));
+                    return n == "BinaryOperation" && non_comm_ops.contains(&op.as_str());
                 }
-            },
+            }
             MutationType::SwapLinesMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "Block" && node.statements().len() > 1
+                    return n == "Block" && node.statements().len() > 1;
                 }
-            },
+            }
             MutationType::UnaryOperatorMutation => {
                 if let Some(n) = node.node_type() {
-                    return n == "UnaryOperation"
+                    return n == "UnaryOperation";
                 }
-            },
+            }
         }
         false
     }
@@ -121,7 +123,12 @@ impl Mutation for MutationType {
                 let ops = vec!["+", "-", "*", "/", "%", "**"];
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
-                node.replace_part(source, " ".to_string() + ops.choose(rand).unwrap() + " ", endl, startr)
+                node.replace_part(
+                    source,
+                    " ".to_string() + ops.choose(rand).unwrap() + " ",
+                    endl,
+                    startr,
+                )
             }
             MutationType::RequireMutation => {
                 assert!(&self.is_mutation_point(node));
