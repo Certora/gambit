@@ -76,6 +76,10 @@ impl SolAST {
         self.get_node("expression")
     }
 
+    pub fn operator(&self) -> Option<String> {
+        self.get_string("operator")
+    }
+
     pub fn left_expression(&self) -> SolAST {
         self.get_node("leftExpression")
     }
@@ -123,6 +127,7 @@ impl SolAST {
     pub fn condition(&self) -> SolAST {
         self.get_node("condition")
     }
+    
     pub fn true_body(&self) -> SolAST {
         self.get_node("trueBody")
     }
