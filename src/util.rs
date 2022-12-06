@@ -10,7 +10,7 @@ pub fn get_path_normals(path: &str) -> PathBuf {
         .collect();
     let mut root = normals[0].clone();
     for item in normals.iter().skip(1) {
-        root.push(&item);
+        root.push(item);
     }
     root.to_path_buf()
 }
