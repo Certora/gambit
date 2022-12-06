@@ -167,13 +167,13 @@ impl SolAST {
             return;
         }
         if new_accepted {
-            log::info!("about to visit {:?}", &self);
+            // log::info!("about to visit {:?}", &self);
             let res = visitor(&self);
             if let Some(r) = res {
                 log::info!("adding results to list of accepted nodes");
                 acc.push(r)
             } else {
-                log::info!("no mutation points found");
+                // log::info!("no mutation points found");
             }
         }
         if self.element.is_some() {
@@ -182,14 +182,14 @@ impl SolAST {
                 let e_obj = e.as_object().unwrap();
                 for v in e_obj.values() {
                     let child: SolAST = SolAST::new(v.clone());
-                    log::info!("child: {:?}", child);
+                    // log::info!("child: {:?}", child);
                     child.traverse_internal(visitor, skip, accept, accepted, acc);
                 }
             } else if e.is_array() {
                 let e_arr = e.as_array().unwrap();
                 for a in e_arr {
                     let child: SolAST = SolAST::new(a.clone());
-                    log::info!("child: {:?}", child.name());
+                    // log::info!("child: {:?}", child.name());
                     child.traverse_internal(visitor, skip, accept, accepted, acc);
                 }
             }

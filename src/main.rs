@@ -21,12 +21,12 @@ use std::{
 
 mod ast;
 pub use ast::*;
-
 mod mutation;
 pub use mutation::*;
-
 mod run;
 pub use run::*;
+mod util;
+pub use util::*;
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
@@ -48,7 +48,11 @@ impl MutantGenerator {
     /// Compile the input solc files and get json ASTs.
     // TODO: need to do a more "best effort" invocation of solc.
     pub fn compile_solc(&self, sol: &String, out: PathBuf) -> SolAST {
-        let sol_path = out.join("input_json/".to_owned() + sol);
+        let norms_to_path = get_path_normals(sol);
+        let norm_sol = norms_to_path.to_str().unwrap_or_else(|| {
+            panic!("Could not convert the path to the sol file to a normalized version.")
+        });
+        let sol_path = out.join("input_json/".to_owned() + norm_sol);
         std::fs::create_dir_all(sol_path.parent().unwrap())
             .expect("Unable to create directory for storing input jsons.");
         log::info!(
@@ -63,16 +67,19 @@ impl MutantGenerator {
             .arg("--overwrite")
             .status()
             .unwrap_or_else(|_| panic!("Failed to invoke {}.", self.params.solc));
-        let sol_fnm = Path::new(sol).file_name().unwrap().to_str().unwrap();
-        let ast_fnm = sol_fnm.to_owned() + "_json.ast";
+        let ast_fnm = Path::new(sol)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned()
+            + "_json.ast";
         let ast_path = sol_path.join(&ast_fnm);
         let json_fnm = sol_path.join(ast_fnm + ".json");
-        println!("{:?}", &ast_path);
         std::fs::copy(ast_path, &json_fnm).expect("Could not copy .ast content to .json");
-        let json_f = File::open(json_fnm).unwrap_or_else(|_| {
-            panic!("Cannot open the json file {}", &sol_path.to_str().unwrap())
+        let json_f = File::open(&json_fnm).unwrap_or_else(|_| {
+            panic!("Cannot open the json file {}", &json_fnm.to_str().unwrap())
         });
-        // TODO: fix this
         let ast_json: Value =
             serde_json::from_reader(json_f).expect("AST json is not well-formed.");
         SolAST {
@@ -106,7 +113,6 @@ impl MutantGenerator {
 
     /// Calls run_one for each file to mutate.
     pub fn run(self) {
-        // TODO: figure out how to compile, assuming json is available rn.
         log::info!("starting run()");
         for f in &self.params.filenames {
             self.run_one(f);
@@ -121,8 +127,7 @@ pub struct MutationParams {
     /// Directory to store all mutants
     #[clap(long, default_value = "out")]
     pub outdir: String,
-    /// Json file(s) to mutate
-    // TODO: this should eventually be a sol file when we figure out how to compile and get the json AST properly.
+    /// Solidity file(s) to mutate
     #[clap(short, long, required = true, multiple = true)]
     pub filenames: Vec<String>,
     /// Seed for random number generator
@@ -138,7 +143,6 @@ pub struct MutationParams {
     pub solc: String,
 }
 
-/// Different commands we will support
 #[derive(Parser)]
 #[clap(rename_all = "kebab-case")]
 pub enum Command {

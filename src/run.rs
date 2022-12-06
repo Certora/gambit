@@ -8,7 +8,7 @@ use std::{
 };
 
 use crate::{
-    ast, mutation, Mutation,
+    ast, get_path_normals, mutation, Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -69,7 +69,7 @@ impl RunMutations {
         let skip = Self::is_assert_call;
         // TODO: add the case where we have specific functions from the user to mutate.
         let accept = |_: &SolAST| true; // node.node_type().map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
-        log::info!("starting AST traversal for node: {:?}", self.node);
+                                        // log::info!("starting AST traversal for node: {:?}", self.node);
         let mutations = self.node.traverse(visitor, skip, accept);
         log::info!("found {} mutations", mutations.len());
         let mut flatten: Vec<(MutationType, SolAST)> = vec![];
@@ -124,9 +124,10 @@ impl RunMutations {
                 .expect("Found unexpected mutation.");
             if let Some(point) = points.choose(&mut self.rand) {
                 let mutant = mutation.mutate_randomly(point, &source, &mut self.rand);
+                let norm_path = get_path_normals(&self.fnm);
                 let mut_file = &self
                     .out
-                    .join(self.fnm.clone() + &attempts.to_string() + ".sol");
+                    .join(norm_path.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol");
                 std::fs::create_dir_all(mut_file.parent().unwrap())
                     .expect("Unable to create output directory.");
                 log::info!("attempting to write to {}", mut_file.to_str().unwrap());
