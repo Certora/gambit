@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 contract TenPower {
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
-        return 10**decimals;
+        uint256 a = 10;
+        uint256 res = a**decimals;
+        return res;
     }
 }

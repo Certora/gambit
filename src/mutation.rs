@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::SolAST;
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom};
 use rand_pcg::*;
 
 /// Every kind of mutation implements this trait.
@@ -136,7 +136,10 @@ impl Mutation for MutationType {
                 arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
             }
             MutationType::AssignmentMutation => todo!(),
-            MutationType::DeleteExpressionMutation => todo!(),
+            MutationType::DeleteExpressionMutation => {
+                assert!(&self.is_mutation_point(node));
+                return node.comment_out(source)
+            },
             MutationType::FunctionCallMutation => todo!(),
             MutationType::IfStatementMutation => todo!(),
             MutationType::SwapArgumentsFunctionMutation => todo!(),

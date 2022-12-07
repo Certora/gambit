@@ -1,6 +1,8 @@
+use regex::Regex;
 use serde::Deserialize;
 use serde_json::Value;
 
+#[derive(Debug, Deserialize, Default, Clone)]
 pub struct TypeDescriptions {
     pub(crate) element: Option<Value>,
 }
@@ -136,8 +138,11 @@ impl SolAST {
         self.get_node("falseBody")
     }
 
-    pub fn get_type_descs(&self) -> Option<TypeDescriptions> {
-        self.get_object().map(TypeDescriptions::new)
+    pub fn get_type_descs(&self) -> TypeDescriptions {
+        let obj = self
+            .get_object()
+            .unwrap_or_else(|| panic!("There is no type description."));
+        TypeDescriptions::new(obj["typeDescriptions"].clone())
     }
 
     pub fn traverse<T, F>(
@@ -225,5 +230,23 @@ impl SolAST {
         let after = &source[end..source.len()];
         let res = [before, changed, after].concat();
         String::from_utf8(res).expect("Slice is not u8.")
+    }
+
+    pub fn comment_out(&self, source: &[u8]) -> String {
+        let (start, mut end) = self.get_bounds();
+        let rest_of_str = String::from_utf8(source[end..source.len()].to_vec())
+            .unwrap_or_else(|_| panic!("cannot convert bytes to string."));
+        let mtch = Regex::new("^\\*").unwrap().find(&rest_of_str.as_str());
+        if let Some(m) = mtch {
+            end += rest_of_str[0..m.range().last().unwrap() + 1]
+                .as_bytes()
+                .len();
+        }
+        return self.replace_part(
+            source,
+            "/*".to_string() + &String::from_utf8(source[start..end].to_vec()).unwrap() + "*/",
+            start,
+            end,
+        );
     }
 }

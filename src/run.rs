@@ -70,76 +70,82 @@ impl RunMutations {
         // TODO: add the case where we have specific functions from the user to mutate.
         let accept = |_: &SolAST| true; // node.node_type().map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
         let mutations = self.node.traverse(visitor, skip, accept);
-        log::info!("found {} mutations", mutations.len());
-        let mut flatten: Vec<(MutationType, SolAST)> = vec![];
-        for inner in mutations {
-            for elem in inner {
-                flatten.push(elem);
-            }
-        }
-        let (mut_types, _): (Vec<MutationType>, Vec<SolAST>) = flatten.iter().cloned().unzip();
-        let mut_types: Vec<MutationType> = mut_types.iter().unique().cloned().collect();
-        let mut mutation_points: HashMap<MutationType, Vec<SolAST>> = HashMap::new();
-
-        for mutt in mut_types {
-            let mut nodes = vec![];
-            for (m, n) in &flatten {
-                if mutt == *m {
-                    nodes.push(n.clone());
+        if !mutations.is_empty() {
+            log::info!("found {} mutations", mutations.len());
+            let mut flatten: Vec<(MutationType, SolAST)> = vec![];
+            for inner in mutations {
+                for elem in inner {
+                    flatten.push(elem);
                 }
             }
-            mutation_points.insert(mutt, nodes);
-        }
+            let (mut_types, _): (Vec<MutationType>, Vec<SolAST>) = flatten.iter().cloned().unzip();
+            let mut_types: Vec<MutationType> = mut_types.iter().unique().cloned().collect();
+            let mut mutation_points: HashMap<MutationType, Vec<SolAST>> = HashMap::new();
 
-        let mut mutation_points_todo = VecDeque::new();
-        let point_list: Vec<MutationType> = mutation_points.clone().into_keys().collect();
-        // TODO: check that point_list is not empty.
-        let mut remaining = self.num_mutants;
-        while remaining > 0 {
-            let to_take = std::cmp::min(remaining, point_list.len());
-            let selected: Vec<&MutationType> = point_list.iter().take(to_take).collect();
-            for s in selected {
-                mutation_points_todo.push_back(s);
-            }
-            remaining -= point_list.len();
-        }
-
-        let mut source = Vec::new();
-        let mut f = File::open(&self.fnm).expect("File cannot be opened.");
-        f.read_to_end(&mut source)
-            .expect("Cannot read from file {}.");
-
-        let mut attempts = 0;
-        let mut mutants: Vec<PathBuf> = vec![];
-        let mut seen: Vec<String> = vec![];
-        let source_to_str = std::str::from_utf8(&source)
-            .expect("Cannot convert byte slice to string!")
-            .to_string();
-        seen.push(source_to_str);
-        while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
-            let mutation = mutation_points_todo.remove(0).unwrap();
-            let points = &mutation_points
-                .get(mutation)
-                .expect("Found unexpected mutation.");
-            if let Some(point) = points.choose(&mut self.rand) {
-                let mutant = mutation.mutate_randomly(point, &source, &mut self.rand);
-                let norm_path = get_path_normals(&self.fnm);
-                let mut_file = &self
-                    .out
-                    .join(norm_path.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol");
-                std::fs::create_dir_all(mut_file.parent().unwrap())
-                    .expect("Unable to create output directory.");
-                log::info!("attempting to write to {}", mut_file.to_str().unwrap());
-                std::fs::write(mut_file, mutant.clone()).expect("Failed to write mutant to file.");
-                if seen.contains(&mutant) {
-                    // skip this mutant.
-                } else {
-                    mutants.push(mut_file.to_path_buf());
+            for mutt in mut_types {
+                let mut nodes = vec![];
+                for (m, n) in &flatten {
+                    if mutt == *m {
+                        nodes.push(n.clone());
+                    }
                 }
-                seen.push(mutant);
-                attempts += 1;
+                mutation_points.insert(mutt, nodes);
             }
+
+            let mut mutation_points_todo = VecDeque::new();
+            let point_list: Vec<MutationType> = mutation_points.clone().into_keys().collect();
+            // TODO: check that point_list is not empty.
+            let mut remaining = self.num_mutants;
+            while remaining > 0 {
+                let to_take = std::cmp::min(remaining, point_list.len());
+                let selected: Vec<&MutationType> = point_list.iter().take(to_take).collect();
+                for s in selected {
+                    mutation_points_todo.push_back(s);
+                }
+                remaining -= point_list.len();
+            }
+
+            let mut source = Vec::new();
+            let mut f = File::open(&self.fnm).expect("File cannot be opened.");
+            f.read_to_end(&mut source)
+                .expect("Cannot read from file {}.");
+
+            let mut attempts = 0;
+            let mut mutants: Vec<PathBuf> = vec![];
+            let mut seen: Vec<String> = vec![];
+            let source_to_str = std::str::from_utf8(&source)
+                .expect("Cannot convert byte slice to string!")
+                .to_string();
+            seen.push(source_to_str);
+            while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
+                let mutation = mutation_points_todo.remove(0).unwrap();
+                let points = &mutation_points
+                    .get(mutation)
+                    .expect("Found unexpected mutation.");
+                if let Some(point) = points.choose(&mut self.rand) {
+                    let mutant = mutation.mutate_randomly(point, &source, &mut self.rand);
+                    let norm_path = get_path_normals(&self.fnm);
+                    let mut_file = &self.out.join(
+                        norm_path.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol",
+                    );
+                    std::fs::create_dir_all(mut_file.parent().unwrap())
+                        .expect("Unable to create output directory.");
+                    log::info!("attempting to write to {}", mut_file.to_str().unwrap());
+                    std::fs::write(mut_file, mutant.clone())
+                        .expect("Failed to write mutant to file.");
+                    if seen.contains(&mutant) {
+                        // skip this mutant.
+                    } else {
+                        mutants.push(mut_file.to_path_buf());
+                    }
+                    seen.push(mutant);
+                    attempts += 1;
+                }
+            }
+            return mutants
+        } else {
+            log::info!("Did not find any mutations");
+            return vec![]
         }
-        mutants
     }
 }
