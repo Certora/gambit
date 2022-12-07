@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use regex::Regex;
 use serde::Deserialize;
 use serde_json::Value;
@@ -19,6 +20,12 @@ impl TypeDescriptions {
     pub fn type_string(&self) -> Option<String> {
         self.element.as_ref().map(|e| e["typeString"].to_string())
     }
+}
+
+struct Replacement {
+    start: usize,
+    end: usize,
+    new: String,
 }
 
 /// AST representation.
@@ -230,6 +237,33 @@ impl SolAST {
         let after = &source[end..source.len()];
         let res = [before, changed, after].concat();
         String::from_utf8(res).expect("Slice is not u8.")
+    }
+
+    pub fn replace_multiple(&self, source: &[u8], reps: Vec<(SolAST, String)>) -> String {
+        let sorted = reps
+            .iter()
+            .map(|(node, n)| {
+                let (s, e) = node.get_bounds();
+                Replacement {
+                    start: s,
+                    end: e,
+                    new: n.to_string(),
+                }
+            })
+            .sorted_by_key(|x| x.start);
+        let mut new_src = source.to_vec();
+        let mut curr_offset = 0;
+        for r in sorted {
+            let actual_start = r.start + curr_offset;
+            let actual_end = r.end + curr_offset;
+            let replace_bytes = r.new.as_bytes();
+            let nw_st = &new_src[0..actual_start];
+            let nw_ed = &new_src[actual_end..new_src.len()];
+            new_src = [nw_st, replace_bytes, nw_ed].concat();
+            let nw_offset = replace_bytes.len() - (r.end - r.start);
+            curr_offset += nw_offset;
+        }
+        return String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.");
     }
 
     pub fn comment_out(&self, source: &[u8]) -> String {
