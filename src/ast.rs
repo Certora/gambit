@@ -236,17 +236,17 @@ impl SolAST {
         let (start, mut end) = self.get_bounds();
         let rest_of_str = String::from_utf8(source[end..source.len()].to_vec())
             .unwrap_or_else(|_| panic!("cannot convert bytes to string."));
-        let mtch = Regex::new("^\\*").unwrap().find(&rest_of_str.as_str());
+        let mtch = Regex::new("^\\*").unwrap().find(rest_of_str.as_str());
         if let Some(m) = mtch {
             end += rest_of_str[0..m.range().last().unwrap() + 1]
                 .as_bytes()
                 .len();
         }
-        return self.replace_part(
+        self.replace_part(
             source,
             "/*".to_string() + &String::from_utf8(source[start..end].to_vec()).unwrap() + "*/",
             start,
             end,
-        );
+        )
     }
 }

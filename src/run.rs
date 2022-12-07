@@ -142,10 +142,10 @@ impl RunMutations {
                     attempts += 1;
                 }
             }
-            return mutants
+            mutants
         } else {
             log::info!("Did not find any mutations");
-            return vec![]
+            vec![]
         }
     }
 }
