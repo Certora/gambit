@@ -230,8 +230,11 @@ impl Mutation for MutationType {
             }
             MutationType::AssignmentMutation => {
                 assert!(&self.is_mutation_point(node));
-                let rnd = &rand.next_u64().to_string();
-                let new = vec!["true", "false", "0", "1", rnd];
+                let new: Vec<String> =
+                    vec!["true", "false", "0", "1", &rand.next_u64().to_string()]
+                        .iter()
+                        .map(|e| e.to_string())
+                        .collect();
                 let rhs = node.right_hand_side();
                 match rhs.element {
                     Some(_) => rhs.replace_in_source(source, new.choose(rand).unwrap().to_string()),

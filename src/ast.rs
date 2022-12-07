@@ -257,11 +257,11 @@ impl SolAST {
             let actual_start = r.start + curr_offset;
             let actual_end = r.end + curr_offset;
             let replace_bytes = r.new.as_bytes();
-            let nw_st = &new_src[0..actual_start];
-            let nw_ed = &new_src[actual_end..new_src.len()];
-            new_src = [nw_st, replace_bytes, nw_ed].concat();
-            let nw_offset = replace_bytes.len() - (r.end - r.start);
-            curr_offset += nw_offset;
+            let new_start = &new_src[0..actual_start];
+            let new_end = &new_src[actual_end..new_src.len()];
+            new_src = [new_start, replace_bytes, new_end].concat();
+            let new_offset = replace_bytes.len() - (r.end - r.start);
+            curr_offset += new_offset;
         }
         String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.")
     }
