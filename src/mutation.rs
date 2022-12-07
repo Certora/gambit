@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::SolAST;
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, RngCore};
 use rand_pcg::*;
 
 /// Every kind of mutation implements this trait.
@@ -203,11 +203,11 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::UnaryOperatorMutation => {
+                assert!(&self.is_mutation_point(node));
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
                 let is_prefix =
                     |source: &[u8], op: &String| -> bool { return source[0] == op.as_bytes()[0] };
-                assert!(&self.is_mutation_point(node));
                 let (start, end) = node.get_bounds();
                 let op = node
                     .operator()
@@ -228,7 +228,16 @@ impl Mutation for MutationType {
                     )
                 };
             }
-            MutationType::AssignmentMutation => todo!(),
+            MutationType::AssignmentMutation => {
+                assert!(&self.is_mutation_point(node));
+                let rnd = &rand.next_u64().to_string();
+                let new = vec!["true", "false", "0", "1", rnd];
+                let rhs = node.right_hand_side();
+                match rhs.element {
+                    Some(_) => rhs.replace_in_source(source, new.choose(rand).unwrap().to_string()),
+                    None => panic!("No rhs for this assignment!"),
+                }
+            }
         }
     }
 }
