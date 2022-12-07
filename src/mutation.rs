@@ -185,7 +185,7 @@ impl Mutation for MutationType {
                         (right, left.get_text(source)),
                     ],
                 )
-            },
+            }
             MutationType::SwapLinesMutation => {
                 assert!(&self.is_mutation_point(node));
                 let mut stmts = node.statements();
@@ -201,22 +201,33 @@ impl Mutation for MutationType {
                 } else {
                     node.get_text(source)
                 }
-            },
+            }
             MutationType::UnaryOperatorMutation => {
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
-                let is_prefix = |source: &[u8], op: &String| -> bool {
-                    return source[0] == op.as_bytes()[0]
-                };
+                let is_prefix =
+                    |source: &[u8], op: &String| -> bool { return source[0] == op.as_bytes()[0] };
                 assert!(&self.is_mutation_point(node));
                 let (start, end) = node.get_bounds();
-                let op = node.operator().expect("Unary operation must have an operator!");
+                let op = node
+                    .operator()
+                    .expect("Unary operation must have an operator!");
                 return if is_prefix(source, &op) {
-                    node.replace_part(source, prefix_ops.choose(rand).unwrap().to_string(), start, start + op.len())
+                    node.replace_part(
+                        source,
+                        prefix_ops.choose(rand).unwrap().to_string(),
+                        start,
+                        start + op.len(),
+                    )
                 } else {
-                    node.replace_part(source, suffix_ops.choose(rand).unwrap().to_string(), end - op.len(), end)
-                }
-            },
+                    node.replace_part(
+                        source,
+                        suffix_ops.choose(rand).unwrap().to_string(),
+                        end - op.len(),
+                        end,
+                    )
+                };
+            }
             MutationType::AssignmentMutation => todo!(),
         }
     }

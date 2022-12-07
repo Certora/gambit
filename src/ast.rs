@@ -263,7 +263,7 @@ impl SolAST {
             let nw_offset = replace_bytes.len() - (r.end - r.start);
             curr_offset += nw_offset;
         }
-        return String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.");
+        String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.")
     }
 
     pub fn comment_out(&self, source: &[u8]) -> String {
