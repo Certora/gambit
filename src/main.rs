@@ -16,7 +16,8 @@ use serde_json::Value;
 use std::{
     fs::File,
     path::{Path, PathBuf},
-    str::FromStr, process::ExitStatus,
+    process::ExitStatus,
+    str::FromStr,
 };
 
 mod ast;
@@ -49,7 +50,7 @@ impl MutantGenerator {
         return std::process::Command::new(&cmd)
             .args(args.iter().map(|a| a.to_string()))
             .status()
-            .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd))
+            .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd));
     }
 
     /// Compile the input solc files and get json ASTs.
