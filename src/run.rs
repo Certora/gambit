@@ -68,6 +68,7 @@ impl RunMutations {
 
         let skip = Self::is_assert_call;
         // TODO: add the case where we have specific functions from the user to mutate.
+        // TODO: allow manual mutations too
         let accept = |_: &SolAST| true; // node.node_type().map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
         let mutations = self.node.traverse(visitor, skip, accept);
         if !mutations.is_empty() {
@@ -138,6 +139,7 @@ impl RunMutations {
                     } else {
                         mutants.push(mut_file.to_path_buf());
                     }
+                    // TODO: run the solidity compiler here to check that the mutant compiles.
                     seen.push(mutant);
                     attempts += 1;
                 }

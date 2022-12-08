@@ -16,7 +16,7 @@ use serde_json::Value;
 use std::{
     fs::File,
     path::{Path, PathBuf},
-    str::FromStr,
+    str::FromStr, process::ExitStatus,
 };
 
 mod ast;
@@ -45,6 +45,13 @@ impl MutantGenerator {
         }
     }
 
+    pub fn invoke_command(&self, cmd: &String, args: Vec<&str>) -> ExitStatus {
+        return std::process::Command::new(&cmd)
+            .args(args.iter().map(|a| a.to_string()))
+            .status()
+            .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd))
+    }
+
     /// Compile the input solc files and get json ASTs.
     // TODO: need to do a more "best effort" invocation of solc.
     pub fn compile_solc(&self, sol: &String, out: PathBuf) -> SolAST {
@@ -59,14 +66,16 @@ impl MutantGenerator {
             "made parent directories for writing the json file at {}.",
             sol_path.to_str().unwrap()
         );
-        std::process::Command::new(&self.params.solc)
-            .arg("--ast-compact-json")
-            .arg(sol)
-            .arg("-o")
-            .arg(sol_path.to_str().unwrap())
-            .arg("--overwrite")
-            .status()
-            .unwrap_or_else(|_| panic!("Failed to invoke {}.", self.params.solc));
+        let _status = self.invoke_command(
+            &self.params.solc,
+            vec![
+                "--ast-compact-json",
+                sol,
+                "-o",
+                sol_path.to_str().unwrap(),
+                "--overwrite",
+            ],
+        );
         let ast_fnm = Path::new(sol)
             .file_name()
             .unwrap()
