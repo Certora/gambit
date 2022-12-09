@@ -50,7 +50,7 @@ impl RunMutations {
         node.name().map_or_else(|| false, |n| n == "assert")
     }
 
-    pub fn get_mutations(mut self) -> Vec<PathBuf> {
+    pub fn get_mutations(mut self, mut is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
         let visitor = |node: &ast::SolAST| {
             let mapping: Vec<(mutation::MutationType, ast::SolAST)> = self
                 .mutations
@@ -136,10 +136,11 @@ impl RunMutations {
                         .expect("Failed to write mutant to file.");
                     if seen.contains(&mutant) {
                         // skip this mutant.
-                    } else {
+                    } else if is_valid(mut_file.to_str().unwrap()) {
                         mutants.push(mut_file.to_path_buf());
+                    } else {
+                        mutation_points_todo.push_back(mutation);
                     }
-                    // TODO: run the solidity compiler here to check that the mutant compiles.
                     seen.push(mutant);
                     attempts += 1;
                 }

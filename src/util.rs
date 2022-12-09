@@ -1,5 +1,13 @@
 use std::path::{Path, PathBuf};
 
+pub fn invoke_command(cmd: &str, args: Vec<&str>) -> bool {
+    return std::process::Command::new(&cmd)
+        .args(args.iter().map(|a| a.to_string()))
+        .status()
+        .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd))
+        .success();
+}
+
 pub fn get_path_normals(path: &str) -> PathBuf {
     let path = Path::new(path);
     let comps = path.components().collect::<Vec<_>>();

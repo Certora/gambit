@@ -16,7 +16,6 @@ use serde_json::Value;
 use std::{
     fs::File,
     path::{Path, PathBuf},
-    process::ExitStatus,
     str::FromStr,
 };
 
@@ -46,13 +45,6 @@ impl MutantGenerator {
         }
     }
 
-    pub fn invoke_command(&self, cmd: &String, args: Vec<&str>) -> ExitStatus {
-        return std::process::Command::new(&cmd)
-            .args(args.iter().map(|a| a.to_string()))
-            .status()
-            .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd));
-    }
-
     /// Compile the input solc files and get json ASTs.
     // TODO: need to do a more "best effort" invocation of solc.
     pub fn compile_solc(&self, sol: &String, out: PathBuf) -> SolAST {
@@ -67,7 +59,7 @@ impl MutantGenerator {
             "made parent directories for writing the json file at {}.",
             sol_path.to_str().unwrap()
         );
-        let _status = self.invoke_command(
+        invoke_command(
             &self.params.solc,
             vec![
                 "--ast-compact-json",
@@ -118,7 +110,11 @@ impl MutantGenerator {
             mut_types,
         );
         log::info!("running mutations on file: {}", file_to_mutate);
-        run_mutation.get_mutations();
+
+        let is_valid =
+            |mut_file: &str| -> bool { invoke_command(&self.params.solc, vec![mut_file]) };
+
+        run_mutation.get_mutations(is_valid);
     }
 
     /// Calls run_one for each file to mutate.
