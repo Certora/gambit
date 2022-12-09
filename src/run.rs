@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use rand::seq::SliceRandom;
 use std::{
-    collections::{HashMap, VecDeque},
+    collections::{HashMap, HashSet, VecDeque},
     fs::File,
     io::Read,
     path::PathBuf,
@@ -69,6 +69,7 @@ impl RunMutations {
         let skip = Self::is_assert_call;
         // TODO: add the case where we have specific functions from the user to mutate.
         // TODO: allow manual mutations too
+        // TODO: allow diffs
         let accept = |_: &SolAST| true; // node.node_type().map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
         let mutations = self.node.traverse(visitor, skip, accept);
         if !mutations.is_empty() {
@@ -113,11 +114,11 @@ impl RunMutations {
 
             let mut attempts = 0;
             let mut mutants: Vec<PathBuf> = vec![];
-            let mut seen: Vec<String> = vec![];
+            let mut seen: HashSet<String> = HashSet::new();
             let source_to_str = std::str::from_utf8(&source)
                 .expect("Cannot convert byte slice to string!")
                 .to_string();
-            seen.push(source_to_str);
+            seen.insert(source_to_str);
             while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
                 let mutation = mutation_points_todo.remove(0).unwrap();
                 let points = &mutation_points
@@ -125,23 +126,25 @@ impl RunMutations {
                     .expect("Found unexpected mutation.");
                 if let Some(point) = points.choose(&mut self.rand) {
                     let mutant = mutation.mutate_randomly(point, &source, &mut self.rand);
-                    let norm_path = get_path_normals(&self.fnm);
-                    let mut_file = &self.out.join(
-                        norm_path.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol",
-                    );
-                    std::fs::create_dir_all(mut_file.parent().unwrap())
-                        .expect("Unable to create output directory.");
-                    log::info!("attempting to write to {}", mut_file.to_str().unwrap());
-                    std::fs::write(mut_file, mutant.clone())
-                        .expect("Failed to write mutant to file.");
-                    if seen.contains(&mutant) {
-                        // skip this mutant.
-                    } else if is_valid(mut_file.to_str().unwrap()) {
-                        mutants.push(mut_file.to_path_buf());
+                    if is_valid(&mutant) {
+                        if !seen.contains(&mutant) {
+                            let norm_path = get_path_normals(&self.fnm);
+                            let mut_file = &self.out.join(
+                                norm_path.to_str().unwrap().to_owned()
+                                    + &attempts.to_string()
+                                    + ".sol",
+                            );
+                            std::fs::create_dir_all(mut_file.parent().unwrap())
+                                .expect("Unable to create output directory.");
+                            log::info!("attempting to write to {}", mut_file.to_str().unwrap());
+                            std::fs::write(mut_file, &mutant)
+                                .expect("Failed to write mutant to file.");
+                            mutants.push(mut_file.to_path_buf());
+                            seen.insert(mutant);
+                        }
                     } else {
                         mutation_points_todo.push_back(mutation);
                     }
-                    seen.push(mutant);
                     attempts += 1;
                 }
             }

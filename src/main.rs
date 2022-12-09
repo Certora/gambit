@@ -111,8 +111,15 @@ impl MutantGenerator {
         );
         log::info!("running mutations on file: {}", file_to_mutate);
 
-        let is_valid =
-            |mut_file: &str| -> bool { invoke_command(&self.params.solc, vec![mut_file]) };
+        let is_valid = |mutant: &str| -> bool {
+            let tmp_file = "tmp.sol";
+            std::fs::write(tmp_file, mutant)
+                .expect("Cannot write mutant to temp file for compiling.");
+            let valid = invoke_command(&self.params.solc, vec![tmp_file]);
+            std::fs::remove_file(tmp_file)
+                .expect("Cannot remove temp file made for checking mutant validity.");
+            valid
+        };
 
         run_mutation.get_mutations(is_valid);
     }
