@@ -81,7 +81,7 @@ impl RunMutations {
                 }
             }
             let (mut_types, _): (Vec<MutationType>, Vec<SolAST>) = flatten.iter().cloned().unzip();
-            let mut_types: Vec<MutationType> = mut_types.iter().unique().cloned().collect();
+            let mut_types: Vec<MutationType> = mut_types.into_iter().unique().collect();
             let mut mutation_points: HashMap<MutationType, Vec<SolAST>> = HashMap::new();
 
             for mutt in mut_types {
@@ -121,7 +121,7 @@ impl RunMutations {
             seen.insert(source_to_str);
             while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
                 let mutation = mutation_points_todo.remove(0).unwrap();
-                let points = &mutation_points
+                let points = mutation_points
                     .get(mutation)
                     .expect("Found unexpected mutation.");
                 if let Some(point) = points.choose(&mut self.rand) {
