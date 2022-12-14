@@ -13,6 +13,7 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::fmt::{Debug, Display};
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -133,26 +134,59 @@ impl MutantGenerator {
     }
 }
 
-/// Command line arguments for running Gambit
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[clap(rename_all = "kebab-case")]
+pub struct ToMutate {
+    filename: Option<String>,
+    functions: Vec<String>,
+    mutations: Vec<String>,
+}
+
+impl FromStr for ToMutate {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let files = s.split("--filename");
+        for f in files.skip(1) {
+            let funcs = f.split("--functions").collect::<Vec<&str>>();
+            let file_to_mutate = funcs[0];
+            for func in funcs.iter().skip(1) {
+                let mut_types = func.split("--mutations");
+                for mut_type in mut_types {}
+            }
+        }
+        Ok(ToMutate {
+            filename: Some("foo".to_owned()),
+            functions: vec![],
+            mutations: vec![],
+        })
+    }
+}
+
+// cargo run --release -- mutate --filename foo.sol --functions a b c --mutations X Y --filename bar.sol --functions a d e --mutations Z X
+
+/// Command line arguments for running Gambit
+#[derive(Debug, Clone, Parser, Deserialize, Serialize)]
+#[command(rename_all = "kebab-case")]
 pub struct MutationParams {
     /// Directory to store all mutants
-    #[clap(long, default_value = "out")]
+    #[arg(long, default_value = "out")]
     pub outdir: String,
-    /// Solidity file(s) to mutate
-    #[clap(short, long, required = true, multiple = true)]
-    pub filenames: Vec<String>,
     /// Seed for random number generator
-    #[clap(long, default_value = "0")]
+    #[arg(long, default_value = "0")]
     pub seed: u64,
     /// Num mutants
-    #[clap(long, default_value = "5")]
+    #[arg(long, default_value = "5")]
     pub num_mutants: usize,
+    // #[clap(long, required = false)]
+    // pub to_mutate: String,
     /// Mutation types to enable
-    #[clap(long, required = true, multiple = true)]
+    #[arg(long, required = false)]
     pub mutations: Vec<String>,
-    #[clap(long, default_value = "solc")]
+    /// Files to mutate
+    #[arg(long, required = false)]
+    pub filenames: Vec<String>,
+    #[arg(long, default_value = "solc")]
     pub solc: String,
 }
 
@@ -172,3 +206,9 @@ fn main() {
         }
     }
 }
+
+// TODO: add the case where we have specific functions from the user to mutate.
+// TODO: allow manual mutations too
+// TODO: allow diffs
+// TODO: make mutations optional argument. Try all in that case.
+// TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.
