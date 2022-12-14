@@ -1,4 +1,3 @@
-use core::num;
 use itertools::Itertools;
 use rand::seq::SliceRandom;
 use std::{
@@ -66,7 +65,7 @@ impl RunMutations {
         mut_dir
     }
 
-    pub fn get_closures(
+    pub fn mk_closures(
         mutation_types: Vec<MutationType>,
     ) -> (
         impl FnMut(&SolAST) -> Option<Vec<(mutation::MutationType, ast::SolAST)>>,
@@ -91,9 +90,55 @@ impl RunMutations {
         (visitor, skip, accept)
     }
 
+    fn inner_loop(
+        mut_dir: PathBuf,
+        fnm: String,
+        num_mutants: usize,
+        mut rand: rand_pcg::Pcg64,
+        mut is_valid: impl FnMut(&str) -> bool,
+        mutation_points: HashMap<MutationType, Vec<SolAST>>,
+        mut mutation_points_todo: VecDeque<MutationType>,
+    ) -> Vec<PathBuf> {
+        let mut source = Vec::new();
+        let mut f = File::open(fnm).expect("File cannot be opened.");
+        f.read_to_end(&mut source)
+            .expect("Cannot read from file {}.");
+        let source_to_str = std::str::from_utf8(&source)
+            .expect("Cannot convert byte slice to string!")
+            .to_string();
+        let mut attempts = 0;
+        let mut mutants: Vec<PathBuf> = vec![];
+        let mut seen: HashSet<String> = HashSet::new();
+        seen.insert(source_to_str);
+        while !mutation_points_todo.is_empty() && attempts < num_mutants * ATTEMPTS {
+            let mutation = mutation_points_todo.remove(0).unwrap();
+            let points = mutation_points
+                .get(&mutation)
+                .expect("Found unexpected mutation.");
+            if let Some(point) = points.choose(&mut rand) {
+                let mutant = mutation.mutate_randomly(point, &source, &mut rand);
+                if !seen.contains(&mutant) && is_valid(&mutant) {
+                    let mut_file =
+                        mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
+                    log::info!("attempting to write to {}", mut_file);
+                    std::fs::write(&mut_file, &mutant).expect("Failed to write mutant to file.");
+                    mutants.push(
+                        PathBuf::from_str(&mut_file)
+                            .unwrap_or_else(|_| panic!("Failed to add mutant path to mutants")),
+                    );
+                } else {
+                    mutation_points_todo.push_back(mutation);
+                }
+                seen.insert(mutant);
+                attempts += 1;
+            }
+        }
+        mutants
+    }
+
     pub fn get_mutations(mut self, mut is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
         let mut_dir = self.mk_mutant_dir();
-        let (visitor, skip, accept) = Self::get_closures(self.mutation_types);
+        let (visitor, skip, accept) = Self::mk_closures(self.mutation_types);
         let mutations: Vec<(MutationType, SolAST)> = self
             .node
             .traverse(visitor, skip, accept)
@@ -115,42 +160,15 @@ impl RunMutations {
                 }
                 remaining -= points.len();
             }
-            let mut source = Vec::new();
-            let mut f = File::open(&self.fnm).expect("File cannot be opened.");
-            f.read_to_end(&mut source)
-                .expect("Cannot read from file {}.");
-            let source_to_str = std::str::from_utf8(&source)
-                .expect("Cannot convert byte slice to string!")
-                .to_string();
-            let mut attempts = 0;
-            let mut mutants: Vec<PathBuf> = vec![];
-            let mut seen: HashSet<String> = HashSet::new();
-            seen.insert(source_to_str);
-            while !mutation_points_todo.is_empty() && attempts < self.num_mutants * ATTEMPTS {
-                let mutation = mutation_points_todo.remove(0).unwrap();
-                let points = mutation_points
-                    .get(&mutation)
-                    .expect("Found unexpected mutation.");
-                if let Some(point) = points.choose(&mut self.rand) {
-                    let mutant = mutation.mutate_randomly(point, &source, &mut self.rand);
-                    if !seen.contains(&mutant) && is_valid(&mutant) {
-                        let mut_file =
-                            mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
-                        log::info!("attempting to write to {}", mut_file);
-                        std::fs::write(&mut_file, &mutant)
-                            .expect("Failed to write mutant to file.");
-                        mutants
-                            .push(PathBuf::from_str(&mut_file).unwrap_or_else(|_| {
-                                panic!("Failed to add mutant path to mutants")
-                            }));
-                    } else {
-                        mutation_points_todo.push_back(mutation);
-                    }
-                    seen.insert(mutant);
-                    attempts += 1;
-                }
-            }
-            mutants
+            Self::inner_loop(
+                mut_dir,
+                self.fnm,
+                self.num_mutants,
+                self.rand,
+                is_valid,
+                mutation_points,
+                mutation_points_todo,
+            )
         } else {
             log::info!("Did not find any mutations");
             vec![]
