@@ -25,6 +25,7 @@ pub enum MutationType {
     SwapArgumentsOperatorMutation,
     SwapLinesMutation,
     UnaryOperatorMutation,
+    ElimDelegateMutation,
 }
 
 impl FromStr for MutationType {
@@ -43,6 +44,7 @@ impl FromStr for MutationType {
             "SwapArgumentsOperatorMutation" => Ok(MutationType::SwapArgumentsOperatorMutation),
             "SwapLinesMutation" => Ok(MutationType::SwapLinesMutation),
             "UnaryOperatorMutation" => Ok(MutationType::UnaryOperatorMutation),
+	    "ElimDelegateMutation" => Ok(MutationType::ElimDelegateMutation),
             _ => panic!("Undefined mutant!"),
         }
     }
@@ -61,6 +63,7 @@ impl ToString for MutationType {
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
             MutationType::SwapLinesMutation => "SwapLinesMutation",
             MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
+	    MutationType::ElimDelegateMutation => "ElimDeleagteMutation",
         };
         str.to_string()
     }
@@ -131,6 +134,9 @@ impl Mutation for MutationType {
                     return n == "UnaryOperation";
                 }
             }
+	    MutationType::ElimDelegateMutation => {
+		return false; //TODO: implement stub
+	    }
         }
         false
     }
@@ -259,6 +265,11 @@ impl Mutation for MutationType {
                     None => panic!("No rhs for this assignment!"),
                 }
             }
+	    MutationType::ElimDelegateMutation => {
+		assert!(&self.is_mutation_point(node));
+		"".to_string() // TODO: implement stub
+
+	    }
         }
     }
 }
