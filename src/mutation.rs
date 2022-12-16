@@ -1,8 +1,8 @@
-use std::str::FromStr;
-
 use crate::SolAST;
 use rand::{seq::SliceRandom, RngCore};
 use rand_pcg::*;
+use std::str::FromStr;
+use strum_macros::EnumVariantNames;
 
 /// Every kind of mutation implements this trait.
 pub trait Mutation {
@@ -12,7 +12,7 @@ pub trait Mutation {
 
 /// Kinds of mutations.
 // Note: did not port Unchecked Block mutation from Gambit1.0 as feedback indicated that it was not too useful.
-#[derive(Hash, Eq, PartialEq, Clone, Debug)]
+#[derive(Hash, Eq, PartialEq, Clone, Debug, EnumVariantNames)]
 pub enum MutationType {
     BinaryOpMutation,
     RequireMutation,
@@ -45,6 +45,24 @@ impl FromStr for MutationType {
             "UnaryOperatorMutation" => Ok(MutationType::UnaryOperatorMutation),
             _ => panic!("Undefined mutant!"),
         }
+    }
+}
+
+impl ToString for MutationType {
+    fn to_string(&self) -> String {
+        let str = match self {
+            MutationType::BinaryOpMutation => "BinaryOpMutation",
+            MutationType::RequireMutation => "RequireMutation",
+            MutationType::AssignmentMutation => "AssignmentMutation",
+            MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
+            MutationType::FunctionCallMutation => "FunctionCallMutation",
+            MutationType::IfStatementMutation => "IfStatementMutation",
+            MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
+            MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
+            MutationType::SwapLinesMutation => "SwapLinesMutation",
+            MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
+        };
+        str.to_string()
     }
 }
 

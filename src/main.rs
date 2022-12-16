@@ -13,12 +13,13 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::{
     fs::File,
     path::{Path, PathBuf},
     str::FromStr,
 };
+use strum::VariantNames;
 
 mod ast;
 pub use ast::*;
@@ -95,12 +96,18 @@ impl MutantGenerator {
         let rand = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self.compile_solc(file_to_mutate, outdir.to_path_buf());
-        let mut_types = self
-            .params
-            .mutations
-            .iter()
-            .map(|m| MutationType::from_str(m).unwrap())
-            .collect();
+        let mut_types = if let Some(mutts) = &self.params.mutations {
+            mutts
+                .iter()
+                .map(|m| MutationType::from_str(m).unwrap())
+                .collect()
+        } else {
+            MutationType::VARIANTS
+                .to_vec()
+                .iter()
+                .map(|m| MutationType::from_str(m).unwrap())
+                .collect()
+        };
 
         let run_mutation = RunMutations::new(
             file_to_mutate.to_string(),
@@ -134,34 +141,34 @@ impl MutantGenerator {
     }
 }
 
-#[derive(Debug, Clone, Parser, Deserialize, Serialize)]
-#[clap(rename_all = "kebab-case")]
-pub struct ToMutate {
-    filename: Option<String>,
-    functions: Vec<String>,
-    mutations: Vec<String>,
-}
+// #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
+// #[clap(rename_all = "kebab-case")]
+// pub struct ToMutate {
+//     filename: Option<String>,
+//     functions: Vec<String>,
+//     mutations: Vec<String>,
+// }
 
-impl FromStr for ToMutate {
-    type Err = ();
+// impl FromStr for ToMutate {
+//     type Err = ();
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let files = s.split("--filename");
-        for f in files.skip(1) {
-            let funcs = f.split("--functions").collect::<Vec<&str>>();
-            let file_to_mutate = funcs[0];
-            for func in funcs.iter().skip(1) {
-                let mut_types = func.split("--mutations");
-                for mut_type in mut_types {}
-            }
-        }
-        Ok(ToMutate {
-            filename: Some("foo".to_owned()),
-            functions: vec![],
-            mutations: vec![],
-        })
-    }
-}
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         let files = s.split("--filename");
+//         for f in files.skip(1) {
+//             let funcs = f.split("--functions").collect::<Vec<&str>>();
+//             let file_to_mutate = funcs[0];
+//             for func in funcs.iter().skip(1) {
+//                 let mut_types = func.split("--mutations");
+//                 for mut_type in mut_types {}
+//             }
+//         }
+//         Ok(ToMutate {
+//             filename: Some("foo".to_owned()),
+//             functions: vec![],
+//             mutations: vec![],
+//         })
+//     }
+// }
 
 // cargo run --release -- mutate --filename foo.sol --functions a b c --mutations X Y --filename bar.sol --functions a d e --mutations Z X
 
@@ -182,7 +189,7 @@ pub struct MutationParams {
     // pub to_mutate: String,
     /// Mutation types to enable
     #[arg(long, required = false)]
-    pub mutations: Vec<String>,
+    pub mutations: Option<Vec<String>>,
     /// Files to mutate
     #[arg(long, required = false)]
     pub filenames: Vec<String>,

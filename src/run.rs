@@ -136,7 +136,7 @@ impl RunMutations {
         mutants
     }
 
-    pub fn get_mutations(mut self, mut is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
+    pub fn get_mutations(self, is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
         let mut_dir = self.mk_mutant_dir();
         let (visitor, skip, accept) = Self::mk_closures(self.mutation_types);
         let mutations: Vec<(MutationType, SolAST)> = self
