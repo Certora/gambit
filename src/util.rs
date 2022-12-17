@@ -1,7 +1,8 @@
 use core::hash::Hash;
 use std::{
     collections::HashMap,
-    path::{Path, PathBuf}, process::Stdio,
+    path::{Path, PathBuf},
+    process::Stdio,
 };
 
 /// Given a vec of pairs of type `(T1, T2)` and a vec of type `T2`, generate a hashmap from T1 keys to `Vec<T2>`.

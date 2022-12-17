@@ -154,12 +154,12 @@ impl RunMutations {
             let mut mutation_points_todo = VecDeque::new();
             let mut remaining = self.num_mutants;
             while remaining > 0 {
-                let to_take = std::cmp::min(remaining,  points_len);
+                let to_take = std::cmp::min(remaining, points_len);
                 let selected: Vec<&MutationType> = points.iter().take(to_take as usize).collect();
                 for s in selected {
                     mutation_points_todo.push_back(s.clone());
                 }
-                remaining = remaining - points_len;
+                remaining -= points_len;
             }
             Self::inner_loop(
                 mut_dir,
