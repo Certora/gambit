@@ -15,13 +15,13 @@ use crate::{
 };
 
 /// How many tries for generating mutants.
-static ATTEMPTS: usize = 50;
+static ATTEMPTS: i32 = 50;
 
 /// Data structure for running mutations.
 pub struct RunMutations {
     pub fnm: String,
     pub node: SolAST,
-    pub num_mutants: usize,
+    pub num_mutants: i32,
     pub rand: rand_pcg::Pcg64,
     pub out: PathBuf,
     pub mutation_types: Vec<MutationType>,
@@ -31,7 +31,7 @@ impl RunMutations {
     pub fn new(
         fnm: String,
         node: SolAST,
-        num_mutants: usize,
+        num_mutants: i32,
         rand: rand_pcg::Pcg64,
         out: PathBuf,
         muts: Vec<MutationType>,
@@ -93,7 +93,7 @@ impl RunMutations {
     fn inner_loop(
         mut_dir: PathBuf,
         fnm: String,
-        num_mutants: usize,
+        num_mutants: i32,
         mut rand: rand_pcg::Pcg64,
         mut is_valid: impl FnMut(&str) -> bool,
         mutation_points: HashMap<MutationType, Vec<SolAST>>,
@@ -149,16 +149,17 @@ impl RunMutations {
             let (mut points, _): (Vec<MutationType>, Vec<SolAST>) =
                 mutations.iter().cloned().unzip();
             points = points.into_iter().unique().collect();
+            let points_len = points.len() as i32;
             let mutation_points = vec_pair_to_map(mutations, &points);
             let mut mutation_points_todo = VecDeque::new();
             let mut remaining = self.num_mutants;
             while remaining > 0 {
-                let to_take = std::cmp::min(remaining, points.len());
-                let selected: Vec<&MutationType> = points.iter().take(to_take).collect();
+                let to_take = std::cmp::min(remaining,  points_len);
+                let selected: Vec<&MutationType> = points.iter().take(to_take as usize).collect();
                 for s in selected {
                     mutation_points_todo.push_back(s.clone());
                 }
-                remaining -= points.len();
+                remaining = remaining - points_len;
             }
             Self::inner_loop(
                 mut_dir,

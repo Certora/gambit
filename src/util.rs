@@ -1,7 +1,7 @@
 use core::hash::Hash;
 use std::{
     collections::HashMap,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, process::Stdio,
 };
 
 /// Given a vec of pairs of type `(T1, T2)` and a vec of type `T2`, generate a hashmap from T1 keys to `Vec<T2>`.
@@ -27,6 +27,8 @@ where
 pub fn invoke_command(cmd: &str, args: Vec<&str>) -> bool {
     std::process::Command::new(cmd)
         .args(args.iter().map(|a| a.to_string()))
+        .stderr(Stdio::null())
+        .stdout(Stdio::null())
         .status()
         .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd))
         .success()

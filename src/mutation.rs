@@ -115,10 +115,7 @@ impl Mutation for MutationType {
             MutationType::SwapArgumentsOperatorMutation => {
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
-                    let op = node
-                        .operator()
-                        .unwrap_or_else(|| panic!("Binary operator must have an operator!"));
-                    return n == "BinaryOperation" && non_comm_ops.contains(&op.as_str());
+                    return n == "BinaryOperation" && non_comm_ops.contains(&node.operator().unwrap().as_str());
                 }
             }
             MutationType::SwapLinesMutation => {

@@ -61,7 +61,7 @@ impl MutantGenerator {
             "made parent directories for writing the json file at {}.",
             sol_path.to_str().unwrap()
         );
-        invoke_command(
+        if !invoke_command(
             &self.params.solc,
             vec![
                 "--ast-compact-json",
@@ -70,7 +70,9 @@ impl MutantGenerator {
                 sol_path.to_str().unwrap(),
                 "--overwrite",
             ],
-        );
+        ) {
+            panic!("Failed to compile source.");
+        }
         let ast_fnm = Path::new(sol)
             .file_name()
             .unwrap()
@@ -184,7 +186,7 @@ pub struct MutationParams {
     pub seed: u64,
     /// Num mutants
     #[arg(long, default_value = "5")]
-    pub num_mutants: usize,
+    pub num_mutants: i32,
     // #[clap(long, required = false)]
     // pub to_mutate: String,
     /// Mutation types to enable
@@ -217,5 +219,4 @@ fn main() {
 // TODO: add the case where we have specific functions from the user to mutate.
 // TODO: allow manual mutations too
 // TODO: allow diffs
-// TODO: make mutations optional argument. Try all in that case.
 // TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.

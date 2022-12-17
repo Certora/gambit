@@ -7,5 +7,6 @@ contract TenPower {
         uint256 a = 10;
         uint256 res = a ** decimals;
         return res;
+        // return 10 ** decimals;
     }
 }

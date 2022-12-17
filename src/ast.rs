@@ -199,15 +199,15 @@ impl SolAST {
                 let e_obj = e.as_object().unwrap();
                 for v in e_obj.values() {
                     let child: SolAST = SolAST::new(v.clone());
-                    // log::info!("child: {:?}", child);
-                    child.traverse_internal(visitor, skip, accept, accepted, acc);
+                    // log::info!("object child: {:?}", child);
+                    child.traverse_internal(visitor, skip, accept, new_accepted, acc);
                 }
             } else if e.is_array() {
                 let e_arr = e.as_array().unwrap();
                 for a in e_arr {
                     let child: SolAST = SolAST::new(a.clone());
-                    // log::info!("child: {:?}", child.name());
-                    child.traverse_internal(visitor, skip, accept, accepted, acc);
+                    // log::info!("array child: {:?}", child.name());
+                    child.traverse_internal(visitor, skip, accept, new_accepted, acc);
                 }
             }
         }
