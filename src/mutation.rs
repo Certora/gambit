@@ -135,7 +135,12 @@ impl Mutation for MutationType {
                 }
             }
 	    MutationType::ElimDelegateMutation => {
-		return false; //TODO: implement stub
+		if let Some(n) = node.node_type() {
+		    let mem = node
+			.get_string("memberName")
+			.unwrap_or_else(|| panic!("Member access must have a member name!"));
+		    return n == "MemberAccess" && mem == "delegateCall";
+		}
 	    }
         }
         false
