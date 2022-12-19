@@ -63,7 +63,7 @@ impl ToString for MutationType {
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
             MutationType::SwapLinesMutation => "SwapLinesMutation",
             MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
-	    MutationType::ElimDelegateMutation => "ElimDeleagteMutation",
+	    MutationType::ElimDelegateMutation => "ElimDelegateMutation",
         };
         str.to_string()
     }
@@ -135,12 +135,20 @@ impl Mutation for MutationType {
                 }
             }
 	    MutationType::ElimDelegateMutation => {
-		if let Some(n) = node.node_type() {
-		    let mem = node
-			.get_string("memberName")
-			.unwrap_or_else(|| panic!("Member access must have a member name!"));
-		    return n == "MemberAccess" && mem == "delegateCall";
-		}
+		return node.node_type().map_or_else(
+		    || false,
+		    |n| {
+			n == "FunctionCall"
+			    && (node
+				.expression()
+				.node_type()
+				.map_or_else(|| false, |nt| nt == "MemberAccess"))
+			    && (node
+				.expression()
+				.get_string("memberName")
+				.map_or_else(|| false, |mn| mn == "delegateCall"))
+		    },
+		);
 	    }
         }
         false
