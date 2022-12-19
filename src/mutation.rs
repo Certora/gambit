@@ -146,7 +146,7 @@ impl Mutation for MutationType {
 			    && (node
 				.expression()
 				.get_string("memberName")
-				.map_or_else(|| false, |mn| mn == "delegateCall"))
+				.map_or_else(|| false, |mn| mn == "delegatecall"))
 		    },
 		);
 	    }
