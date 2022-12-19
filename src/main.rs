@@ -61,7 +61,7 @@ impl MutantGenerator {
             "made parent directories for writing the json file at {}.",
             sol_path.to_str().unwrap()
         );
-        if !invoke_command(
+        if invoke_command(
             &self.params.solc,
             vec![
                 "--ast-compact-json",
@@ -70,8 +70,12 @@ impl MutantGenerator {
                 sol_path.to_str().unwrap(),
                 "--overwrite",
             ],
-        ) {
-            panic!("Failed to compile source.");
+        )
+        .0
+        .unwrap_or_else(|| panic!("solc terminated with a signal."))
+            != 0
+        {
+            panic!("Failed to compile source.")
         }
         let ast_fnm = Path::new(sol)
             .file_name()
@@ -125,10 +129,13 @@ impl MutantGenerator {
             let tmp_file = "tmp.sol";
             std::fs::write(tmp_file, mutant)
                 .expect("Cannot write mutant to temp file for compiling.");
-            let valid = invoke_command(&self.params.solc, vec![tmp_file]);
+            let (valid, _, _) = invoke_command(&self.params.solc, vec![tmp_file]);
             std::fs::remove_file(tmp_file)
                 .expect("Cannot remove temp file made for checking mutant validity.");
-            valid
+            match valid {
+                Some(n) => n == 0,
+                None => false,
+            }
         };
 
         run_mutation.get_mutations(is_valid);
@@ -218,5 +225,5 @@ fn main() {
 
 // TODO: add the case where we have specific functions from the user to mutate.
 // TODO: allow manual mutations too
-// TODO: allow diffs
+// TODO: comment about mutation
 // TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.

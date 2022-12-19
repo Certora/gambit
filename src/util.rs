@@ -2,7 +2,6 @@ use core::hash::Hash;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
-    process::Stdio,
 };
 
 /// Given a vec of pairs of type `(T1, T2)` and a vec of type `T2`, generate a hashmap from T1 keys to `Vec<T2>`.
@@ -25,14 +24,13 @@ where
 }
 
 /// Utility for invoking any command `cmd` with `args`.
-pub fn invoke_command(cmd: &str, args: Vec<&str>) -> bool {
-    std::process::Command::new(cmd)
+/// Returns the tuple (`status.code`, `stdout` and `stderr`).
+pub fn invoke_command(cmd: &str, args: Vec<&str>) -> (Option<i32>, Vec<u8>, Vec<u8>) {
+    let out = std::process::Command::new(cmd)
         .args(args.iter().map(|a| a.to_string()))
-        .stderr(Stdio::null())
-        .stdout(Stdio::null())
-        .status()
-        .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd))
-        .success()
+        .output()
+        .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd));
+    (out.status.code(), out.stdout, out.stderr)
 }
 
 /// Given a path, returns the Normal components of the path as a PathBuf.

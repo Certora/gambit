@@ -4,12 +4,12 @@ use std::{
     collections::{HashMap, HashSet, VecDeque},
     fs::{self, File},
     io::Read,
-    path::PathBuf,
+    path::{Path, PathBuf},
     str::FromStr,
 };
 
 use crate::{
-    ast, get_path_normals, mutation, vec_pair_to_map, Mutation,
+    ast, get_path_normals, invoke_command, mutation, vec_pair_to_map, Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -100,7 +100,7 @@ impl RunMutations {
         mut mutation_points_todo: VecDeque<MutationType>,
     ) -> Vec<PathBuf> {
         let mut source = Vec::new();
-        let mut f = File::open(fnm).expect("File cannot be opened.");
+        let mut f = File::open(&fnm).expect("File cannot be opened.");
         f.read_to_end(&mut source)
             .expect("Cannot read from file {}.");
         let source_to_str = std::str::from_utf8(&source)
@@ -122,6 +122,7 @@ impl RunMutations {
                         mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
                     log::info!("attempting to write to {}", mut_file);
                     std::fs::write(&mut_file, &mutant).expect("Failed to write mutant to file.");
+                    Self::diff_mutant(Path::new(&fnm), Path::new(&mut_file));
                     mutants.push(
                         PathBuf::from_str(&mut_file)
                             .unwrap_or_else(|_| panic!("Failed to add mutant path to mutants")),
@@ -134,6 +135,19 @@ impl RunMutations {
             }
         }
         mutants
+    }
+
+    /// For logging the diff of the mutants.
+    fn diff_mutant(orig: &Path, mutant: &Path) {
+        let (succ, diff, _) = invoke_command(
+            "diff",
+            vec![orig.to_str().unwrap(), mutant.to_str().unwrap()],
+        );
+        match succ.unwrap_or_else(|| panic!("diff call terminated with a signal.")) {
+            0 => log::info!("mutant identical to original program"),
+            1 => log::info!("{}", std::str::from_utf8(&diff).unwrap()),
+            _ => log::info!("install a `diff` program to see the diff"),
+        }
     }
 
     pub fn get_mutations(self, is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
