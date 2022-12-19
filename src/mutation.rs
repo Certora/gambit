@@ -280,8 +280,14 @@ impl Mutation for MutationType {
             }
 	    MutationType::ElimDelegateMutation => {
 		assert!(&self.is_mutation_point(node));
-		"".to_string() // TODO: implement stub
-
+		let (_, endl) = node
+		    .expression()
+		    .expression()
+		    .get_bounds();
+		let (_, endr) = node
+		    .expression()
+		    .get_bounds();
+		node.replace_part(source, "call".to_string(), endl + 1, endr)
 	    }
         }
     }
