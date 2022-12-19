@@ -44,7 +44,7 @@ impl FromStr for MutationType {
             "SwapArgumentsOperatorMutation" => Ok(MutationType::SwapArgumentsOperatorMutation),
             "SwapLinesMutation" => Ok(MutationType::SwapLinesMutation),
             "UnaryOperatorMutation" => Ok(MutationType::UnaryOperatorMutation),
-	    "ElimDelegateMutation" => Ok(MutationType::ElimDelegateMutation),
+            "ElimDelegateMutation" => Ok(MutationType::ElimDelegateMutation),
             _ => panic!("Undefined mutant!"),
         }
     }
@@ -63,7 +63,7 @@ impl ToString for MutationType {
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
             MutationType::SwapLinesMutation => "SwapLinesMutation",
             MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
-	    MutationType::ElimDelegateMutation => "ElimDelegateMutation",
+            MutationType::ElimDelegateMutation => "ElimDelegateMutation",
         };
         str.to_string()
     }
@@ -134,22 +134,22 @@ impl Mutation for MutationType {
                     return n == "UnaryOperation";
                 }
             }
-	    MutationType::ElimDelegateMutation => {
-		return node.node_type().map_or_else(
-		    || false,
-		    |n| {
-			n == "FunctionCall"
-			    && (node
-				.expression()
-				.node_type()
-				.map_or_else(|| false, |nt| nt == "MemberAccess"))
-			    && (node
-				.expression()
-				.get_string("memberName")
-				.map_or_else(|| false, |mn| mn == "delegatecall"))
-		    },
-		);
-	    }
+            MutationType::ElimDelegateMutation => {
+                return node.node_type().map_or_else(
+                    || false,
+                    |n| {
+                        n == "FunctionCall"
+                            && (node
+                                .expression()
+                                .node_type()
+                                .map_or_else(|| false, |nt| nt == "MemberAccess"))
+                            && (node
+                                .expression()
+                                .get_string("memberName")
+                                .map_or_else(|| false, |mn| mn == "delegatecall"))
+                    },
+                );
+            }
         }
         false
     }
@@ -278,17 +278,12 @@ impl Mutation for MutationType {
                     None => panic!("No rhs for this assignment!"),
                 }
             }
-	    MutationType::ElimDelegateMutation => {
-		assert!(&self.is_mutation_point(node));
-		let (_, endl) = node
-		    .expression()
-		    .expression()
-		    .get_bounds();
-		let (_, endr) = node
-		    .expression()
-		    .get_bounds();
-		node.replace_part(source, "call".to_string(), endl + 1, endr)
-	    }
+            MutationType::ElimDelegateMutation => {
+                assert!(&self.is_mutation_point(node));
+                let (_, endl) = node.expression().expression().get_bounds();
+                let (_, endr) = node.expression().get_bounds();
+                node.replace_part(source, "call".to_string(), endl + 1, endr)
+            }
         }
     }
 }
