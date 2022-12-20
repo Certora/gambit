@@ -74,7 +74,7 @@ impl MutantGenerator {
         .unwrap_or_else(|| panic!("solc terminated with a signal."))
             != 0
         {
-            panic!("Failed to compile source.")
+            panic!("Failed to compile source. Try with a different version of solc.")
         }
         let ast_fnm = Path::new(sol)
             .file_name()

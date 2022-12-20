@@ -118,8 +118,8 @@ impl RunMutations {
                 .expect("Found unexpected mutation.");
             if let Some(point) = points.choose(&mut rand) {
                 let mut mutant = mut_type.mutate_randomly(point, &source, &mut rand);
+                mutant = Self::add_mutant_comment(orig_path, &mutant, &mut_type);
                 if !seen.contains(&mutant) && is_valid(&mutant) {
-                    mutant = Self::add_mutant_comment(orig_path, &mutant, mut_type);
                     let mut_file =
                         mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
                     let mut_path = Path::new(&mut_file);
@@ -151,7 +151,7 @@ impl RunMutations {
     }
 
     /// Adds a comment to indicate what kind of mutation happened.
-    fn add_mutant_comment(src_path: &Path, mutant: &String, mut_type: MutationType) -> String {
+    fn add_mutant_comment(src_path: &Path, mutant: &String, mut_type: &MutationType) -> String {
         let mut scan1 =
             Scanner::scan_path(src_path).unwrap_or_else(|_| panic!("Cannot scan source path."));
         let mut scan2 = Scanner::new(mutant.as_bytes());
