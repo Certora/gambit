@@ -15,7 +15,7 @@ use crate::{
 };
 
 /// How many tries for generating mutants.
-static ATTEMPTS: i32 = 50;
+static ATTEMPTS: i32 = 500;
 
 /// Data structure for running mutations.
 pub struct RunMutations {
@@ -76,7 +76,7 @@ impl RunMutations {
             let mapping: Vec<(mutation::MutationType, ast::SolAST)> = mutation_types
                 .iter()
                 .filter(|m| m.is_mutation_point(node))
-                .map(|m| (m.clone(), node.clone()))
+                .map(|m| (*m, node.clone()))
                 .into_iter()
                 .collect();
             if mapping.is_empty() {
@@ -205,7 +205,7 @@ impl RunMutations {
                 let to_take = std::cmp::min(remaining, points_len);
                 let selected: Vec<&MutationType> = points.iter().take(to_take as usize).collect();
                 for s in selected {
-                    mutation_points_todo.push_back(s.clone());
+                    mutation_points_todo.push_back(*s);
                 }
                 remaining -= points_len;
             }

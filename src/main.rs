@@ -8,7 +8,7 @@
 * pass from the commandline.
 !*/
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
@@ -17,9 +17,7 @@ use std::fmt::Debug;
 use std::{
     fs::File,
     path::{Path, PathBuf},
-    str::FromStr,
 };
-use strum::VariantNames;
 
 mod ast;
 pub use ast::*;
@@ -103,15 +101,8 @@ impl MutantGenerator {
         let ast = self.compile_solc(file_to_mutate, outdir.to_path_buf());
         let mut_types = if let Some(mutts) = &self.params.mutations {
             mutts
-                .iter()
-                .map(|m| MutationType::from_str(m).unwrap())
-                .collect()
         } else {
-            MutationType::VARIANTS
-                .to_vec()
-                .iter()
-                .map(|m| MutationType::from_str(m).unwrap())
-                .collect()
+            MutationType::value_variants()
         };
 
         let run_mutation = RunMutations::new(
@@ -120,7 +111,7 @@ impl MutantGenerator {
             self.params.num_mutants,
             rand,
             outdir.to_path_buf(),
-            mut_types,
+            mut_types.to_vec(),
         );
         log::info!("running mutations on file: {}", file_to_mutate);
 
@@ -196,10 +187,10 @@ pub struct MutationParams {
     // #[clap(long, required = false)]
     // pub to_mutate: String,
     /// Mutation types to enable
-    #[arg(long, required = false)]
-    pub mutations: Option<Vec<String>>,
+    #[arg(long, short, required = false, value_enum)]
+    pub mutations: Option<Vec<MutationType>>,
     /// Files to mutate
-    #[arg(long, required = false)]
+    #[arg(long, short, required = false)]
     pub filenames: Vec<String>,
     #[arg(long, default_value = "solc")]
     pub solc: String,
@@ -225,4 +216,6 @@ fn main() {
 // TODO: add the case where we have specific functions from the user to mutate.
 // TODO: allow manual mutations too
 // TODO: need to do a more "best effort" invocation of solc
+// TODO: figure out if there is a way to support autocomplete for mutation names
+// TODO: why aren't we generating enough mutants?
 // TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.

@@ -16,12 +16,14 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
+      - uses: Swatinem/rust-cache@v1
       - name: Build and Unit Test
         run: |
           cargo fmt
           cargo clippy
           cargo test --release
-      
+        
+  # TODO eventually  
   # regression:
   #   runs-on: ubuntu-20.04
   #   steps:

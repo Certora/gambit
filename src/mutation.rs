@@ -1,8 +1,8 @@
 use crate::SolAST;
+use clap::ValueEnum;
 use rand::{seq::SliceRandom, RngCore};
 use rand_pcg::*;
 use std::str::FromStr;
-use strum_macros::EnumVariantNames;
 
 /// Every kind of mutation implements this trait.
 pub trait Mutation {
@@ -12,7 +12,9 @@ pub trait Mutation {
 
 /// Kinds of mutations.
 // Note: did not port Unchecked Block mutation from Gambit1.0 as feedback indicated that it was not too useful.
-#[derive(Hash, Eq, PartialEq, Clone, Debug, EnumVariantNames)]
+#[derive(
+    Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, serde::Deserialize, serde::Serialize,
+)]
 pub enum MutationType {
     BinaryOpMutation,
     RequireMutation,
