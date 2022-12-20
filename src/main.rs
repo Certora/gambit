@@ -116,7 +116,7 @@ impl MutantGenerator {
         };
 
         let run_mutation = RunMutations::new(
-            file_to_mutate.to_string(),
+            file_to_mutate.into(),
             ast,
             self.params.num_mutants,
             rand,
@@ -225,5 +225,4 @@ fn main() {
 
 // TODO: add the case where we have specific functions from the user to mutate.
 // TODO: allow manual mutations too
-// TODO: comment about mutation
 // TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.

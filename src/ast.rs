@@ -63,7 +63,7 @@ impl SolAST {
         match obj {
             Some(o) => {
                 let v = o[fnm].as_str();
-                v.map(|s| s.to_string())
+                v.map(|s| s.into())
             }
             None => None,
         }
@@ -247,7 +247,7 @@ impl SolAST {
                 Replacement {
                     start: s,
                     end: e,
-                    new: n.to_string(),
+                    new: n.into(),
                 }
             })
             .sorted_by_key(|x| x.start);

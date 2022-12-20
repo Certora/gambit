@@ -62,7 +62,7 @@ impl ToString for MutationType {
             MutationType::SwapLinesMutation => "SwapLinesMutation",
             MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
         };
-        str.to_string()
+        str.into()
     }
 }
 

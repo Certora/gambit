@@ -1,15 +1,15 @@
 use itertools::Itertools;
 use rand::seq::SliceRandom;
+use scanner_rust::Scanner;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fs::{self, File},
     io::Read,
     path::{Path, PathBuf},
-    str::FromStr,
 };
 
 use crate::{
-    ast, get_path_normals, invoke_command, mutation, vec_pair_to_map, Mutation,
+    ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map, Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -100,35 +100,35 @@ impl RunMutations {
         mut mutation_points_todo: VecDeque<MutationType>,
     ) -> Vec<PathBuf> {
         let mut source = Vec::new();
-        let mut f = File::open(&fnm).expect("File cannot be opened.");
+        let orig_path = Path::new(&fnm);
+        let mut f = File::open(orig_path).expect("File cannot be opened.");
         f.read_to_end(&mut source)
             .expect("Cannot read from file {}.");
         let source_to_str = std::str::from_utf8(&source)
             .expect("Cannot convert byte slice to string!")
-            .to_string();
+            .into();
         let mut attempts = 0;
         let mut mutants: Vec<PathBuf> = vec![];
         let mut seen: HashSet<String> = HashSet::new();
         seen.insert(source_to_str);
         while !mutation_points_todo.is_empty() && attempts < num_mutants * ATTEMPTS {
-            let mutation = mutation_points_todo.remove(0).unwrap();
+            let mut_type = mutation_points_todo.remove(0).unwrap();
             let points = mutation_points
-                .get(&mutation)
+                .get(&mut_type)
                 .expect("Found unexpected mutation.");
             if let Some(point) = points.choose(&mut rand) {
-                let mutant = mutation.mutate_randomly(point, &source, &mut rand);
+                let mut mutant = mut_type.mutate_randomly(point, &source, &mut rand);
                 if !seen.contains(&mutant) && is_valid(&mutant) {
+                    mutant = Self::add_mutant_comment(orig_path, &mutant, mut_type);
                     let mut_file =
                         mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
+                    let mut_path = Path::new(&mut_file);
                     log::info!("attempting to write to {}", mut_file);
-                    std::fs::write(&mut_file, &mutant).expect("Failed to write mutant to file.");
-                    Self::diff_mutant(Path::new(&fnm), Path::new(&mut_file));
-                    mutants.push(
-                        PathBuf::from_str(&mut_file)
-                            .unwrap_or_else(|_| panic!("Failed to add mutant path to mutants")),
-                    );
+                    std::fs::write(&mut_path, &mutant).expect("Failed to write mutant to file.");
+                    Self::diff_mutant(orig_path, mut_path);
+                    mutants.push(mut_path.to_owned());
                 } else {
-                    mutation_points_todo.push_back(mutation);
+                    mutation_points_todo.push_back(mut_type);
                 }
                 seen.insert(mutant);
                 attempts += 1;
@@ -137,7 +137,7 @@ impl RunMutations {
         mutants
     }
 
-    /// For logging the diff of the mutants.
+    /// Logs the diff of the mutants w.r.t. the origin program.
     fn diff_mutant(orig: &Path, mutant: &Path) {
         let (succ, diff, _) = invoke_command(
             "diff",
@@ -148,6 +148,40 @@ impl RunMutations {
             1 => log::info!("{}", std::str::from_utf8(&diff).unwrap()),
             _ => log::info!("install a `diff` program to see the diff"),
         }
+    }
+
+    /// Adds a comment to indicate what kind of mutation happened.
+    fn add_mutant_comment(src_path: &Path, mutant: &String, mut_type: MutationType) -> String {
+        let mut scan1 =
+            Scanner::scan_path(src_path).unwrap_or_else(|_| panic!("Cannot scan source path."));
+        let mut scan2 = Scanner::new(mutant.as_bytes());
+        let mut res = vec![];
+        loop {
+            let l1 = scan1.next_line_raw().unwrap();
+            let l2 = scan2.next_line_raw().unwrap();
+            if l1.is_none() || l2.is_none() {
+                break;
+            }
+            let l1_to_str = String::from_utf8(l1.unwrap()).unwrap() + "\n";
+            let l2_to_str = String::from_utf8(l2.unwrap()).unwrap() + "\n";
+            if l1_to_str != l2_to_str {
+                let indent = get_indent(&l1_to_str);
+                let comment = indent + "/// " + &mut_type.to_string() + " of: " + l1_to_str.trim();
+                res.push(comment);
+                res.push("\n".to_string() + &l2_to_str);
+                break;
+            }
+            res.push(l2_to_str);
+        }
+        loop {
+            let l2 = scan2.next_line_raw().unwrap();
+            if l2.is_none() {
+                break;
+            }
+            let l2_to_str = String::from_utf8(l2.unwrap()).unwrap() + "\n";
+            res.push(l2_to_str);
+        }
+        res.concat()
     }
 
     pub fn get_mutations(self, is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {

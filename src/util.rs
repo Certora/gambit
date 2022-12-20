@@ -4,6 +4,20 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// Given a `line`, get the indentation in terms of
+/// a string of white spaces.
+pub fn get_indent(line: &str) -> String {
+    let mut res = String::new();
+    for c in line.chars() {
+        if c.is_whitespace() {
+            res += &c.to_string();
+        } else {
+            break;
+        }
+    }
+    res
+}
+
 /// Given a vec of pairs of type `(T1, T2)` and a vec of type `T2`, generate a hashmap from T1 keys to `Vec<T2>`.
 pub fn vec_pair_to_map<T1, T2>(vecs_of_pairs: Vec<(T1, T2)>, es: &Vec<T1>) -> HashMap<T1, Vec<T2>>
 where

@@ -19,3 +19,4 @@ rand_pcg = "0.2"
 rand = { version = "0.7", default-features = false, features = ["std"] }
 itertools = "0.10.5"
 regex = "1"
+scanner-rust = "2.0.16"
