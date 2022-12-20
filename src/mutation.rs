@@ -173,6 +173,7 @@ impl Mutation for MutationType {
                 arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
             }
             MutationType::DeleteExpressionMutation => {
+		// TODO: it seems like this mutation never results in a well-typed program?
                 assert!(&self.is_mutation_point(node));
                 node.comment_out(source)
             }
