@@ -124,7 +124,7 @@ impl RunMutations {
                         mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
                     let mut_path = Path::new(&mut_file);
                     log::info!("attempting to write to {}", mut_file);
-                    std::fs::write(&mut_path, &mutant).expect("Failed to write mutant to file.");
+                    std::fs::write(mut_path, &mutant).expect("Failed to write mutant to file.");
                     Self::diff_mutant(orig_path, mut_path);
                     mutants.push(mut_path.to_owned());
                 } else {
