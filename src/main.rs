@@ -48,7 +48,6 @@ impl MutantGenerator {
     }
 
     /// Compile the input solc files and get json ASTs.
-    // TODO: need to do a more "best effort" invocation of solc.
     pub fn compile_solc(&self, sol: &String, out: PathBuf) -> SolAST {
         let norms_to_path = get_path_normals(sol);
         let norm_sol = norms_to_path.to_str().unwrap_or_else(|| {
@@ -225,4 +224,5 @@ fn main() {
 
 // TODO: add the case where we have specific functions from the user to mutate.
 // TODO: allow manual mutations too
+// TODO: need to do a more "best effort" invocation of solc
 // TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.
