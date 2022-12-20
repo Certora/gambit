@@ -102,6 +102,7 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::FunctionCallMutation => {
+		//TODO: we could check for same-type args here
                 if let Some(n) = node.node_type() {
                     return n == "FunctionCall" && !node.arguments().is_empty();
                 }
