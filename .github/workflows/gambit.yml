@@ -22,11 +22,11 @@ jobs:
           cargo clippy
           cargo test --release
       
-  regression:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: Regression Tests
-        run: |
-          cargo run --release -- mutate  --filenames benchmarks/Delegation/DelegationExample.sol --solc solc8.13
-          cargo run --release -- mutate  --filenames benchmarks/10Power/TenPower.sol
+  # regression:
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Regression Tests
+  #       run: |
+  #         cargo run --release -- mutate  --filenames benchmarks/Delegation/DelegationExample.sol --solc solc8.13
+  #         cargo run --release -- mutate  --filenames benchmarks/10Power/TenPower.sol
