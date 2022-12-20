@@ -157,7 +157,7 @@ impl Mutation for MutationType {
         match self {
             MutationType::BinaryOpMutation => {
                 assert!(&self.is_mutation_point(node));
-                let ops = vec!["+", "-", "*", "/", "%", "**"];
+                let ops = vec!["+", "-", "*", "/", "%", "**"]; //TODO: boolean binary ops?
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 node.replace_part(
