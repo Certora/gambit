@@ -10,20 +10,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Cache cargo bin
-      uses: actions/cache@v2
-      with:
-        path: ~/.cargo/bin
-        key: ${{ runner.os }}-cargo-bin
-    - name: Build and Unit Test
-      run: |
-        cargo fmt
-        cargo clippy
-        cargo test --release
+      - uses: actions/checkout@v3
+      - name: Cache cargo bin
+        uses: actions/cache@v2
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin
+      - name: Build and Unit Test
+        run: |
+          cargo fmt
+          cargo clippy
+          cargo test --release
       
   regression:
-    name: Regression Tests
-    run: |
-      cargo run --release -- mutate  --filenames benchmarks/Delegation/DelegationExample.sol --solc solc8.13
-      cargo run --release -- mutate  --filenames benchmarks/10Power/TenPower.sol
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Regression Tests
+        run: |
+          cargo run --release -- mutate  --filenames benchmarks/Delegation/DelegationExample.sol --solc solc8.13
+          cargo run --release -- mutate  --filenames benchmarks/10Power/TenPower.sol
