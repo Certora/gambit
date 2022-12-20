@@ -15,7 +15,7 @@ use crate::{
 };
 
 /// How many tries for generating mutants.
-static ATTEMPTS: i32 = 500;
+static ATTEMPTS: i32 = 50;
 
 /// Data structure for running mutations.
 pub struct RunMutations {
