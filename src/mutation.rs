@@ -118,6 +118,10 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsOperatorMutation => {
+		// TODO: include commutative operators because side effects
+		// TODO: also boolean conjunction and disjunction are non-commutative due
+		// due to short-circuiting
+		// TODO: ">>>" missing (and others?)
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation"
@@ -197,6 +201,7 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsFunctionMutation => {
+		// TODO: is this not redundant with FunctionCallMutation is some way?
                 assert!(&self.is_mutation_point(node));
                 let mut children = node.arguments();
                 children.shuffle(rand);
