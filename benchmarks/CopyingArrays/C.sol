@@ -14,7 +14,13 @@ contract C {
         a[0] = msg.sender;
         return a;
     }
-   
+
+    function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
+        uint256 a = 10;
+        uint256 res = a ** decimals;
+        return res;
+    }
+
      function getarray(address[] memory c, address e) public view {
         assert(c[0] == e);    
    

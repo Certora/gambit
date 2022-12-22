@@ -3,7 +3,6 @@ use clap::ValueEnum;
 use rand::{seq::SliceRandom, RngCore};
 use rand_pcg::*;
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 /// Every kind of mutation implements this trait.
 pub trait Mutation {
@@ -29,27 +28,27 @@ pub enum MutationType {
     ElimDelegateMutation,
 }
 
-impl FromStr for MutationType {
-    type Err = ();
+// impl FromStr for MutationType {
+//     type Err = ();
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "BinaryOpMutation" => Ok(MutationType::BinaryOpMutation),
-            "RequireMutation" => Ok(MutationType::RequireMutation),
-            "AssignmentMutation" => Ok(MutationType::AssignmentMutation),
-            "DeleteExpressionMutation" => Ok(MutationType::DeleteExpressionMutation),
-            "FunctionCallMutation" => Ok(MutationType::FunctionCallMutation),
-            "IfStatementMutation" => Ok(MutationType::IfStatementMutation),
-            //"IntegerMutation" => Ok(MutationType::IntegerMutation),
-            "SwapArgumentsFunctionMutation" => Ok(MutationType::SwapArgumentsFunctionMutation),
-            "SwapArgumentsOperatorMutation" => Ok(MutationType::SwapArgumentsOperatorMutation),
-            "SwapLinesMutation" => Ok(MutationType::SwapLinesMutation),
-            "UnaryOperatorMutation" => Ok(MutationType::UnaryOperatorMutation),
-            "ElimDelegateMutation" => Ok(MutationType::ElimDelegateMutation),
-            _ => panic!("Undefined mutant!"),
-        }
-    }
-}
+//     fn from_str(s: &str) -> Result<Self, Self::Err> {
+//         match s {
+//             "BinaryOpMutation" => Ok(MutationType::BinaryOpMutation),
+//             "RequireMutation" => Ok(MutationType::RequireMutation),
+//             "AssignmentMutation" => Ok(MutationType::AssignmentMutation),
+//             "DeleteExpressionMutation" => Ok(MutationType::DeleteExpressionMutation),
+//             "FunctionCallMutation" => Ok(MutationType::FunctionCallMutation),
+//             "IfStatementMutation" => Ok(MutationType::IfStatementMutation),
+//             //"IntegerMutation" => Ok(MutationType::IntegerMutation),
+//             "SwapArgumentsFunctionMutation" => Ok(MutationType::SwapArgumentsFunctionMutation),
+//             "SwapArgumentsOperatorMutation" => Ok(MutationType::SwapArgumentsOperatorMutation),
+//             "SwapLinesMutation" => Ok(MutationType::SwapLinesMutation),
+//             "UnaryOperatorMutation" => Ok(MutationType::UnaryOperatorMutation),
+//             "ElimDelegateMutation" => Ok(MutationType::ElimDelegateMutation),
+//             _ => panic!("Undefined mutant!"),
+//         }
+//     }
+// }
 
 impl ToString for MutationType {
     fn to_string(&self) -> String {

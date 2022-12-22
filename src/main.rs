@@ -14,6 +14,8 @@ use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fmt::Debug;
+use std::i32;
+use std::io::BufReader;
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -95,15 +97,15 @@ impl MutantGenerator {
     }
 
     /// Generate mutations for a single file.
-    fn run_one(&self, file_to_mutate: &String) {
+    fn run_one(&self, file_to_mutate: &String, muts: Option<Vec<String>>) {
         let rand = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self.compile_solc(file_to_mutate, outdir.to_path_buf());
-        let mut_types = if let Some(mutts) = &self.params.mutations {
-            mutts
-        } else {
-            MutationType::value_variants()
-        };
+        let mut_types = muts.map_or(MutationType::value_variants().to_vec(), |ms| {
+            ms.iter()
+                .map(|m| MutationType::from_str(m, true).unwrap())
+                .collect()
+        });
 
         let run_mutation = RunMutations::new(
             file_to_mutate.into(),
@@ -111,7 +113,7 @@ impl MutantGenerator {
             self.params.num_mutants,
             rand,
             outdir.to_path_buf(),
-            mut_types.to_vec(),
+            mut_types,
         );
         log::info!("running mutations on file: {}", file_to_mutate);
 
@@ -131,67 +133,111 @@ impl MutantGenerator {
         run_mutation.get_mutations(is_valid);
     }
 
-    /// Calls run_one for each file to mutate.
-    pub fn run(self) {
+    fn run_from_config(&mut self, cfg: &String) {
+        let f = File::open(cfg).expect("Cannot open json config file.");
+        let config: Value =
+            serde_json::from_reader(BufReader::new(f)).expect("Ill-formed json probably.");
+        let mut process_single_file = |v: &Value| {
+            if let Some(filename) = &v.get("filename") {
+                let fnm = filename.as_str().unwrap();
+                if let Some(num) = &v.get("num-mutants") {
+                    self.params.num_mutants = num.as_i64().unwrap();
+                }
+                if let Some(solc) = &v.get("solc") {
+                    self.params.solc = solc.as_str().unwrap().to_string();
+                }
+                if let Some(muts) = &v.get("mutations") {
+                    let muts: Vec<String> = muts
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|v| v.as_str().unwrap().to_string())
+                        .collect();
+                    self.run_one(&fnm.to_string(), Some(muts));
+                } else if let Some(muts) = &v.get("functions") {
+                    let muts: Vec<String> = muts
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|v| v.as_str().unwrap().to_string())
+                        .collect();
+                    self.run_one(&fnm.to_string(), Some(muts));
+                }
+            }
+        };
+        match config {
+            Value::Array(elems) => {
+                for elem in elems {
+                    process_single_file(&elem);
+                }
+            }
+            Value::Object(_) => process_single_file(&config),
+            _ => panic!("Ill-formed json probably."),
+        }
+    }
+
+    /// Main runner
+    pub fn run(&mut self) {
         log::info!("starting run()");
-        for f in &self.params.filenames {
-            self.run_one(f);
+        let files = &self.params.filename;
+        let json = &self.params.json.clone();
+        if files.is_some() {
+            for f in files.as_ref().unwrap() {
+                self.run_one(f, None);
+            }
+        } else if json.is_some() {
+            self.run_from_config(json.as_ref().unwrap())
+        } else {
+            panic!("Must provide either --filename file.sol or --json config.json.")
         }
     }
 }
 
-// #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
-// #[clap(rename_all = "kebab-case")]
-// pub struct ToMutate {
-//     filename: Option<String>,
-//     functions: Vec<String>,
-//     mutations: Vec<String>,
-// }
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+struct FunctionMutationMapping {
+    name: String,
+    mutations: Vec<String>,
+}
 
-// impl FromStr for ToMutate {
-//     type Err = ();
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+struct Config {
+    filename: String,
+    functions: Vec<FunctionMutationMapping>,
+    solc: Option<String>,
+    num_mutants: Option<i32>,
+    seed: Option<u64>,
+    contract: Option<String>,
+}
 
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         let files = s.split("--filename");
-//         for f in files.skip(1) {
-//             let funcs = f.split("--functions").collect::<Vec<&str>>();
-//             let file_to_mutate = funcs[0];
-//             for func in funcs.iter().skip(1) {
-//                 let mut_types = func.split("--mutations");
-//                 for mut_type in mut_types {}
-//             }
-//         }
-//         Ok(ToMutate {
-//             filename: Some("foo".to_owned()),
-//             functions: vec![],
-//             mutations: vec![],
-//         })
-//     }
-// }
-
-// cargo run --release -- mutate --filename foo.sol --functions a b c --mutations X Y --filename bar.sol --functions a d e --mutations Z X
-
-/// Command line arguments for running Gambit
+///
+/// Command line arguments for running Gambit.
+/// Following are the main ways to run it.
+///
+///    1. cargo run --release -- mutate --filename path/to/file.sol: this will apply all mutations to file.sol.
+///
+///    2. cargo run --release -- mutate -f path/to/file1.sol -f path/to/file2.sol: this will apply all mutations to file1.sol and file2.sol.
+///
+///    3. cargo run --release -- mutate --json path/to/config.json: this gives the user finer control on what functions in
+///       which files, contracts to mutate using which types of mutations.
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[command(rename_all = "kebab-case")]
 pub struct MutationParams {
+    /// Json file with config
+    #[arg(long, short, conflicts_with = "filenames")]
+    pub json: Option<String>,
+    /// Files to mutate
+    #[arg(long, short, conflicts_with = "json")]
+    pub filename: Option<Vec<String>>,
+    /// Num mutants
+    #[arg(long, short, default_value = "5")]
+    pub num_mutants: i64,
     /// Directory to store all mutants
-    #[arg(long, default_value = "out")]
+    #[arg(long, short, default_value = "out")]
     pub outdir: String,
     /// Seed for random number generator
-    #[arg(long, default_value = "0")]
+    #[arg(long, short, default_value = "0")]
     pub seed: u64,
-    /// Num mutants
-    #[arg(long, default_value = "5")]
-    pub num_mutants: i32,
-    // #[clap(long, required = false)]
-    // pub to_mutate: String,
-    /// Mutation types to enable
-    #[arg(long, short, required = false, value_enum)]
-    pub mutations: Option<Vec<MutationType>>,
-    /// Files to mutate
-    #[arg(long, short, required = false)]
-    pub filenames: Vec<String>,
+    /// Solidity compiler version
     #[arg(long, default_value = "solc")]
     pub solc: String,
 }
@@ -207,14 +253,13 @@ fn main() {
     let _ = env_logger::builder().try_init();
     match Command::parse() {
         Command::Mutate(params) => {
-            let mutant_gen = MutantGenerator::new(params);
+            let mut mutant_gen = MutantGenerator::new(params);
             mutant_gen.run();
         }
     }
 }
 
 // TODO: add the case where we have specific functions from the user to mutate.
-// TODO: allow manual mutations too
 // TODO: need to do a more "best effort" invocation of solc
 // TODO: figure out if there is a way to support autocomplete for mutation names
 // TODO: why aren't we generating enough mutants?

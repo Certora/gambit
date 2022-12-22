@@ -1,0 +1,26 @@
+[
+    {
+        "filename": "benchmarks/CopyingArrays/C.sol",
+        "contract": "C",
+        "functions": [
+            {
+                "name": "getarray",
+                "mutations": ["function-call-mutation"]
+            },
+            {
+                "name": "get10PowerDecimals",
+                "mutations": ["binary-op-mutation"]
+            }
+        ]
+    },
+    {
+        "filename": "benchmarks/CopyingArrays/C.sol",
+        "contract": "Utils",
+        "functions": [
+            {
+                "name": "getarray",
+                "mutations": ["function-call-mutation"]
+            }
+        ]
+    }
+]

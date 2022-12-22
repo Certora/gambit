@@ -1,0 +1,8 @@
+{
+    "filename": "benchmarks/10Power/TenPower.sol",
+     "mutations": [
+        "binary-op-mutation",
+        "swap-arguments-operator-mutation"
+    ]
+    
+}

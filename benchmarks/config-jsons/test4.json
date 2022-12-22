@@ -1,0 +1,15 @@
+[
+    {
+        "filename": "benchmarks/10Power/TenPower.sol",
+        "mutations": [
+            "binary-op-mutation",
+            "swap-arguments-operator-mutation"
+        ]
+    },
+    {
+        "filename": "benchmarks/CopyingArrays/C.sol",
+        "mutations": [
+            "function-call-mutation"
+        ]
+    }
+]
