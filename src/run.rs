@@ -9,7 +9,8 @@ use std::{
 };
 
 use crate::{
-    ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map, Mutation,
+    ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map,
+    FunctionMutationMapping, Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -25,27 +26,11 @@ pub struct RunMutations {
     pub rand: rand_pcg::Pcg64,
     pub out: PathBuf,
     pub mutation_types: Vec<MutationType>,
+    pub funcs_to_mutate: Option<FunctionMutationMapping>,
+    pub contract: Option<String>,
 }
 
 impl RunMutations {
-    pub fn new(
-        fnm: String,
-        node: SolAST,
-        num_mutants: i64,
-        rand: rand_pcg::Pcg64,
-        out: PathBuf,
-        muts: Vec<MutationType>,
-    ) -> Self {
-        Self {
-            fnm,
-            node,
-            num_mutants,
-            rand,
-            out,
-            mutation_types: muts,
-        }
-    }
-
     /// Check if a node in the AST is an assert.
     pub fn is_assert_call(node: &SolAST) -> bool {
         node.name().map_or_else(|| false, |n| n == "assert")
@@ -67,6 +52,8 @@ impl RunMutations {
 
     pub fn mk_closures(
         mutation_types: Vec<MutationType>,
+        funcs_to_mutate: Option<FunctionMutationMapping>,
+        contract: Option<String>,
     ) -> (
         impl FnMut(&SolAST) -> Option<Vec<(mutation::MutationType, ast::SolAST)>>,
         impl Fn(&SolAST) -> bool,
@@ -86,7 +73,28 @@ impl RunMutations {
             }
         };
         let skip = Self::is_assert_call;
-        let accept = |_: &SolAST| true; // node.node_type().map_or_else(|| false, |n| n == *"FunctionDefinition".to_string())
+        let accept = move |node: &SolAST| match (&contract, &funcs_to_mutate) {
+            (None, None) => true,
+            (Some(c), None) => {
+                node.node_type()
+                    .map_or_else(|| false, |n| n == "ContractDefinition")
+                    && node.name().map_or_else(|| false, |n| n == *c)
+            }
+            (None, Some(f)) => {
+                node.node_type()
+                    .map_or_else(|| false, |n| n == "FunctionDefinition")
+                    && f.contains_key(&node.name().unwrap())
+            }
+            (Some(c), Some(f)) => {
+                node.node_type()
+                    .map_or_else(|| false, |n| n == "ContractDefinition")
+                    && node.name().map_or_else(|| false, |n| n == *c)
+                    && node
+                        .node_type()
+                        .map_or_else(|| false, |n| n == "FunctionDefinition")
+                    && f.contains_key(&node.name().unwrap())
+            }
+        };
         (visitor, skip, accept)
     }
 
@@ -186,13 +194,15 @@ impl RunMutations {
 
     pub fn get_mutations(self, is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
         let mut_dir = self.mk_mutant_dir();
-        let (visitor, skip, accept) = Self::mk_closures(self.mutation_types);
+        let (visitor, skip, accept) =
+            Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
         let mutations: Vec<(MutationType, SolAST)> = self
             .node
             .traverse(visitor, skip, accept)
             .into_iter()
             .flatten()
             .collect();
+        // TODO: support contracts and user provided functions
         if !mutations.is_empty() {
             let (mut points, _): (Vec<MutationType>, Vec<SolAST>) =
                 mutations.iter().cloned().unzip();

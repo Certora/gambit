@@ -7,3 +7,9 @@ This is a mutation generator for Solidity.
 
 ### Developers
 - `cargo build`, `cargo fmt`, `cargo clippy` before pushing.
+
+### Credits
+We thank
+[Oliver Flatt](https://www.oflatt.com/) and
+[Vishal Canumalla](https://homes.cs.washington.edu/~vishalc/)
+for their excellent contributions to an early version of Gambit.

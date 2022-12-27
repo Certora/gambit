@@ -28,28 +28,6 @@ pub enum MutationType {
     ElimDelegateMutation,
 }
 
-// impl FromStr for MutationType {
-//     type Err = ();
-
-//     fn from_str(s: &str) -> Result<Self, Self::Err> {
-//         match s {
-//             "BinaryOpMutation" => Ok(MutationType::BinaryOpMutation),
-//             "RequireMutation" => Ok(MutationType::RequireMutation),
-//             "AssignmentMutation" => Ok(MutationType::AssignmentMutation),
-//             "DeleteExpressionMutation" => Ok(MutationType::DeleteExpressionMutation),
-//             "FunctionCallMutation" => Ok(MutationType::FunctionCallMutation),
-//             "IfStatementMutation" => Ok(MutationType::IfStatementMutation),
-//             //"IntegerMutation" => Ok(MutationType::IntegerMutation),
-//             "SwapArgumentsFunctionMutation" => Ok(MutationType::SwapArgumentsFunctionMutation),
-//             "SwapArgumentsOperatorMutation" => Ok(MutationType::SwapArgumentsOperatorMutation),
-//             "SwapLinesMutation" => Ok(MutationType::SwapLinesMutation),
-//             "UnaryOperatorMutation" => Ok(MutationType::UnaryOperatorMutation),
-//             "ElimDelegateMutation" => Ok(MutationType::ElimDelegateMutation),
-//             _ => panic!("Undefined mutant!"),
-//         }
-//     }
-// }
-
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
@@ -101,7 +79,7 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::FunctionCallMutation => {
-		//TODO: we could check for same-type args here
+                //TODO: we could check for same-type args here
                 if let Some(n) = node.node_type() {
                     return n == "FunctionCall" && !node.arguments().is_empty();
                 }
@@ -117,10 +95,10 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsOperatorMutation => {
-		// TODO: include commutative operators because side effects
-		// TODO: also boolean conjunction and disjunction are non-commutative due
-		// due to short-circuiting
-		// TODO: ">>>" missing (and others?)
+                // TODO: include commutative operators because side effects
+                // TODO: also boolean conjunction and disjunction are non-commutative due
+                // due to short-circuiting
+                // TODO: ">>>" missing (and others?)
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation"
@@ -177,7 +155,7 @@ impl Mutation for MutationType {
                 arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
             }
             MutationType::DeleteExpressionMutation => {
-		// TODO: it seems like this mutation never results in a well-typed program?
+                // TODO: it seems like this mutation never results in a well-typed program?
                 assert!(&self.is_mutation_point(node));
                 node.comment_out(source)
             }
@@ -200,7 +178,7 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsFunctionMutation => {
-		// TODO: is this not redundant with FunctionCallMutation is some way?
+                // TODO: is this not redundant with FunctionCallMutation is some way?
                 assert!(&self.is_mutation_point(node));
                 let mut children = node.arguments();
                 children.shuffle(rand);
@@ -245,7 +223,7 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::UnaryOperatorMutation => {
-		// TODO: if we do `++` statements here, why not `+=` statements in binop?
+                // TODO: if we do `++` statements here, why not `+=` statements in binop?
                 assert!(&self.is_mutation_point(node));
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
@@ -272,7 +250,7 @@ impl Mutation for MutationType {
                 };
             }
             MutationType::AssignmentMutation => {
-		// TODO: add checks for type information
+                // TODO: add checks for type information
                 assert!(&self.is_mutation_point(node));
                 let new: Vec<String> =
                     vec!["true", "false", "0", "1", &rand.next_u64().to_string()]

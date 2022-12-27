@@ -13,8 +13,8 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fmt::Debug;
-use std::i32;
 use std::io::BufReader;
 use std::{
     fs::File,
@@ -97,7 +97,13 @@ impl MutantGenerator {
     }
 
     /// Generate mutations for a single file.
-    fn run_one(&self, file_to_mutate: &String, muts: Option<Vec<String>>) {
+    fn run_one(
+        &self,
+        file_to_mutate: &String,
+        muts: Option<Vec<String>>,
+        funcs: Option<FunctionMutationMapping>,
+        contract: Option<String>,
+    ) {
         let rand = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self.compile_solc(file_to_mutate, outdir.to_path_buf());
@@ -107,14 +113,16 @@ impl MutantGenerator {
                 .collect()
         });
 
-        let run_mutation = RunMutations::new(
-            file_to_mutate.into(),
-            ast,
-            self.params.num_mutants,
+        let run_mutation = RunMutations {
+            fnm: file_to_mutate.into(),
+            node: ast,
+            num_mutants: self.params.num_mutants,
             rand,
-            outdir.to_path_buf(),
-            mut_types,
-        );
+            out: outdir.to_path_buf(),
+            mutation_types: mut_types,
+            funcs_to_mutate: funcs,
+            contract,
+        };
         log::info!("running mutations on file: {}", file_to_mutate);
 
         let is_valid = |mutant: &str| -> bool {
@@ -135,10 +143,10 @@ impl MutantGenerator {
 
     fn run_from_config(&mut self, cfg: &String) {
         let f = File::open(cfg).expect("Cannot open json config file.");
-        let config: Value =
-            serde_json::from_reader(BufReader::new(f)).expect("Ill-formed json probably.");
+        let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Illformed json.");
         let mut process_single_file = |v: &Value| {
             if let Some(filename) = &v.get("filename") {
+                let mut func_mut_map = HashMap::new();
                 let fnm = filename.as_str().unwrap();
                 if let Some(num) = &v.get("num-mutants") {
                     self.params.num_mutants = num.as_i64().unwrap();
@@ -146,6 +154,12 @@ impl MutantGenerator {
                 if let Some(solc) = &v.get("solc") {
                     self.params.solc = solc.as_str().unwrap().to_string();
                 }
+                if let Some(seed) = &v.get("seed") {
+                    self.params.seed = seed.as_u64().unwrap();
+                }
+                let contract: Option<String> =
+                    v.get("contract").map(|v| v.as_str().unwrap().to_string());
+
                 if let Some(muts) = &v.get("mutations") {
                     let muts: Vec<String> = muts
                         .as_array()
@@ -153,15 +167,30 @@ impl MutantGenerator {
                         .iter()
                         .map(|v| v.as_str().unwrap().to_string())
                         .collect();
-                    self.run_one(&fnm.to_string(), Some(muts));
-                } else if let Some(muts) = &v.get("functions") {
-                    let muts: Vec<String> = muts
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|v| v.as_str().unwrap().to_string())
-                        .collect();
-                    self.run_one(&fnm.to_string(), Some(muts));
+                    self.run_one(&fnm.to_string(), Some(muts), None, contract.to_owned());
+                }
+                if let Some(funcs) = &v.get("functions") {
+                    for func in funcs.as_array().unwrap().iter() {
+                        func_mut_map.insert(
+                            func.get("name")
+                                .unwrap()
+                                .as_str()
+                                .unwrap_or_else(|| panic!("`functions` field must have `name`s"))
+                                .to_string(),
+                            func.get("mutations")
+                                .unwrap_or_else(|| {
+                                    panic!(
+                                        "`functions` field must have an array `mutations` field."
+                                    )
+                                })
+                                .as_array()
+                                .unwrap_or_else(|| panic!("`mutations` must be an array field."))
+                                .iter()
+                                .map(|n| n.as_str().unwrap().to_string())
+                                .collect(),
+                        );
+                    }
+                    self.run_one(&fnm.to_string(), None, func_mut_map.into(), contract);
                 }
             }
         };
@@ -183,7 +212,7 @@ impl MutantGenerator {
         let json = &self.params.json.clone();
         if files.is_some() {
             for f in files.as_ref().unwrap() {
-                self.run_one(f, None);
+                self.run_one(f, None, None, None);
             }
         } else if json.is_some() {
             self.run_from_config(json.as_ref().unwrap())
@@ -191,22 +220,6 @@ impl MutantGenerator {
             panic!("Must provide either --filename file.sol or --json config.json.")
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-struct FunctionMutationMapping {
-    name: String,
-    mutations: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-struct Config {
-    filename: String,
-    functions: Vec<FunctionMutationMapping>,
-    solc: Option<String>,
-    num_mutants: Option<i32>,
-    seed: Option<u64>,
-    contract: Option<String>,
 }
 
 ///
@@ -260,7 +273,5 @@ fn main() {
 }
 
 // TODO: add the case where we have specific functions from the user to mutate.
-// TODO: need to do a more "best effort" invocation of solc
-// TODO: figure out if there is a way to support autocomplete for mutation names
 // TODO: why aren't we generating enough mutants?
 // TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.
