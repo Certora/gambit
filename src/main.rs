@@ -191,6 +191,8 @@ impl MutantGenerator {
                         );
                     }
                     self.run_one(&fnm.to_string(), None, func_mut_map.into(), contract);
+                } else {
+                    self.run_one(&fnm.to_string(), None, None, contract);
                 }
             }
         };

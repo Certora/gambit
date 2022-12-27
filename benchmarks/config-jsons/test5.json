@@ -6,12 +6,6 @@
     {
         "filename": "benchmarks/CopyingArrays/C.sol",
         "contract": "Utils",
-        "solc": "solc5.12",
-        "functions": [
-            {
-                "name": "getarray",
-                "mutations": ["function-call-mutation"]
-            }
-        ]
+        "solc": "solc5.12"
     }
 ]

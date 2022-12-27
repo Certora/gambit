@@ -47,6 +47,7 @@ impl RunMutations {
         }
         std::fs::create_dir_all(mut_dir.parent().unwrap())
             .expect("Unable to create output directory.");
+        println!("making {}", mut_dir.to_str().unwrap());
         mut_dir
     }
 
