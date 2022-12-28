@@ -1,8 +1,5 @@
-# Kotlin stuff
-build/*
-.gradle/
-.idea/
-
+# outputs
+out/
 
 # Added by cargo
 Cargo.lock

@@ -33,14 +33,21 @@ struct Replacement {
 #[serde(default)]
 pub struct SolAST {
     pub(crate) element: Option<Value>,
+    pub(crate) contract: Option<String>,
 }
 
 impl SolAST {
     pub fn new(v: Value) -> Self {
         if v.is_null() {
-            Self { element: None }
+            Self {
+                element: None,
+                contract: None,
+            }
         } else {
-            Self { element: Some(v) }
+            Self {
+                element: Some(v),
+                contract: None,
+            }
         }
     }
 
@@ -48,13 +55,21 @@ impl SolAST {
         self.element.clone()
     }
 
+    pub fn get_contract(&self) -> Option<String> {
+        self.contract.clone()
+    }
+
     pub fn get_node(&self, fnm: &str) -> SolAST {
-        let node: SolAST = match &self.get_object() {
-            Some(v) => SolAST {
-                element: Some(v[fnm].clone()),
+        let node: SolAST = self.get_object().map_or_else(
+            || SolAST {
+                element: None,
+                contract: self.get_contract(),
             },
-            None => SolAST { element: None },
-        };
+            |v| SolAST {
+                element: Some(v[fnm].clone()),
+                contract: self.get_contract(),
+            },
+        );
         node
     }
 

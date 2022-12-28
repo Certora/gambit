@@ -4,8 +4,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub type FunctionMutationMapping = HashMap<String, Vec<String>>;
-
 /// Given a `line`, get the indentation in terms of
 /// a string of white spaces.
 pub fn get_indent(line: &str) -> String {

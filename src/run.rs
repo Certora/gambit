@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map,
-    FunctionMutationMapping, Mutation,
+    Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -26,7 +26,7 @@ pub struct RunMutations {
     pub rand: rand_pcg::Pcg64,
     pub out: PathBuf,
     pub mutation_types: Vec<MutationType>,
-    pub funcs_to_mutate: Option<FunctionMutationMapping>,
+    pub funcs_to_mutate: Option<Vec<String>>,
     pub contract: Option<String>,
 }
 
@@ -52,7 +52,7 @@ impl RunMutations {
 
     pub fn mk_closures(
         mutation_types: Vec<MutationType>,
-        funcs_to_mutate: Option<FunctionMutationMapping>,
+        funcs_to_mutate: Option<Vec<String>>,
         contract: Option<String>,
     ) -> (
         impl FnMut(&SolAST) -> Option<Vec<(mutation::MutationType, ast::SolAST)>>,
@@ -83,7 +83,7 @@ impl RunMutations {
             (None, Some(f)) => {
                 node.node_type()
                     .map_or_else(|| false, |n| n == "FunctionDefinition")
-                    && f.contains_key(&node.name().unwrap())
+                    && f.contains(&node.name().unwrap())
             }
             (Some(c), Some(f)) => {
                 node.node_type()
@@ -92,7 +92,7 @@ impl RunMutations {
                     && node
                         .node_type()
                         .map_or_else(|| false, |n| n == "FunctionDefinition")
-                    && f.contains_key(&node.name().unwrap())
+                    && f.contains(&node.name().unwrap())
             }
         };
         (visitor, skip, accept)

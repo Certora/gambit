@@ -13,7 +13,6 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
 use std::fmt::Debug;
 use std::io::BufReader;
 use std::{
@@ -93,6 +92,7 @@ impl MutantGenerator {
             serde_json::from_reader(json_f).expect("AST json is not well-formed.");
         SolAST {
             element: Some(ast_json),
+            contract: None,
         }
     }
 
@@ -101,7 +101,7 @@ impl MutantGenerator {
         &self,
         file_to_mutate: &String,
         muts: Option<Vec<String>>,
-        funcs: Option<FunctionMutationMapping>,
+        funcs: Option<Vec<String>>,
         contract: Option<String>,
     ) {
         let rand = self.rng.clone();
@@ -146,7 +146,7 @@ impl MutantGenerator {
         let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Illformed json.");
         let mut process_single_file = |v: &Value| {
             if let Some(filename) = &v.get("filename") {
-                let mut func_mut_map = HashMap::new();
+                let mut funcs_to_mutate: Vec<String> = vec![];
                 let fnm = filename.as_str().unwrap();
                 if let Some(num) = &v.get("num-mutants") {
                     self.params.num_mutants = num.as_i64().unwrap();
@@ -171,26 +171,14 @@ impl MutantGenerator {
                 }
                 if let Some(funcs) = &v.get("functions") {
                     for func in funcs.as_array().unwrap().iter() {
-                        func_mut_map.insert(
-                            func.get("name")
-                                .unwrap()
+                        funcs_to_mutate.push(
+                            func
                                 .as_str()
-                                .unwrap_or_else(|| panic!("`functions` field must have `name`s"))
-                                .to_string(),
-                            func.get("mutations")
-                                .unwrap_or_else(|| {
-                                    panic!(
-                                        "`functions` field must have an array `mutations` field."
-                                    )
-                                })
-                                .as_array()
-                                .unwrap_or_else(|| panic!("`mutations` must be an array field."))
-                                .iter()
-                                .map(|n| n.as_str().unwrap().to_string())
-                                .collect(),
+                                .unwrap_or_else(|| panic!("`functions` field must have a list of function names to mutate."))
+                                .to_string()
                         );
                     }
-                    self.run_one(&fnm.to_string(), None, func_mut_map.into(), contract);
+                    self.run_one(&fnm.to_string(), None, funcs_to_mutate.into(), contract);
                 } else {
                     self.run_one(&fnm.to_string(), None, None, contract);
                 }
