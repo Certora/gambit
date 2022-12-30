@@ -1,6 +1,6 @@
-name: Rust
+name: Gambit
 
-on: [push]
+on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,13 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Cache cargo bin
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
-      - uses: Swatinem/rust-cache@v1
-      - name: Build and Unit Test
-        run: |
-          cargo fmt
-          cargo clippy
-          cargo test --release
+      - name: Build and Test
+        run: make
