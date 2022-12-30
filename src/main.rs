@@ -41,7 +41,9 @@ impl MutantGenerator {
     /// Compile the input solc files and get json ASTs.
     pub fn compile_solc(&self, sol: &String, out: PathBuf) -> SolAST {
         let norms_to_path = get_path_normals(sol);
-        let norm_sol = norms_to_path.to_str().unwrap_or_else(|| {
+        assert!(norms_to_path.is_some());
+        let norm_path = norms_to_path.unwrap();
+        let norm_sol = norm_path.to_str().unwrap_or_else(|| {
             panic!("Could not convert the path to the sol file to a normalized version.")
         });
         let sol_path = out.join("input_json/".to_owned() + norm_sol);
@@ -91,7 +93,8 @@ impl MutantGenerator {
     /// Create a directory for saving the mutants.
     fn mk_mutant_dir(&self, fnm: &str) {
         let norm_path = get_path_normals(fnm);
-        let mut_dir = PathBuf::from(&self.params.outdir).join(norm_path);
+        assert!(norm_path.is_some());
+        let mut_dir = PathBuf::from(&self.params.outdir).join(norm_path.unwrap());
         if let Some(pd) = mut_dir.parent() {
             if pd.is_dir() {
                 fs::remove_dir_all(pd)

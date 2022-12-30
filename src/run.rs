@@ -38,7 +38,8 @@ impl RunMutations {
     /// Check that the path exists.
     fn lkup_mutant_dir(&self) -> PathBuf {
         let norm_path = get_path_normals(&self.fnm);
-        let mut_dir = PathBuf::from(&self.out).join(norm_path);
+        assert!(norm_path.is_some());
+        let mut_dir = PathBuf::from(&self.out).join(norm_path.unwrap());
         if mut_dir.parent().is_none() {
             panic!("{:?} does not exist", mut_dir);
         } else {
