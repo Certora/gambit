@@ -25,6 +25,10 @@ As you can see, Gambit accepts a configuration file as input where you can
 You can control which functions and contracts you want to mutate.
 Examples of some configuration files can be found under `benchmarks/config-jsons`.
 
+#### Examples of how to run Gambit:
+- cargo run --release -- mutate --json benchmarks/config-jsons/test1.json
+- cargo run --release -- mutate -f benchmarks/RequireMutation/RequireExample.sol
+
 ### Developers
 - `cargo build`, `cargo fmt`, `cargo clippy` before pushing.
 
