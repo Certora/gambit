@@ -204,7 +204,7 @@ impl RunMutations {
                 mutations.iter().cloned().unzip();
             points = points.into_iter().unique().collect();
             let points_len = points.len() as i64;
-            let mutation_points = vec_pair_to_map(mutations, &points);
+            let mutation_points = vec_pair_to_map(&mutations, &points);
             let mut mutation_points_todo = VecDeque::new();
             let mut remaining = self.num_mutants;
             while remaining > 0 {
@@ -213,7 +213,8 @@ impl RunMutations {
                 for s in selected {
                     mutation_points_todo.push_back(*s);
                 }
-                remaining -= points_len;
+                //remaining -= points_len;
+                remaining -= 1;
             }
             Self::inner_loop(
                 mut_dir,

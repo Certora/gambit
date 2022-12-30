@@ -100,7 +100,6 @@ impl MutantGenerator {
         }
         std::fs::create_dir_all(mut_dir.parent().unwrap())
             .expect("Unable to create output directory.");
-        println!("created {:?}", mut_dir);
     }
 
     /// Create directories for mutants from a json config file.
