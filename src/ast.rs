@@ -189,7 +189,7 @@ impl SolAST {
     }
 
     fn traverse_internal<T>(
-        self,
+        mut self,
         visitor: &mut impl FnMut(&SolAST) -> Option<T>,
         skip: &mut impl FnMut(&SolAST) -> bool,
         accept: &mut impl FnMut(&SolAST) -> bool,
@@ -214,23 +214,22 @@ impl SolAST {
                 // log::info!("no mutation points found");
             }
         }
-        let mut c_nm = None;
         if self.element.is_some() {
             let e = self.element.unwrap();
             if e.is_object() {
                 let e_obj = e.as_object().unwrap();
                 if e_obj.contains_key("contractKind") {
-                    c_nm = e["name"].as_str().map(|nm| nm.to_string());
+                    self.contract = e["name"].as_str().map(|nm| nm.to_string());
                 }
                 for v in e_obj.values() {
-                    let child: SolAST = SolAST::new(v.clone(), c_nm.clone());
+                    let child: SolAST = SolAST::new(v.clone(), self.contract.clone());
                     // log::info!("object child: {:?}", child);
                     child.traverse_internal(visitor, skip, accept, new_accepted, acc);
                 }
             } else if e.is_array() {
                 let e_arr = e.as_array().unwrap();
                 for a in e_arr {
-                    let child: SolAST = SolAST::new(a.clone(), c_nm.clone());
+                    let child: SolAST = SolAST::new(a.clone(), self.contract.clone());
                     // log::info!("array child: {:?}", child.name());
                     child.traverse_internal(visitor, skip, accept, new_accepted, acc);
                 }
