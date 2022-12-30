@@ -31,6 +31,8 @@ Examples of some configuration files can be found under `benchmarks/config-jsons
 For using the other command line arguments, run `cargo gambit-help`.
 
 ### Developers
+We are happy to accept contributions to Gambit! A few tips:
+- VSCode is a good IDE for Rust development.
 - `cargo build`, `cargo fmt`, `cargo clippy` before pushing.
 
 ### Credits
