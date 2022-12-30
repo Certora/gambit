@@ -3,7 +3,7 @@ use rand::seq::SliceRandom;
 use scanner_rust::Scanner;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    fs::{self, File},
+    fs::File,
     io::Read,
     path::{Path, PathBuf},
 };
@@ -35,21 +35,19 @@ impl RunMutations {
         node.name().map_or_else(|| false, |n| n == "assert")
     }
 
-    fn mk_mutant_dir(&self) -> PathBuf {
+    /// Check that the path exists.
+    fn lkup_mutant_dir(&self) -> PathBuf {
         let norm_path = get_path_normals(&self.fnm);
-        let mut_dir = self.out.join(norm_path);
-        if let Some(pd) = mut_dir.parent() {
-            if pd.is_dir() {
-                fs::remove_dir_all(pd)
-                    .expect("Directory existed but was unable to remove content.");
-            }
+        let mut_dir = PathBuf::from(&self.out).join(norm_path);
+        if mut_dir.parent().is_none() {
+            panic!("{:?} does not exist", mut_dir);
+        } else {
+            mut_dir
         }
-        std::fs::create_dir_all(mut_dir.parent().unwrap())
-            .expect("Unable to create output directory.");
-        mut_dir
     }
 
-    pub fn mk_closures(
+    /// Returns the closures for visiting, accepting, and skipping AST nodes.
+    fn mk_closures(
         mutation_types: Vec<MutationType>,
         funcs_to_mutate: Option<Vec<String>>,
         contract: Option<String>,
@@ -91,6 +89,8 @@ impl RunMutations {
         (visitor, skip, accept)
     }
 
+    /// Inner loop of mutation generation that uniformly
+    /// genrates mutants from each possible mutation kind.
     fn inner_loop(
         mut_dir: PathBuf,
         fnm: String,
@@ -124,7 +124,7 @@ impl RunMutations {
                     let mut_file =
                         mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
                     let mut_path = Path::new(&mut_file);
-                    log::info!("attempting to write to {}", mut_file);
+                    log::info!("attempting to write to {:?}", mut_path);
                     std::fs::write(mut_path, &mutant).expect("Failed to write mutant to file.");
                     Self::diff_mutant(orig_path, mut_path);
                     mutants.push(mut_path.to_owned());
@@ -185,8 +185,12 @@ impl RunMutations {
         res.concat()
     }
 
+    /// Mutation Generator that traverses the AST and determines which points
+    /// can be mutated using which mutation type,
+    /// then collects all the mutations that need to be done and calls
+    /// `inner_loop` where the actual mutations are done.
     pub fn get_mutations(self, is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
-        let mut_dir = self.mk_mutant_dir();
+        let mut_dir = self.lkup_mutant_dir();
         let (visitor, skip, accept) =
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
         let mutations: Vec<(MutationType, SolAST)> = self
@@ -195,7 +199,6 @@ impl RunMutations {
             .into_iter()
             .flatten()
             .collect();
-        // TODO: support contracts and user provided functions
         if !mutations.is_empty() {
             let (mut points, _): (Vec<MutationType>, Vec<SolAST>) =
                 mutations.iter().cloned().unzip();

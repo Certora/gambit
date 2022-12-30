@@ -11,7 +11,6 @@ pub trait Mutation {
 }
 
 /// Kinds of mutations.
-// Note: did not port Unchecked Block mutation from Gambit1.0 as feedback indicated that it was not too useful.
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
     BinaryOpMutation,
@@ -20,7 +19,6 @@ pub enum MutationType {
     DeleteExpressionMutation,
     FunctionCallMutation,
     IfStatementMutation,
-    // IntegerMutation,
     SwapArgumentsFunctionMutation,
     SwapArgumentsOperatorMutation,
     SwapLinesMutation,
@@ -79,7 +77,6 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::FunctionCallMutation => {
-                //TODO: we could check for same-type args here
                 if let Some(n) = node.node_type() {
                     return n == "FunctionCall" && !node.arguments().is_empty();
                 }
@@ -95,10 +92,6 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsOperatorMutation => {
-                // TODO: include commutative operators because side effects
-                // TODO: also boolean conjunction and disjunction are non-commutative due
-                // due to short-circuiting
-                // TODO: ">>>" missing (and others?)
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation"
@@ -139,7 +132,7 @@ impl Mutation for MutationType {
         match self {
             MutationType::BinaryOpMutation => {
                 assert!(&self.is_mutation_point(node));
-                let ops = vec!["+", "-", "*", "/", "%", "**"]; //TODO: boolean binary ops?
+                let ops = vec!["+", "-", "*", "/", "%", "**"];
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 node.replace_part(
@@ -155,7 +148,6 @@ impl Mutation for MutationType {
                 arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
             }
             MutationType::DeleteExpressionMutation => {
-                // TODO: it seems like this mutation never results in a well-typed program?
                 assert!(&self.is_mutation_point(node));
                 node.comment_out(source)
             }
@@ -178,7 +170,6 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsFunctionMutation => {
-                // TODO: is this not redundant with FunctionCallMutation is some way?
                 assert!(&self.is_mutation_point(node));
                 let mut children = node.arguments();
                 children.shuffle(rand);
@@ -223,7 +214,6 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::UnaryOperatorMutation => {
-                // TODO: if we do `++` statements here, why not `+=` statements in binop?
                 assert!(&self.is_mutation_point(node));
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
@@ -250,7 +240,6 @@ impl Mutation for MutationType {
                 };
             }
             MutationType::AssignmentMutation => {
-                // TODO: add checks for type information
                 assert!(&self.is_mutation_point(node));
                 let new: Vec<String> =
                     vec!["true", "false", "0", "1", &rand.next_u64().to_string()]

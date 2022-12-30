@@ -1,19 +1,11 @@
-/*!
-* Workflow:
-* Let's mainly focus on the mutation
-* generation part for now.
-* This tool should take as input, a solidity file,
-* then compile it to generate it's AST and do various mutations of it.
-* All the mutated files should be in some directory that the user will
-* pass from the commandline.
-!*/
-
 use clap::{Parser, ValueEnum};
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashSet;
 use std::fmt::Debug;
+use std::fs;
 use std::io::BufReader;
 use std::{
     fs::File,
@@ -56,7 +48,7 @@ impl MutantGenerator {
         std::fs::create_dir_all(sol_path.parent().unwrap())
             .expect("Unable to create directory for storing input jsons.");
         log::info!(
-            "made parent directories for writing the json file at {}.",
+            "made parent directories for writing the json ast at {}.",
             sol_path.to_str().unwrap()
         );
         if invoke_command(
@@ -93,6 +85,41 @@ impl MutantGenerator {
         SolAST {
             element: Some(ast_json),
             contract: None,
+        }
+    }
+
+    /// Create a directory for saving the mutants.
+    fn mk_mutant_dir(&self, fnm: &str) {
+        let norm_path = get_path_normals(fnm);
+        let mut_dir = PathBuf::from(&self.params.outdir).join(norm_path);
+        if let Some(pd) = mut_dir.parent() {
+            if pd.is_dir() {
+                fs::remove_dir_all(pd)
+                    .expect("Directory existed but was unable to remove content.");
+            }
+        }
+        std::fs::create_dir_all(mut_dir.parent().unwrap())
+            .expect("Unable to create output directory.");
+        println!("created {:?}", mut_dir);
+    }
+
+    /// Create directories for mutants from a json config file.
+    fn mutant_dirs_from_json(&self) {
+        let f =
+            File::open(&self.params.json.as_ref().unwrap()).expect("Cannot open json config file.");
+        let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Ill-formed json.");
+        match config {
+            Value::Array(elems) => {
+                let mut paths = HashSet::new();
+                for e in elems {
+                    paths.insert(e["filename"].as_str().unwrap().to_string());
+                }
+                paths.iter().for_each(|p| self.mk_mutant_dir(p));
+            }
+            Value::Object(o) => {
+                self.mk_mutant_dir(o["filename"].as_str().unwrap());
+            }
+            _ => panic!("Ill-formed json."),
         }
     }
 
@@ -141,9 +168,11 @@ impl MutantGenerator {
         run_mutation.get_mutations(is_valid);
     }
 
+    /// Run Gambit from a json config file.
     fn run_from_config(&mut self, cfg: &String) {
+        self.mutant_dirs_from_json();
         let f = File::open(cfg).expect("Cannot open json config file.");
-        let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Illformed json.");
+        let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Ill-formed json.");
         let mut process_single_file = |v: &Value| {
             if let Some(filename) = &v.get("filename") {
                 let mut funcs_to_mutate: Option<Vec<String>> = None;
@@ -193,7 +222,7 @@ impl MutantGenerator {
                 }
             }
             Value::Object(_) => process_single_file(&config),
-            _ => panic!("Ill-formed json probably."),
+            _ => panic!("Ill-formed json."),
         }
     }
 
@@ -204,6 +233,7 @@ impl MutantGenerator {
         let json = &self.params.json.clone();
         if files.is_some() {
             for f in files.as_ref().unwrap() {
+                self.mk_mutant_dir(&f.to_string());
                 self.run_one(f, None, None, None);
             }
         } else if json.is_some() {
@@ -263,7 +293,3 @@ fn main() {
         }
     }
 }
-
-// TODO: add the case where we have specific functions from the user to mutate.
-// TODO: why aren't we generating enough mutants?
-// TODO: why one same mutant: because the original file didn't have spaces a**10, and the tool fails to recognize the difference between a ** 10 and a**10.

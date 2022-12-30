@@ -48,6 +48,7 @@ pub fn invoke_command(cmd: &str, args: Vec<&str>) -> (Option<i32>, Vec<u8>, Vec<
 }
 
 /// Given a path, returns the Normal components of the path as a PathBuf.
+/// This includes the leaf of the path.
 pub fn get_path_normals(path: &str) -> PathBuf {
     let path = Path::new(path);
     let comps = path.components().collect::<Vec<_>>();
