@@ -1,0 +1,4 @@
+[alias]
+gambit-cfg = ["run", "--quiet", "--release", "--", "mutate", "--json"]
+gambit = ["run", "--quiet", "--release", "--", "mutate", "--filename"]
+gambit-help = ["run", "--quiet", "--release", "--", "mutate", "--help"]

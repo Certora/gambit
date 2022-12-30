@@ -247,11 +247,11 @@ impl MutantGenerator {
 /// Command line arguments for running Gambit.
 /// Following are the main ways to run it.
 ///
-///    1. cargo run --release -- mutate --filename path/to/file.sol: this will apply all mutations to file.sol.
+///    1. cargo gambit path/to/file.sol: this will apply all mutations to file.sol.
 ///
 ///    2. cargo run --release -- mutate -f path/to/file1.sol -f path/to/file2.sol: this will apply all mutations to file1.sol and file2.sol.
 ///
-///    3. cargo run --release -- mutate --json path/to/config.json: this gives the user finer control on what functions in
+///    3. cargo gambit-cfg path/to/config.json: this gives the user finer control on what functions in
 ///       which files, contracts to mutate using which types of mutations.
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[command(rename_all = "kebab-case")]

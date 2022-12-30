@@ -17,7 +17,7 @@ you can download from [here](https://www.rust-lang.org/tools/install).
 
 ### Users
 You can learn how to use Gambit by running
-`cargo run --release -- mutate --help`.
+`cargo gambit-help`.
 It will show you all the command line arguments that Gambit accepts.
 
 As you can see, Gambit accepts a configuration file as input where you can
@@ -26,9 +26,9 @@ You can control which functions and contracts you want to mutate.
 Examples of some configuration files can be found under `benchmarks/config-jsons`.
 
 #### Examples of how to run Gambit:
-- `cargo run --release -- mutate --json benchmarks/config-jsons/test1.json`
-- `cargo run --release -- mutate -f benchmarks/RequireMutation/RequireExample.sol`
-For using the other command line arguments, run `cargo run --release -- mutate --help`.
+- `cargo gambit-cfg benchmarks/config-jsons/test1.json`
+- `cargo gambit benchmarks/RequireMutation/RequireExample.sol`
+For using the other command line arguments, run `cargo gambit-help`.
 
 ### Developers
 - `cargo build`, `cargo fmt`, `cargo clippy` before pushing.
