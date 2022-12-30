@@ -146,7 +146,8 @@ impl MutantGenerator {
         let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Illformed json.");
         let mut process_single_file = |v: &Value| {
             if let Some(filename) = &v.get("filename") {
-                let mut funcs_to_mutate: Vec<String> = vec![];
+                let mut funcs_to_mutate: Option<Vec<String>> = None;
+                let mut selected_muts: Option<Vec<String>> = None;
                 let fnm = filename.as_str().unwrap();
                 if let Some(num) = &v.get("num-mutants") {
                     self.params.num_mutants = num.as_i64().unwrap();
@@ -161,27 +162,28 @@ impl MutantGenerator {
                     v.get("contract").map(|v| v.as_str().unwrap().to_string());
 
                 if let Some(muts) = &v.get("mutations") {
-                    let muts: Vec<String> = muts
+                    let mutts: Vec<String> = muts
                         .as_array()
                         .unwrap()
                         .iter()
                         .map(|v| v.as_str().unwrap().to_string())
                         .collect();
-                    self.run_one(&fnm.to_string(), Some(muts), None, contract.to_owned());
+                    if !mutts.is_empty() {
+                        selected_muts = mutts.into();
+                    }
                 }
                 if let Some(funcs) = &v.get("functions") {
-                    for func in funcs.as_array().unwrap().iter() {
-                        funcs_to_mutate.push(
-                            func
-                                .as_str()
-                                .unwrap_or_else(|| panic!("`functions` field must have a list of function names to mutate."))
-                                .to_string()
-                        );
+                    let fs: Vec<String> = funcs
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|v| v.as_str().unwrap().to_string())
+                        .collect();
+                    if !fs.is_empty() {
+                        funcs_to_mutate = fs.into();
                     }
-                    self.run_one(&fnm.to_string(), None, funcs_to_mutate.into(), contract);
-                } else {
-                    self.run_one(&fnm.to_string(), None, None, contract);
                 }
+                self.run_one(&fnm.to_string(), selected_muts, funcs_to_mutate, contract);
             }
         };
         match config {

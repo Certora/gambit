@@ -9,8 +9,7 @@ use std::{
 };
 
 use crate::{
-    ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map,
-    Mutation,
+    ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map, Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -75,20 +74,14 @@ impl RunMutations {
         let skip = Self::is_assert_call;
         let accept = move |node: &SolAST| match (&contract, &funcs_to_mutate) {
             (None, None) => true,
-            (Some(c), None) => {
-                node.node_type()
-                    .map_or_else(|| false, |n| n == "ContractDefinition")
-                    && node.name().map_or_else(|| false, |n| n == *c)
-            }
+            (Some(c), None) => node.contract.as_ref().map_or_else(|| false, |n| n.eq(c)),
             (None, Some(f)) => {
                 node.node_type()
                     .map_or_else(|| false, |n| n == "FunctionDefinition")
                     && f.contains(&node.name().unwrap())
             }
             (Some(c), Some(f)) => {
-                node.node_type()
-                    .map_or_else(|| false, |n| n == "ContractDefinition")
-                    && node.name().map_or_else(|| false, |n| n == *c)
+                node.contract.as_ref().map_or_else(|| false, |n| n.eq(c))
                     && node
                         .node_type()
                         .map_or_else(|| false, |n| n == "FunctionDefinition")

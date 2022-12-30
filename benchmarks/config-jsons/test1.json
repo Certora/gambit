@@ -2,11 +2,13 @@
     {
         "filename": "benchmarks/CopyingArrays/C.sol",
         "contract": "C",
-        "functions": ["getarray", "get10PowerDecimals"]
+        "functions": ["getarray", "get10PowerDecimals"],
+        "solc": "solc5.12"
     },
     {
         "filename": "benchmarks/CopyingArrays/C.sol",
         "contract": "Utils",
-        "functions": ["getarray"]
+        "functions": ["getarray"],
+        "solc": "solc5.12"
     }
 ]
