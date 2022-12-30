@@ -33,7 +33,7 @@ For using the other command line arguments, run `cargo gambit-help`.
 ### Developers
 We are happy to accept contributions to Gambit! A few tips:
 - [VSCode](https://code.visualstudio.com/) is a good IDE for Rust development.
-- `cargo build`, `cargo fmt`, `cargo clippy` before pushing.
+- Run `make` before you push --- it will build Gambit and run all the tests.
 
 ### Credits
 We thank
