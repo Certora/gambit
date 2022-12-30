@@ -186,7 +186,6 @@ impl SolAST {
         F: FnMut(&SolAST) -> Option<T>,
     {
         let mut result: Vec<T> = vec![];
-        log::info!("entering traverse_internal");
         self.traverse_internal(&mut visitor, &mut skip, &mut accept, false, &mut result);
         result
     }
@@ -200,7 +199,6 @@ impl SolAST {
         acc: &mut Vec<T>,
     ) {
         let mut new_accepted = accepted;
-        // log::info!("accepted = {}", new_accepted);
         if accept(&self) {
             new_accepted = true;
         }
@@ -208,13 +206,11 @@ impl SolAST {
             return;
         }
         if new_accepted {
-            // log::info!("about to visit {:?}", &self);
             let res = visitor(&self);
             if let Some(r) = res {
-                log::info!("adding results to list of accepted nodes");
                 acc.push(r)
             } else {
-                // log::info!("no mutation points found");
+                log::info!("no mutation points found");
             }
         }
         if self.element.is_some() {
@@ -226,14 +222,12 @@ impl SolAST {
                 }
                 for v in e_obj.values() {
                     let child: SolAST = SolAST::new(v.clone(), self.contract.clone());
-                    // log::info!("object child: {:?}", child);
                     child.traverse_internal(visitor, skip, accept, new_accepted, acc);
                 }
             } else if e.is_array() {
                 let e_arr = e.as_array().unwrap();
                 for a in e_arr {
                     let child: SolAST = SolAST::new(a.clone(), self.contract.clone());
-                    // log::info!("array child: {:?}", child.name());
                     child.traverse_internal(visitor, skip, accept, new_accepted, acc);
                 }
             }
