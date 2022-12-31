@@ -162,7 +162,13 @@ impl MutantGenerator {
             let tmp_file = "tmp.sol";
             std::fs::write(tmp_file, mutant)
                 .expect("Cannot write mutant to temp file for compiling.");
-            let (valid, _, _) = invoke_command(&self.params.solc, vec![tmp_file]);
+            let mut flags = vec![];
+            flags.push(tmp_file);
+            if self.params.solc_basepath.is_some() {
+                flags.push("--base-path");
+                flags.push(self.params.solc_basepath.as_ref().unwrap());
+            }
+            let (valid, _, _) = invoke_command(&self.params.solc, flags);
             std::fs::remove_file(tmp_file)
                 .expect("Cannot remove temp file made for checking mutant validity.");
             match valid {
