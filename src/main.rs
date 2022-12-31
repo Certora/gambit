@@ -53,18 +53,22 @@ impl MutantGenerator {
             "made parent directories for writing the json ast at {}.",
             sol_path.to_str().unwrap()
         );
-        if invoke_command(
-            &self.params.solc,
-            vec![
-                "--ast-compact-json",
-                sol,
-                "-o",
-                sol_path.to_str().unwrap(),
-                "--overwrite",
-            ],
-        )
-        .0
-        .unwrap_or_else(|| panic!("solc terminated with a signal."))
+        let mut flags: Vec<&str> = vec![
+            "--ast-compact-json",
+            sol,
+            "-o",
+            sol_path.to_str().unwrap(),
+            "--overwrite",
+        ];
+
+        if self.params.solc_basepath.is_some() {
+            flags.push("--base-path");
+            flags.push(self.params.solc_basepath.as_ref().unwrap());
+        }
+
+        if invoke_command(&self.params.solc, flags)
+            .0
+            .unwrap_or_else(|| panic!("solc terminated with a signal."))
             != 0
         {
             panic!("Failed to compile source. Try with a different version of solc.")
@@ -186,6 +190,9 @@ impl MutantGenerator {
                 if let Some(solc) = &v.get("solc") {
                     self.params.solc = solc.as_str().unwrap().to_string();
                 }
+                if let Some(solc_basepath) = &v.get("solc-basepath") {
+                    self.params.solc_basepath = solc_basepath.as_str().unwrap().to_string().into();
+                }
                 if let Some(seed) = &v.get("seed") {
                     self.params.seed = seed.as_u64().unwrap();
                 }
@@ -277,6 +284,9 @@ pub struct MutationParams {
     /// Solidity compiler version
     #[arg(long, default_value = "solc")]
     pub solc: String,
+    /// Basepath argument to solc
+    #[arg(long)]
+    pub solc_basepath: Option<String>,
 }
 
 #[derive(Parser)]
