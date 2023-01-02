@@ -62,7 +62,9 @@ As you can imagine, many of these mutations may lead to invalid mutants
 At the moment, Gambit simply compiles the mutants and only keeps valid ones -- we are working on using additional type information to reduce the generation of
 invalid mutants by constructions. 
 You can see the implementation details in `mutation.rs`.
-If you have ideas for intersting mutantions, make a PR!
+
+If you have ideas for intersting mutations, make a PR or reach out to us at
+`chandra@certora.com`.
 
 ### Credits
 We thank
