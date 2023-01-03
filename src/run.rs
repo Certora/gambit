@@ -112,8 +112,9 @@ impl RunMutations {
         let mut attempts = 0;
         let mut mutants: Vec<PathBuf> = vec![];
         let mut seen: HashSet<String> = HashSet::new();
+        let total_attempts = num_mutants * ATTEMPTS;
         seen.insert(source_to_str);
-        while !mutation_points_todo.is_empty() && attempts < num_mutants * ATTEMPTS {
+        while !mutation_points_todo.is_empty() && attempts < total_attempts {
             let mut_type = mutation_points_todo.remove(0).unwrap();
             let points = mutation_points
                 .get(&mut_type)
@@ -135,6 +136,13 @@ impl RunMutations {
                 seen.insert(mutant);
                 attempts += 1;
             }
+        }
+        if (attempts >= total_attempts) && (mutants.len() < num_mutants.try_into().unwrap()) {
+            log::info!(
+                "Did not find {} valid mutants in {} attempts.",
+                num_mutants,
+                total_attempts
+            );
         }
         mutants
     }
@@ -206,7 +214,7 @@ impl RunMutations {
             points = points.into_iter().unique().collect();
             let points_len = points.len() as i64;
             let mutation_points = vec_pair_to_map(&mutations, &points);
-            let mut mutation_points_todo = VecDeque::new();
+            let mut mutation_points_todo: VecDeque<MutationType> = VecDeque::new();
             let mut remaining = self.num_mutants;
             while remaining > 0 {
                 let to_take = std::cmp::min(remaining, points_len);
@@ -214,9 +222,9 @@ impl RunMutations {
                 for s in selected {
                     mutation_points_todo.push_back(*s);
                 }
-                //remaining -= points_len;
-                remaining -= 1;
+                remaining -= points_len;
             }
+
             Self::inner_loop(
                 mut_dir,
                 self.fnm,

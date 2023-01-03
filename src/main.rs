@@ -273,12 +273,12 @@ impl MutantGenerator {
 #[command(rename_all = "kebab-case")]
 pub struct MutationParams {
     /// Json file with config
-    #[arg(long, short, conflicts_with = "filenames")]
+    #[arg(long, short, conflicts_with = "filename")]
     pub json: Option<String>,
-    /// Files to mutate
+    /// File to mutate
     #[arg(long, short, conflicts_with = "json")]
     pub filename: Option<Vec<String>>,
-    /// Num mutants
+    /// Number of mutants
     #[arg(long, short, default_value = "5")]
     pub num_mutants: i64,
     /// Directory to store all mutants
@@ -287,7 +287,7 @@ pub struct MutationParams {
     /// Seed for random number generator
     #[arg(long, short, default_value = "0")]
     pub seed: u64,
-    /// Solidity compiler version
+    /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
     #[arg(long, default_value = "solc")]
     pub solc: String,
     /// Basepath argument to solc

@@ -210,7 +210,7 @@ impl SolAST {
             if let Some(r) = res {
                 acc.push(r)
             } else {
-                log::info!("no mutation points found");
+                // log::info!("no mutation points found");
             }
         }
         if self.element.is_some() {
@@ -281,8 +281,8 @@ impl SolAST {
             let new_start = &new_src[0..actual_start];
             let new_end = &new_src[actual_end..new_src.len()];
             new_src = [new_start, replace_bytes, new_end].concat();
-            let new_offset = replace_bytes.len() - (r.end - r.start);
-            curr_offset += new_offset;
+            let new_offset = replace_bytes.len().wrapping_sub(r.end - r.start);
+            curr_offset = curr_offset.wrapping_add(new_offset);
         }
         String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.")
     }

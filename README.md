@@ -40,6 +40,7 @@ If you are using a config file, you can also pass this argument there as a field
 }
 ```
 For using the other command line arguments, run `cargo gambit-help`.
+You can print log messages by setting the environment variable `RUST_LOG` (e.g., `RUST_LOG=info cargo gambit ...`).
 
 ### Developers
 We are happy to accept contributions to Gambit! A few tips:
