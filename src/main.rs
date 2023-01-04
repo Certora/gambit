@@ -45,7 +45,7 @@ impl MutantGenerator {
     pub fn compile_solc(&self, sol: &String, out: PathBuf) -> Result<SolAST, Error> {
         let norms_of_path =
             get_path_normals(sol).unwrap_or_else(|| panic!("Path to sol file is broken"));
-        if norms_of_path.extension().unwrap().eq("sol") {
+        if !norms_of_path.extension().unwrap().eq("sol") {
             panic!("{} is not a solidity source file.", sol);
         }
         let norm_sol = norms_of_path.to_str().unwrap();
@@ -85,9 +85,7 @@ impl MutantGenerator {
         let ast_path = sol_path.join(&ast_fnm);
         let json_fnm = sol_path.join(ast_fnm + ".json");
         std::fs::copy(ast_path, &json_fnm)?;
-        let json_f = File::open(&json_fnm).unwrap_or_else(|_| {
-            panic!("Cannot open the json file {}", &json_fnm.to_str().unwrap())
-        });
+        let json_f = File::open(&json_fnm)?;
         let ast_json: Value =
             serde_json::from_reader(json_f).expect("AST json is not well-formed.");
         Ok(SolAST {

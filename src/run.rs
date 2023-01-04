@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use rand::seq::SliceRandom;
-use scanner_rust::Scanner;
+use scanner_rust::{Scanner, ScannerError};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fs::File,
@@ -36,14 +36,14 @@ impl RunMutations {
     }
 
     /// Check that the path exists.
-    fn lkup_mutant_dir(&self) -> PathBuf {
+    fn lkup_mutant_dir(&self) -> Option<PathBuf> {
         let norm_path = get_path_normals(&self.fnm);
         assert!(norm_path.is_some());
         let mut_dir = PathBuf::from(&self.out).join(norm_path.unwrap());
         if mut_dir.parent().is_none() {
-            panic!("{:?} does not exist", mut_dir);
+            None
         } else {
-            mut_dir
+            mut_dir.into()
         }
     }
 
@@ -93,7 +93,7 @@ impl RunMutations {
     /// Inner loop of mutation generation that uniformly
     /// genrates mutants from each possible mutation kind.
     fn inner_loop(
-        mut_dir: PathBuf,
+        mut_dir: Option<PathBuf>,
         fnm: String,
         num_mutants: i64,
         mut rand: rand_pcg::Pcg64,
@@ -102,6 +102,9 @@ impl RunMutations {
         mut mutation_points_todo: VecDeque<MutationType>,
     ) -> Vec<PathBuf> {
         let mut source = Vec::new();
+        if mut_dir.is_none() {
+            panic!("Mutation directory is empty.")
+        }
         let orig_path = Path::new(&fnm);
         let mut f = File::open(orig_path).expect("File cannot be opened.");
         f.read_to_end(&mut source)
@@ -121,10 +124,13 @@ impl RunMutations {
                 .expect("Found unexpected mutation.");
             if let Some(point) = points.choose(&mut rand) {
                 let mut mutant = mut_type.mutate_randomly(point, &source, &mut rand);
-                mutant = Self::add_mutant_comment(orig_path, &mutant, &mut_type);
+                if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
+                    mutant = res;
+                }
                 if !seen.contains(&mutant) && is_valid(&mutant) {
-                    let mut_file =
-                        mut_dir.to_str().unwrap().to_owned() + &attempts.to_string() + ".sol";
+                    let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
+                        + &attempts.to_string()
+                        + ".sol";
                     let mut_path = Path::new(&mut_file);
                     log::info!("attempting to write to {:?}", mut_path);
                     std::fs::write(mut_path, &mutant).expect("Failed to write mutant to file.");
@@ -161,9 +167,12 @@ impl RunMutations {
     }
 
     /// Adds a comment to indicate what kind of mutation happened.
-    fn add_mutant_comment(src_path: &Path, mutant: &String, mut_type: &MutationType) -> String {
-        let mut scan1 =
-            Scanner::scan_path(src_path).unwrap_or_else(|_| panic!("Cannot scan source path."));
+    fn add_mutant_comment(
+        src_path: &Path,
+        mutant: &String,
+        mut_type: &MutationType,
+    ) -> Result<String, ScannerError> {
+        let mut scan1 = Scanner::scan_path(src_path)?;
         let mut scan2 = Scanner::new(mutant.as_bytes());
         let mut res = vec![];
         loop {
@@ -191,7 +200,7 @@ impl RunMutations {
             let l2_to_str = String::from_utf8(l2.unwrap()).unwrap() + "\n";
             res.push(l2_to_str);
         }
-        res.concat()
+        Ok(res.concat())
     }
 
     /// Mutation Generator that traverses the AST and determines which points
