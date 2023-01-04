@@ -41,7 +41,12 @@ impl MutantGenerator {
         }
     }
 
-    /// Compile the input solc files and get json ASTs.
+    /// This method compiles an input solc file to get the json AST.
+    /// For simple example, it simply sufficies to run the right version of
+    /// solc on the file but for more complex examples,
+    /// it uses the `--solc-basepath` flag (that the user must provide in the config file)
+    /// to set the `--base-path` when invoking the Solidity compiler.
+    /// You can read more about it in the [Solidity documentation](https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#base-path-and-include-paths).
     pub fn compile_solc(
         &self,
         sol: &String,
@@ -100,7 +105,8 @@ impl MutantGenerator {
         })
     }
 
-    /// Create a directory for saving the mutants.
+    /// Create a directory for saving the mutants for a given
+    /// file `fnm`. All mutant files will be dumped here.
     fn mk_mutant_dir(&self, fnm: &str) -> io::Result<()> {
         let norm_path = get_path_normals(fnm);
         assert!(norm_path.is_some());
@@ -115,9 +121,11 @@ impl MutantGenerator {
     }
 
     /// Create directories for mutants from a json config file.
+    /// This is used when Gambit is run using a config file as opposed
+    /// to individual solidity files using the `-f` flag.
     fn mutant_dirs_from_json(&self) -> io::Result<()> {
         let f = File::open(&self.params.json.as_ref().unwrap())?;
-        let config: Value = serde_json::from_reader(BufReader::new(f)).expect("Ill-formed json.");
+        let config: Value = serde_json::from_reader(BufReader::new(f))?;
         match config {
             Value::Array(elems) => {
                 let mut paths = HashSet::new();
@@ -137,6 +145,9 @@ impl MutantGenerator {
     }
 
     /// Generate mutations for a single file.
+    /// Irrespective of how Gambit is used,
+    /// this is the method which performs mutations
+    /// on a single solidity file.
     fn run_one(
         &self,
         file_to_mutate: &String,
@@ -171,6 +182,8 @@ impl MutantGenerator {
         };
         log::info!("running mutations on file: {}", file_to_mutate);
 
+        // This closure checks whether a mutant is valid
+        // by invoking the solidity compiler on it.
         let is_valid = |mutant: &str| -> Result<bool, Box<dyn std::error::Error>> {
             let mut flags: Vec<&str> = vec![];
             let valid;
@@ -181,7 +194,6 @@ impl MutantGenerator {
                 });
                 let tmp = parent_of_fnm.join(TMP);
                 std::fs::write(&tmp, mutant)?;
-                //.expect("Cannot write mutant to temp file for compiling.");
                 flags.push(tmp.to_str().as_ref().unwrap());
                 flags.push("--base-path");
                 flags.push(self.params.solc_basepath.as_ref().unwrap());
@@ -212,6 +224,9 @@ impl MutantGenerator {
     }
 
     /// Run Gambit from a json config file.
+    /// You can find examples of comfig files under `benchmarks/config-jsons/`.
+    /// A configuration allows the user to have more control on
+    /// which contracts and functions to mutate and using which kinds of mutations.
     fn run_from_config(&mut self, cfg: &String) -> io::Result<()> {
         self.mutant_dirs_from_json()?;
         let f = File::open(cfg)?;
@@ -276,7 +291,9 @@ impl MutantGenerator {
         Ok(())
     }
 
-    /// Main runner
+    /// Main runner that either runs Gambit on one or more .sol
+    /// files passed from the command line,
+    /// or using a config file (see examples under `benchmarks/config-jsons/`).
     pub fn run(&mut self) -> io::Result<()> {
         log::info!("starting run()");
         let files = &self.params.filename;

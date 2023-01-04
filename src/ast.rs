@@ -31,7 +31,7 @@ struct Replacement {
     new: String,
 }
 
-/// AST representation.
+/// Solidity AST representation
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct SolAST {
@@ -174,6 +174,7 @@ impl SolAST {
             .map(|obj| TypeDescriptions::new(obj["typeDescriptions"].clone()))
     }
 
+    /// Recursively traverses the AST.
     pub fn traverse<T, F>(
         self,
         mut visitor: F,
