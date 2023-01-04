@@ -95,7 +95,12 @@ impl Mutation for MutationType {
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation"
-                        && non_comm_ops.contains(&node.operator().unwrap().as_str());
+                        && non_comm_ops.contains(
+                            &node
+                                .operator()
+                                .unwrap_or_else(|| panic!("Expression does not have operator"))
+                                .as_str(),
+                        );
                 }
             }
             MutationType::SwapLinesMutation => {

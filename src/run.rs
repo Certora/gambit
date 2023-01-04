@@ -3,6 +3,7 @@ use rand::seq::SliceRandom;
 use scanner_rust::{Scanner, ScannerError};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    error::Error,
     fs::File,
     io::Read,
     path::{Path, PathBuf},
@@ -97,21 +98,18 @@ impl RunMutations {
         fnm: String,
         num_mutants: i64,
         mut rand: rand_pcg::Pcg64,
-        mut is_valid: impl FnMut(&str) -> bool,
+        mut is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
         mutation_points: HashMap<MutationType, Vec<SolAST>>,
         mut mutation_points_todo: VecDeque<MutationType>,
-    ) -> Vec<PathBuf> {
+    ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
         let mut source = Vec::new();
         if mut_dir.is_none() {
             panic!("Mutation directory is empty.")
         }
         let orig_path = Path::new(&fnm);
-        let mut f = File::open(orig_path).expect("File cannot be opened.");
-        f.read_to_end(&mut source)
-            .expect("Cannot read from file {}.");
-        let source_to_str = std::str::from_utf8(&source)
-            .expect("Cannot convert byte slice to string!")
-            .into();
+        let mut f = File::open(orig_path)?;
+        f.read_to_end(&mut source)?;
+        let source_to_str = std::str::from_utf8(&source)?.into();
         let mut attempts = 0;
         let mut mutants: Vec<PathBuf> = vec![];
         let mut seen: HashSet<String> = HashSet::new();
@@ -127,14 +125,14 @@ impl RunMutations {
                 if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
                     mutant = res;
                 }
-                if !seen.contains(&mutant) && is_valid(&mutant) {
+                if !seen.contains(&mutant) && is_valid(&mutant)? {
                     let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
                         + &attempts.to_string()
                         + ".sol";
                     let mut_path = Path::new(&mut_file);
                     log::info!("attempting to write to {:?}", mut_path);
-                    std::fs::write(mut_path, &mutant).expect("Failed to write mutant to file.");
-                    Self::diff_mutant(orig_path, mut_path);
+                    std::fs::write(mut_path, &mutant)?;
+                    Self::diff_mutant(orig_path, mut_path)?;
                     mutants.push(mut_path.to_owned());
                 } else {
                     mutation_points_todo.push_back(mut_type);
@@ -150,20 +148,21 @@ impl RunMutations {
                 total_attempts
             );
         }
-        mutants
+        Ok(mutants)
     }
 
     /// Logs the diff of the mutants w.r.t. the origin program.
-    fn diff_mutant(orig: &Path, mutant: &Path) {
+    fn diff_mutant(orig: &Path, mutant: &Path) -> Result<(), Box<dyn Error>> {
         let (succ, diff, _) = invoke_command(
             "diff",
             vec![orig.to_str().unwrap(), mutant.to_str().unwrap()],
-        );
+        )?;
         match succ.unwrap_or_else(|| panic!("diff call terminated with a signal.")) {
             0 => log::info!("mutant identical to original program"),
             1 => log::info!("{}", std::str::from_utf8(&diff).unwrap()),
             _ => log::info!("install a `diff` program to see the diff"),
         }
+        Ok(())
     }
 
     /// Adds a comment to indicate what kind of mutation happened.
@@ -207,7 +206,10 @@ impl RunMutations {
     /// can be mutated using which mutation type,
     /// then collects all the mutations that need to be done and calls
     /// `inner_loop` where the actual mutations are done.
-    pub fn get_mutations(self, is_valid: impl FnMut(&str) -> bool) -> Vec<PathBuf> {
+    pub fn get_mutations(
+        self,
+        is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
+    ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
         let mut_dir = self.lkup_mutant_dir();
         let (visitor, skip, accept) =
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
@@ -245,7 +247,7 @@ impl RunMutations {
             )
         } else {
             log::info!("Did not find any mutations");
-            vec![]
+            Ok(vec![])
         }
     }
 }

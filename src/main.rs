@@ -1,4 +1,4 @@
-use clap::{Error, Parser, ValueEnum};
+use clap::{Parser, ValueEnum};
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
@@ -42,13 +42,20 @@ impl MutantGenerator {
     }
 
     /// Compile the input solc files and get json ASTs.
-    pub fn compile_solc(&self, sol: &String, out: PathBuf) -> Result<SolAST, Error> {
+    pub fn compile_solc(
+        &self,
+        sol: &String,
+        out: PathBuf,
+    ) -> Result<SolAST, Box<dyn std::error::Error>> {
         let norms_of_path =
             get_path_normals(sol).unwrap_or_else(|| panic!("Path to sol file is broken"));
-        if !norms_of_path.extension().unwrap().eq("sol") {
+        let extension = norms_of_path.extension();
+        if extension.is_none() || !extension.unwrap().eq("sol") {
             panic!("{} is not a solidity source file.", sol);
         }
-        let norm_sol = norms_of_path.to_str().unwrap();
+        let norm_sol = norms_of_path
+            .to_str()
+            .unwrap_or_else(|| panic!("Path is not valid."));
         let sol_path = out.join("input_json/".to_owned() + norm_sol);
         std::fs::create_dir_all(sol_path.parent().unwrap())?;
         log::info!(
@@ -68,7 +75,7 @@ impl MutantGenerator {
             flags.push(self.params.solc_basepath.as_ref().unwrap());
         }
 
-        if invoke_command(&self.params.solc, flags)
+        if invoke_command(&self.params.solc, flags)?
             .0
             .unwrap_or_else(|| panic!("solc terminated with a signal."))
             != 0
@@ -86,8 +93,7 @@ impl MutantGenerator {
         let json_fnm = sol_path.join(ast_fnm + ".json");
         std::fs::copy(ast_path, &json_fnm)?;
         let json_f = File::open(&json_fnm)?;
-        let ast_json: Value =
-            serde_json::from_reader(json_f).expect("AST json is not well-formed.");
+        let ast_json: Value = serde_json::from_reader(json_f)?;
         Ok(SolAST {
             element: Some(ast_json),
             contract: None,
@@ -165,7 +171,7 @@ impl MutantGenerator {
         };
         log::info!("running mutations on file: {}", file_to_mutate);
 
-        let is_valid = |mutant: &str| -> bool {
+        let is_valid = |mutant: &str| -> Result<bool, Box<dyn std::error::Error>> {
             let mut flags: Vec<&str> = vec![];
             let valid;
             if self.params.solc_basepath.is_some() {
@@ -174,29 +180,34 @@ impl MutantGenerator {
                     panic!("Parent being None here means no file is being mutated.")
                 });
                 let tmp = parent_of_fnm.join(TMP);
-                std::fs::write(&tmp, mutant)
-                    .expect("Cannot write mutant to temp file for compiling.");
+                std::fs::write(&tmp, mutant)?;
+                //.expect("Cannot write mutant to temp file for compiling.");
                 flags.push(tmp.to_str().as_ref().unwrap());
                 flags.push("--base-path");
                 flags.push(self.params.solc_basepath.as_ref().unwrap());
-                (valid, _, _) = invoke_command(&self.params.solc, flags);
+                (valid, _, _) = invoke_command(&self.params.solc, flags)?;
                 if tmp.exists() {
                     let _ = std::fs::remove_file(tmp);
                 }
             } else {
-                std::fs::write(&TMP, mutant)
-                    .expect("Cannot write mutant to temp file for compiling.");
+                std::fs::write(&TMP, mutant)?;
                 flags.push(TMP);
-                (valid, _, _) = invoke_command(&self.params.solc, flags);
-                std::fs::remove_file(TMP)
-                    .expect("Cannot remove tmp file made for checking mutant validity.");
+                (valid, _, _) = invoke_command(&self.params.solc, flags)?;
+                std::fs::remove_file(TMP)?;
             }
             match valid {
-                Some(n) => n == 0,
-                None => false,
+                Some(n) => Ok(n == 0),
+                None => Ok(false),
             }
         };
-        run_mutation.get_mutations(is_valid);
+        match run_mutation.get_mutations(is_valid) {
+            Ok(paths) => {
+                paths
+                    .iter()
+                    .for_each(|p| log::info!("Mutant written at {}", p.to_str().unwrap()));
+            }
+            Err(_) => panic!("Mutation generation failed."),
+        };
         Ok(())
     }
 

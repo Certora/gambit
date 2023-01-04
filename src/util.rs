@@ -1,6 +1,7 @@
 use core::hash::Hash;
 use std::{
     collections::HashMap,
+    error::Error,
     path::{Path, PathBuf},
 };
 
@@ -37,14 +38,20 @@ where
     map
 }
 
+type CommandOutput = (Option<i32>, Vec<u8>, Vec<u8>);
+
 /// Utility for invoking any command `cmd` with `args`.
 /// Returns the tuple (`status.code`, `stdout` and `stderr`).
-pub fn invoke_command(cmd: &str, args: Vec<&str>) -> (Option<i32>, Vec<u8>, Vec<u8>) {
+pub fn invoke_command(cmd: &str, args: Vec<&str>) -> Result<CommandOutput, Box<dyn Error>> {
     let out = std::process::Command::new(cmd)
         .args(args.iter().map(|a| a.to_string()))
-        .output()
-        .unwrap_or_else(|_| panic!("Failed to invoke {}.", cmd));
-    (out.status.code(), out.stdout, out.stderr)
+        .output();
+    if out.is_err() {
+        panic!("Failed to invoke {}.", cmd);
+    } else {
+        let res = out.ok().unwrap();
+        Ok((res.status.code(), res.stdout, res.stderr))
+    }
 }
 
 /// Given a path, returns the Normal components of the path as a PathBuf.

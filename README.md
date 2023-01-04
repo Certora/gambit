@@ -13,8 +13,11 @@ Gambit takes as input a solidity source file (or a configuration file as you can
   and produces a set of uniquely mutated solidity source files which are, by default, dumped in
   the `out/` directory.
 
-Gambit is implemented in Rust which
-you can download from [here](https://www.rust-lang.org/tools/install).
+
+### Requirements
+
+- Gambit is implemented in Rust which you can download from [here](https://www.rust-lang.org/tools/install).
+- You will need OS specific binaries for various versions of solidity. You can download them [here](https://github.com/ethereum/solc-bin).
 
 ### Users
 You can learn how to use Gambit by running

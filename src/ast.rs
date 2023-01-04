@@ -169,11 +169,9 @@ impl SolAST {
         self.get_node("falseBody")
     }
 
-    pub fn get_type_descs(&self) -> TypeDescriptions {
-        let obj = self
-            .get_object()
-            .unwrap_or_else(|| panic!("There is no type description."));
-        TypeDescriptions::new(obj["typeDescriptions"].clone())
+    pub fn get_type_descs(&self) -> Option<TypeDescriptions> {
+        self.get_object()
+            .map(|obj| TypeDescriptions::new(obj["typeDescriptions"].clone()))
     }
 
     pub fn traverse<T, F>(
