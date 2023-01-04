@@ -31,7 +31,11 @@ struct Replacement {
     new: String,
 }
 
-/// Solidity AST representation
+/// Solidity AST representation.
+/// There are two fields, `element`
+/// which is the underlying json object representing
+/// an AST node and `contract` which indicates
+/// the name of the contract that this node belongs to.
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct SolAST {
@@ -40,6 +44,7 @@ pub struct SolAST {
 }
 
 impl SolAST {
+    /// Create a new AST node.
     pub fn new(v: Value, c: Option<String>) -> Self {
         if v.is_null() {
             Self {
@@ -54,14 +59,18 @@ impl SolAST {
         }
     }
 
+    /// Return the `element` field of a `SolAST` struct.
     pub fn get_object(&self) -> Option<Value> {
         self.element.clone()
     }
 
+    /// Return the `contract` field of a `SolAST` struct.
     pub fn get_contract(&self) -> Option<String> {
         self.contract.clone()
     }
 
+    /// Return some node of this AST that has the field name `fnm` in the json
+    /// representation.
     pub fn get_node(&self, fnm: &str) -> SolAST {
         let node: SolAST = self.get_object().map_or_else(
             || SolAST {
@@ -76,6 +85,8 @@ impl SolAST {
         node
     }
 
+    /// A helper that is used in various places to get the value of some
+    /// field name (`fnm`) in the AST's `element`.
     pub fn get_string(&self, fnm: &str) -> Option<String> {
         let obj = self.get_object();
         match obj {
@@ -87,42 +98,52 @@ impl SolAST {
         }
     }
 
+    /// Returns the `src` field.
     pub fn src(&self) -> Option<String> {
         self.get_string("src")
     }
 
+    /// Returns the `name` field.
     pub fn name(&self) -> Option<String> {
         self.get_string("name")
     }
 
+    /// Returns the `node_type` field.
     pub fn node_type(&self) -> Option<String> {
         self.get_string("nodeType")
     }
 
+    /// Returns the `expression` field.
     pub fn expression(&self) -> SolAST {
         self.get_node("expression")
     }
 
+    /// Returns the `operator` field.
     pub fn operator(&self) -> Option<String> {
         self.get_string("operator")
     }
 
+    /// Returns the `leftExpression` field. 
     pub fn left_expression(&self) -> SolAST {
         self.get_node("leftExpression")
     }
 
+    /// Returns the `rightExpression` field. 
     pub fn right_expression(&self) -> SolAST {
         self.get_node("rightExpression")
     }
 
+    /// Returns the `leftHandSide` field. 
     pub fn left_hand_side(&self) -> SolAST {
         self.get_node("leftHandSide")
     }
 
+    /// Returns the `rightHandSide` field. 
     pub fn right_hand_side(&self) -> SolAST {
         self.get_node("rightHandSide")
     }
 
+    /// Returns the `arguments` representing argument nodes to some function.
     pub fn arguments(&self) -> Vec<SolAST> {
         let o = self.get_object();
         match o {
@@ -140,6 +161,7 @@ impl SolAST {
         }
     }
 
+    /// Returns `statements` in some block.
     pub fn statements(&self) -> Vec<SolAST> {
         let o = self.get_object();
         match o {
@@ -157,24 +179,32 @@ impl SolAST {
         }
     }
 
+    /// Returns the `condition` field. 
     pub fn condition(&self) -> SolAST {
         self.get_node("condition")
     }
 
+    /// Returns the `trueBody` field. 
     pub fn true_body(&self) -> SolAST {
         self.get_node("trueBody")
     }
 
+    /// Returns the `falseBody` field. 
     pub fn false_body(&self) -> SolAST {
         self.get_node("falseBody")
     }
 
+    /// Returns the `typeDescriptions` field. 
     pub fn get_type_descs(&self) -> Option<TypeDescriptions> {
         self.get_object()
             .map(|obj| TypeDescriptions::new(obj["typeDescriptions"].clone()))
     }
 
     /// Recursively traverses the AST.
+    /// This is how
+    /// Gambit determines what nodes can be mutated
+    /// using which types of mutations and
+    /// the exact location in the source where the mutation must be done.
     pub fn traverse<T, F>(
         self,
         mut visitor: F,
@@ -233,6 +263,10 @@ impl SolAST {
         }
     }
 
+    /// Extracts the bounds from the AST that indicate where in the source
+    /// a node's text starts and ends.
+    /// This is represented by the `src` field in the AST about which more
+    /// information can be found [here](https://docs.soliditylang.org/en/v0.8.17/using-the-compiler.html?highlight=--ast-compact--json#compiler-input-and-output-json-description).
     pub fn get_bounds(&self) -> (usize, usize) {
         let src = self.src().expect("Source information missing.");
         let parts: Vec<&str> = src.split(':').collect();
@@ -240,17 +274,24 @@ impl SolAST {
         (start, start + parts[1].parse::<usize>().unwrap())
     }
 
+    /// Returns the text corresponding to an AST node in the given `source`.
     pub fn get_text(&self, source: &[u8]) -> String {
         let (start, end) = self.get_bounds();
         let byte_vec = source[start..end].to_vec();
         String::from_utf8(byte_vec).expect("Slice is not u8.")
     }
 
+    /// This method is used by a variety of mutations like `FunctionCallMutation`,
+    /// `RequireMutation`, etc. (see more in `mutation.rs`) to directly
+    /// mutate the source guided by information gathered from traversing the AST.
     pub fn replace_in_source(&self, source: &[u8], new: String) -> String {
         let (start, end) = self.get_bounds();
         self.replace_part(source, new, start, end)
     }
 
+    /// This method is used to replace part of a statement.
+    /// Example mutation types that use it are are `BinaryOperatorMutation`,
+    /// `UnaryOperatorMutation`, and `ElimDelegateMutation`.
     pub fn replace_part(&self, source: &[u8], new: String, start: usize, end: usize) -> String {
         let before = &source[0..start];
         let changed = new.as_bytes();
@@ -259,6 +300,9 @@ impl SolAST {
         String::from_utf8(res).expect("Slice is not u8.")
     }
 
+    /// This method is used for "swap" mutations to swap lines of code,
+    /// arguments to functions, or arguments to binary operators.
+    /// See `MutationType` for more details on which mutantion types use this.
     pub fn replace_multiple(&self, source: &[u8], reps: Vec<(SolAST, String)>) -> String {
         let sorted = reps
             .iter()
@@ -286,6 +330,8 @@ impl SolAST {
         String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.")
     }
 
+    /// This method is used for mutations that comment out
+    /// some piece of code using block comments.
     pub fn comment_out(&self, source: &[u8]) -> String {
         let (start, mut end) = self.get_bounds();
         let rest_of_str = String::from_utf8(source[end..source.len()].to_vec())
