@@ -22,7 +22,7 @@ mod util;
 pub use util::*;
 
 /// temporary paths for compiling mutants.
-static TMP: &str = "tmp";
+static TMP: &str = "tmp.sol";
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
@@ -161,38 +161,31 @@ impl MutantGenerator {
         };
         log::info!("running mutations on file: {}", file_to_mutate);
 
-        let tmp_sol: String = TMP.to_string() + ".sol";
-        let tmp_dir: String = TMP.to_string() + "/.";
-
-        if self.params.solc_basepath.is_some() {
-            assert!(copy_dir(
-                &PathBuf::from(self.params.solc_basepath.as_ref().unwrap()),
-                TMP
-            )
-            .is_ok());
-        }
-
         let is_valid = |mutant: &str| -> bool {
             let mut flags: Vec<&str> = vec![];
             let valid;
             if self.params.solc_basepath.is_some() {
-                let norm_path = &get_path_normals(file_to_mutate).unwrap();
-                let cs_as_comps = norm_path.components().collect::<Vec<_>>();
-                let first = cs_as_comps.first().unwrap();
-                let tmp = Path::new(TMP).join(norm_path.strip_prefix(first).unwrap());
+                let f_path = PathBuf::from(file_to_mutate.as_str());
+                let parent_of_fnm = f_path.parent().unwrap_or_else(|| {
+                    panic!("Parent being None here means no file is being mutated.")
+                });
+                let tmp = parent_of_fnm.join(TMP);
                 std::fs::write(&tmp, mutant)
                     .expect("Cannot write mutant to temp file for compiling.");
                 flags.push(tmp.to_str().as_ref().unwrap());
                 flags.push("--base-path");
-                flags.push(tmp_dir.as_str());
+                flags.push(self.params.solc_basepath.as_ref().unwrap());
                 (valid, _, _) = invoke_command(&self.params.solc, flags);
+                if tmp.exists() {
+                    let _ = std::fs::remove_file(tmp);
+                }
             } else {
-                std::fs::write(&tmp_sol, mutant)
+                std::fs::write(&TMP, mutant)
                     .expect("Cannot write mutant to temp file for compiling.");
-                flags.push(tmp_sol.as_str());
+                flags.push(TMP);
                 (valid, _, _) = invoke_command(&self.params.solc, flags);
-                std::fs::remove_file(&tmp_sol)
-                    .expect("Cannot remove temp file made for checking mutant validity.");
+                std::fs::remove_file(TMP)
+                    .expect("Cannot remove tmp file made for checking mutant validity.");
             }
             match valid {
                 Some(n) => n == 0,
@@ -278,9 +271,6 @@ impl MutantGenerator {
             self.run_from_config(json.as_ref().unwrap());
         } else {
             panic!("Must provide either --filename file.sol or --json config.json.")
-        }
-        if PathBuf::from(TMP).exists() {
-            std::fs::remove_dir_all(TMP).expect("Failed to remove tmp dir");
         }
     }
 }

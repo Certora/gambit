@@ -1,24 +1,8 @@
 use core::hash::Hash;
 use std::{
     collections::HashMap,
-    fs, io,
     path::{Path, PathBuf},
 };
-
-pub fn copy_dir(orig: &Path, tgt: impl AsRef<Path>) -> io::Result<()> {
-    // https://stackoverflow.com/questions/26958489/how-to-copy-a-folder-recursively-in-rust
-    fs::create_dir_all(&tgt)?;
-    for e in fs::read_dir(orig)? {
-        let e = e?;
-        let typ = e.file_type()?;
-        if typ.is_dir() {
-            copy_dir(&e.path(), tgt.as_ref().join(e.file_name()))?;
-        } else {
-            fs::copy(e.path(), tgt.as_ref().join(e.file_name()))?;
-        }
-    }
-    Ok(())
-}
 
 /// Given a `line`, get the indentation in terms of
 /// a string of white spaces.

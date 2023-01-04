@@ -139,8 +139,8 @@ impl RunMutations {
         }
         if (attempts >= total_attempts) && (mutants.len() < num_mutants.try_into().unwrap()) {
             log::info!(
-                "Did not find {} valid mutants in {} attempts.",
-                num_mutants,
+                "Found {} valid mutants in {} attempts.",
+                mutants.len(),
                 total_attempts
             );
         }
