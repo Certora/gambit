@@ -123,22 +123,22 @@ impl SolAST {
         self.get_string("operator")
     }
 
-    /// Returns the `leftExpression` field. 
+    /// Returns the `leftExpression` field.
     pub fn left_expression(&self) -> SolAST {
         self.get_node("leftExpression")
     }
 
-    /// Returns the `rightExpression` field. 
+    /// Returns the `rightExpression` field.
     pub fn right_expression(&self) -> SolAST {
         self.get_node("rightExpression")
     }
 
-    /// Returns the `leftHandSide` field. 
+    /// Returns the `leftHandSide` field.
     pub fn left_hand_side(&self) -> SolAST {
         self.get_node("leftHandSide")
     }
 
-    /// Returns the `rightHandSide` field. 
+    /// Returns the `rightHandSide` field.
     pub fn right_hand_side(&self) -> SolAST {
         self.get_node("rightHandSide")
     }
@@ -179,22 +179,22 @@ impl SolAST {
         }
     }
 
-    /// Returns the `condition` field. 
+    /// Returns the `condition` field.
     pub fn condition(&self) -> SolAST {
         self.get_node("condition")
     }
 
-    /// Returns the `trueBody` field. 
+    /// Returns the `trueBody` field.
     pub fn true_body(&self) -> SolAST {
         self.get_node("trueBody")
     }
 
-    /// Returns the `falseBody` field. 
+    /// Returns the `falseBody` field.
     pub fn false_body(&self) -> SolAST {
         self.get_node("falseBody")
     }
 
-    /// Returns the `typeDescriptions` field. 
+    /// Returns the `typeDescriptions` field.
     pub fn get_type_descs(&self) -> Option<TypeDescriptions> {
         self.get_object()
             .map(|obj| TypeDescriptions::new(obj["typeDescriptions"].clone()))

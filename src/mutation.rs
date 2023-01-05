@@ -5,21 +5,21 @@ use rand_pcg::*;
 use serde::{Deserialize, Serialize};
 
 /// Every kind of mutation implements this trait.
-/// 
+///
 /// `is_mutation_point` determines whether a node in the AST
 /// is a valid node for performing a certain `MutationType`.
-/// 
+///
 /// `mutate_randomly` mutates such nodes by randomly selecting
-/// one of many possible ways to perform `MutationType`. 
-/// 
+/// one of many possible ways to perform `MutationType`.
+///
 /// For example, consider the `BinaryOpMutation` `MutationType`.
 /// The method `is_mutation_point` for this mutation checks where the
 /// node under question has the `node_type` `BinaryOperation`.
-/// 
+///
 /// `mutate_randomly` for this mutation will randomly pick one
 /// of many binary operators supported in Solidity (e.g., +, -, *, /, **, ...])
-/// and apply it at the source location of the original binary operator. 
-/// 
+/// and apply it at the source location of the original binary operator.
+///
 pub trait Mutation {
     fn is_mutation_point(&self, node: &SolAST) -> bool;
     fn mutate_randomly(&self, node: &SolAST, source: &[u8], rand: &mut Pcg64) -> String;
