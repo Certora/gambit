@@ -41,6 +41,35 @@ impl MutantGenerator {
         }
     }
 
+    /// A helper function to create the directory where the
+    /// AST (.ast) and it's json representation (.ast.json)
+    /// are stored.
+    /// This returns the directory, and both the path to the .ast and the .ast.json.
+    fn mk_ast_dir(&self, sol: &String, out: PathBuf) -> (PathBuf, PathBuf, PathBuf) {
+        let norms_of_path =
+            get_path_normals(sol).unwrap_or_else(|| panic!("Path to sol file is broken"));
+        let extension = norms_of_path.extension();
+        if extension.is_none() || !extension.unwrap().eq("sol") {
+            panic!("{} is not a solidity source file.", sol);
+        }
+        let sol_ast_dir = out.join(
+            "input_json/".to_owned()
+                + norms_of_path
+                    .to_str()
+                    .unwrap_or_else(|| panic!("Path is not valid.")),
+        );
+        let ast_fnm = Path::new(sol)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_owned()
+            + "_json.ast";
+        let ast_path = sol_ast_dir.join(&ast_fnm);
+        let json_path = sol_ast_dir.join(ast_fnm + ".json");
+        (sol_ast_dir, ast_path, json_path)
+    }
+
     /// This method compiles an input solc file to get the json AST.
     /// For simple examples, it simply sufficies to run the right version of
     /// solc on the file but for more complex examples,
@@ -52,52 +81,37 @@ impl MutantGenerator {
         sol: &String,
         out: PathBuf,
     ) -> Result<SolAST, Box<dyn std::error::Error>> {
-        let norms_of_path =
-            get_path_normals(sol).unwrap_or_else(|| panic!("Path to sol file is broken"));
-        let extension = norms_of_path.extension();
-        if extension.is_none() || !extension.unwrap().eq("sol") {
-            panic!("{} is not a solidity source file.", sol);
-        }
-        let norm_sol = norms_of_path
-            .to_str()
-            .unwrap_or_else(|| panic!("Path is not valid."));
-        let sol_path = out.join("input_json/".to_owned() + norm_sol);
-        std::fs::create_dir_all(sol_path.parent().unwrap())?;
-        log::info!(
-            "made parent directories for writing the json ast at {}.",
-            sol_path.to_str().unwrap()
-        );
-        let mut flags: Vec<&str> = vec![
-            "--ast-compact-json",
-            sol,
-            "-o",
-            sol_path.to_str().unwrap(),
-            "--overwrite",
-        ];
+        let (sol_ast_dir, ast_path, json_path) = self.mk_ast_dir(sol, out);
+        if !ast_path.exists() || !json_path.exists() {
+            std::fs::create_dir_all(sol_ast_dir.parent().unwrap())?;
+            log::info!(
+                "made parent directories for writing the json ast at {}.",
+                sol_ast_dir.to_str().unwrap()
+            );
+            let mut flags: Vec<&str> = vec![
+                "--ast-compact-json",
+                sol,
+                "-o",
+                sol_ast_dir.to_str().unwrap(),
+                "--overwrite",
+            ];
 
-        if self.params.solc_basepath.is_some() {
-            flags.push("--base-path");
-            flags.push(self.params.solc_basepath.as_ref().unwrap());
-        }
+            if self.params.solc_basepath.is_some() {
+                flags.push("--base-path");
+                flags.push(self.params.solc_basepath.as_ref().unwrap());
+            }
 
-        if invoke_command(&self.params.solc, flags)?
-            .0
-            .unwrap_or_else(|| panic!("solc terminated with a signal."))
-            != 0
-        {
-            panic!("Failed to compile source. Maybe try with a different version of solc (e.g., --solc solc8.10)")
+            if invoke_command(&self.params.solc, flags)?
+                .0
+                .unwrap_or_else(|| panic!("solc terminated with a signal."))
+                != 0
+            {
+                panic!("Failed to compile source. Maybe try with a different version of solc (e.g., --solc solc8.10)")
+            }
+
+            std::fs::copy(ast_path, &json_path)?;
         }
-        let ast_fnm = Path::new(sol)
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_owned()
-            + "_json.ast";
-        let ast_path = sol_path.join(&ast_fnm);
-        let json_fnm = sol_path.join(ast_fnm + ".json");
-        std::fs::copy(ast_path, &json_fnm)?;
-        let json_f = File::open(&json_fnm)?;
+        let json_f = File::open(&json_path)?;
         let ast_json: Value = serde_json::from_reader(json_f)?;
         Ok(SolAST {
             element: Some(ast_json),

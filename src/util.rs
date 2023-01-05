@@ -2,7 +2,7 @@ use core::hash::Hash;
 use std::{
     collections::HashMap,
     error::Error,
-    path::{Path, PathBuf},
+    path::{Path, PathBuf}, vec,
 };
 
 /// Given a `line`, get the indentation in terms of
@@ -19,7 +19,7 @@ pub fn get_indent(line: &str) -> String {
     res
 }
 
-/// Given a vec of pairs of type `(T1, T2)` and a vec of type `T2`, generate a hashmap from T1 keys to `Vec<T2>`.
+/// Given a vec of pairs of type `(T1, T2)` and a vec of type `T1`, generate a hashmap from T1 keys to `Vec<T2>`.
 pub fn vec_pair_to_map<T1, T2>(vecs_of_pairs: &Vec<(T1, T2)>, es: &Vec<T1>) -> HashMap<T1, Vec<T2>>
 where
     T1: Hash + Clone + std::cmp::Eq + PartialEq,

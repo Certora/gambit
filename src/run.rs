@@ -122,10 +122,10 @@ impl RunMutations {
                 .expect("Found unexpected mutation.");
             if let Some(point) = points.choose(&mut rand) {
                 let mut mutant = mut_type.mutate_randomly(point, &source, &mut rand);
-                if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
-                    mutant = res;
-                }
                 if !seen.contains(&mutant) && is_valid(&mutant)? {
+                    if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
+                        mutant = res;
+                    }
                     let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
                         + &attempts.to_string()
                         + ".sol";
