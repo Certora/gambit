@@ -2,7 +2,8 @@ use core::hash::Hash;
 use std::{
     collections::HashMap,
     error::Error,
-    path::{Path, PathBuf}, vec,
+    path::{Path, PathBuf},
+    vec,
 };
 
 /// Given a `line`, get the indentation in terms of
