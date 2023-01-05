@@ -7,6 +7,7 @@ authors = ["Chandrakana Nandi <chandra@certora.com>", "Samwise Parkinson <samwis
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ansi_term = "0.12"
 strum = "0.24.1"
 strum_macros = "0.24.3"
 clap = { version = "4.0.29", features = ["derive"] }

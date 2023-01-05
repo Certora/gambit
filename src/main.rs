@@ -213,11 +213,7 @@ impl MutantGenerator {
             }
         };
         match run_mutation.get_mutations(is_valid) {
-            Ok(paths) => {
-                paths
-                    .iter()
-                    .for_each(|p| log::info!("Mutant written at {}", p.to_str().unwrap()));
-            }
+            Ok(_) => (),
             Err(_) => panic!("Mutation generation failed."),
         };
         Ok(())

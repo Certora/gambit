@@ -130,8 +130,16 @@ impl RunMutations {
                         + &attempts.to_string()
                         + ".sol";
                     let mut_path = Path::new(&mut_file);
-                    log::info!("attempting to write to {:?}", mut_path);
+                    log::info!(
+                        "Found a valid mutant of type {}",
+                        ansi_term::Colour::Cyan.paint(mut_type.to_string()),
+                    );
                     std::fs::write(mut_path, &mutant)?;
+                    log::info!(
+                        "{}: Mutant written at {:?}",
+                        ansi_term::Colour::Green.paint("SUCCESS"),
+                        mut_path
+                    );
                     Self::diff_mutant(orig_path, mut_path)?;
                     mutants.push(mut_path.to_owned());
                 } else {
@@ -155,8 +163,13 @@ impl RunMutations {
     fn diff_mutant(orig: &Path, mutant: &Path) -> Result<(), Box<dyn Error>> {
         let (succ, diff, _) = invoke_command(
             "diff",
-            vec![orig.to_str().unwrap(), mutant.to_str().unwrap()],
+            vec![
+                orig.to_str().unwrap(),
+                mutant.to_str().unwrap(),
+                "--color=always"
+            ],
         )?;
+        log::info!("{}", String::from_utf8(diff.to_vec()).unwrap());
         match succ.unwrap_or_else(|| panic!("diff call terminated with a signal.")) {
             0 => log::info!("mutant identical to original program"),
             1 => log::info!("{}", std::str::from_utf8(&diff).unwrap()),
