@@ -72,6 +72,17 @@ At the moment, Gambit simply compiles the mutants and only keeps valid ones --
 You can see the implementation details in `mutation.rs`.
 
 ### Demo
+Here is a demo of Gambit generating mutants for [AaveTokenV3.sol](https://github.com/Certora/aave-token-v3/blob/main/src/AaveTokenV3.sol).
+You can clone the Aave repo and then run Gambit with a config file like:
+
+```
+{
+    "filename": "PATH/TO/aave-token-v3/src/AaveTokenV3.sol",
+    "solc-basepath": "PATH/TO/aave-token-v3/.",
+    "contract": "AaveTokenV3",
+}
+```
+
 <img src="doc/gambit-animation.jif" height="450">
 
 
