@@ -71,6 +71,10 @@ At the moment, Gambit simply compiles the mutants and only keeps valid ones --
   invalid mutants by constructions. 
 You can see the implementation details in `mutation.rs`.
 
+### Demo
+<img src="doc/gambit-animation.jif" height="450">
+
+
 ### Contact
 If you have ideas for intersting mutations or other features,
   we encourage you to make a PR or [email](mailto:chandra@certora.com) us.
