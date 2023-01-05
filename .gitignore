@@ -4,3 +4,6 @@ out/
 # Added by cargo
 Cargo.lock
 /target
+
+# Mac
+.DS_Store
