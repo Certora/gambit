@@ -1,4 +1,4 @@
-## Gambit: Certora's Mutation Generator for Solidity
+## <img src="doc/gambit.png" alt="gambit logo" height="40" align="left"> Gambit: Certora's Mutation Generator for Solidity
 
 This is a mutation generator for Solidity.
 Mutation Testing is a technique for
