@@ -45,6 +45,31 @@ If you are using a config file, you can also pass this argument there as a field
 For using the other command line arguments, run `cargo gambit-help`.
 You can print log messages by setting the environment variable `RUST_LOG` (e.g., `RUST_LOG=info cargo gambit ...`).
 
+#### Output of Gambit
+Gambit produces a set of uniquely mutated solidity source files which are, by default, dumped in
+  the `out/` directory.
+Each mutant file has a comment that describes the exact mutation that was done.
+For example, one of the mutant files for `benchmarks/10Power/TenPower.sol` that Gambit generated contains:
+```
+/// SwapArgumentsOperatorMutation of: uint256 res = a ** decimals;
+uint256 res = decimals ** a;
+```
+
+
+### Demo
+Here is a demo of Gambit generating mutants for [AaveTokenV3.sol](https://github.com/Certora/aave-token-v3/blob/main/src/AaveTokenV3.sol).
+You can clone the Aave repo and then run Gambit with a config file like:
+
+```
+{
+    "filename": "PATH/TO/aave-token-v3/src/AaveTokenV3.sol",
+    "solc-basepath": "PATH/TO/aave-token-v3/.",
+    "contract": "AaveTokenV3",
+}
+```
+
+<img src="doc/gambit-animation.jif" height="450">
+
 ### Developers
 We are happy to accept contributions to Gambit! A few tips:
 - [VSCode](https://code.visualstudio.com/) is a good IDE for Rust development.
@@ -70,20 +95,6 @@ At the moment, Gambit simply compiles the mutants and only keeps valid ones --
   we are working on using additional type information to reduce the generation of
   invalid mutants by constructions. 
 You can see the implementation details in `mutation.rs`.
-
-### Demo
-Here is a demo of Gambit generating mutants for [AaveTokenV3.sol](https://github.com/Certora/aave-token-v3/blob/main/src/AaveTokenV3.sol).
-You can clone the Aave repo and then run Gambit with a config file like:
-
-```
-{
-    "filename": "PATH/TO/aave-token-v3/src/AaveTokenV3.sol",
-    "solc-basepath": "PATH/TO/aave-token-v3/.",
-    "contract": "AaveTokenV3",
-}
-```
-
-<img src="doc/gambit-animation.jif" height="450">
 
 
 ### Contact
