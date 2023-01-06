@@ -17,6 +17,10 @@ Gambit takes as input a solidity source file (or a configuration file as you can
 ### Requirements
 
 - Gambit is implemented in Rust which you can download from [here](https://www.rust-lang.org/tools/install).
+- To run Gambit, do the following:
+   - `git clone git@github.com:Certora/gambit.git`
+   - Follow the directions [below](#users).
+   - As an alternative, you can also _install_ Gambit by running `cargo install --path .` from the `gambit/` directory after you clone the repo.
 - You will need OS specific binaries for various versions of solidity. You can download them [here](https://github.com/ethereum/solc-bin).
 
 ### Users
@@ -29,7 +33,7 @@ As you can see, Gambit accepts a configuration file as input where you can
 You can control which functions and contracts you want to mutate.
 Examples of some configuration files can be found under `benchmarks/config-jsons`.
 
-#### Examples of how to run Gambit:
+#### Examples of how to run Gambit
 - `cargo gambit-cfg benchmarks/config-jsons/test1.json`
 - `cargo gambit benchmarks/RequireMutation/RequireExample.sol`
 - For projects that have complex dependencies and imports, you will likely need to
