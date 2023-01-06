@@ -10,7 +10,7 @@ use std::{
 };
 
 use crate::{
-    ast, get_indent, get_path_normals, invoke_command, mutation, vec_pair_to_map, Mutation,
+    ast, get_indent, get_path_normals, invoke_command, mutation, Mutation,
     MutationType::{self},
     SolAST,
 };
@@ -226,6 +226,7 @@ impl RunMutations {
         let mut_dir = self.lkup_mutant_dir();
         let (visitor, skip, accept) =
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
+        // each pair represents a mutation type and the AST node on which it is applicable.
         let mutations: Vec<(MutationType, SolAST)> = self
             .node
             .traverse(visitor, skip, accept)
@@ -233,18 +234,16 @@ impl RunMutations {
             .flatten()
             .collect();
         if !mutations.is_empty() {
-            let (mut points, _): (Vec<MutationType>, Vec<SolAST>) =
-                mutations.iter().cloned().unzip();
-            points = points.into_iter().unique().collect();
+            let mutation_points = mutations.into_iter().into_group_map();
+            let points: Vec<&MutationType> = mutation_points.keys().collect();
             let points_len = points.len() as i64;
-            let mutation_points = vec_pair_to_map(&mutations, &points);
             let mut mutation_points_todo: VecDeque<MutationType> = VecDeque::new();
             let mut remaining = self.num_mutants;
             while remaining > 0 {
                 let to_take = std::cmp::min(remaining, points_len);
-                let selected: Vec<&MutationType> = points.iter().take(to_take as usize).collect();
+                let selected: Vec<&&MutationType> = points.iter().take(to_take as usize).collect();
                 for s in selected {
-                    mutation_points_todo.push_back(*s);
+                    mutation_points_todo.push_back(**s);
                 }
                 remaining -= points_len;
             }

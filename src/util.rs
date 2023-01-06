@@ -1,9 +1,6 @@
-use core::hash::Hash;
 use std::{
-    collections::HashMap,
     error::Error,
     path::{Path, PathBuf},
-    vec,
 };
 
 /// Given a `line`, get the indentation in terms of
@@ -18,25 +15,6 @@ pub fn get_indent(line: &str) -> String {
         }
     }
     res
-}
-
-/// Given a vec of pairs of type `(T1, T2)` and a vec of type `T1`, generate a hashmap from T1 keys to `Vec<T2>`.
-pub fn vec_pair_to_map<T1, T2>(vecs_of_pairs: &Vec<(T1, T2)>, es: &Vec<T1>) -> HashMap<T1, Vec<T2>>
-where
-    T1: Hash + Clone + std::cmp::Eq + PartialEq,
-    T2: Clone,
-{
-    let mut map: HashMap<T1, Vec<T2>> = HashMap::new();
-    for e in es {
-        let mut vals: Vec<T2> = vec![];
-        for (k, v) in vecs_of_pairs {
-            if e == k {
-                vals.push(v.clone());
-            }
-        }
-        map.insert(e.clone(), vals);
-    }
-    map
 }
 
 type CommandOutput = (Option<i32>, Vec<u8>, Vec<u8>);
@@ -110,41 +88,6 @@ mod tests {
         let path3 = "";
         let res3 = get_path_normals(path3);
         assert_eq!(res3, None);
-    }
-
-    #[test]
-    fn test_vec_pair_to_map1() {
-        let vs: Vec<(i32, i32)> = vec![];
-        let es = vec![1, 2, 3];
-        let mp = vec_pair_to_map(&vs, &es);
-        assert_eq!(mp, HashMap::from([(3, vec![]), (2, vec![]), (1, vec![])]))
-    }
-
-    #[test]
-    fn test_vec_pair_to_map2() {
-        let vs: Vec<(i32, i32)> = vec![(5, -1), (7, -2), (9, -3)];
-        let es = vec![];
-        let mp = vec_pair_to_map(&vs, &es);
-        assert_eq!(mp, HashMap::new())
-    }
-
-    #[test]
-    fn test_vec_pair_to_map3() {
-        let vs: Vec<(i32, i32)> = vec![(5, -1), (7, -2), (9, -3)];
-        let es = vec![1, 3, 2];
-        let mp = vec_pair_to_map(&vs, &es);
-        assert_eq!(mp, HashMap::from([(3, vec![]), (2, vec![]), (1, vec![])]))
-    }
-
-    #[test]
-    fn test_vec_pair_to_map4() {
-        let vs: Vec<(i32, i32)> = vec![(1, 5), (7, -2), (2, 3), (7, 9)];
-        let es = vec![1, 3, 2, 7];
-        let mp = vec_pair_to_map(&vs, &es);
-        assert_eq!(
-            mp,
-            HashMap::from([(1, vec![5]), (3, vec![]), (2, vec![3]), (7, vec![-2, 9])])
-        )
     }
 
     #[test]

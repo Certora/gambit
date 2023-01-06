@@ -1,10 +1,11 @@
-use std::io;
+use std::{io, time::Instant};
 
 use clap::Parser;
 use gambit::{Command, MutantGenerator};
 
 /// Entry point
 fn main() -> io::Result<()> {
+    let start = Instant::now();
     let _ = env_logger::builder().try_init();
     match Command::parse() {
         Command::Mutate(params) => {
@@ -12,5 +13,6 @@ fn main() -> io::Result<()> {
             mutant_gen.run()?;
         }
     }
+    log::info!("Running time: {}", start.elapsed().as_secs_f64());
     Ok(())
 }
