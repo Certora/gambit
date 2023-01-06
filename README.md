@@ -34,8 +34,8 @@ You can control which functions and contracts you want to mutate.
 Examples of some configuration files can be found under `benchmarks/config-jsons`.
 
 #### Examples of how to run Gambit
-- `cargo gambit-cfg benchmarks/config-jsons/test1.json`
-- `cargo gambit benchmarks/RequireMutation/RequireExample.sol`
+- `cargo gambit benchmarks/RequireMutation/RequireExample.sol` - this is how you run the tool if you only want to pass one or more Solidity files.
+- `cargo gambit-cfg benchmarks/config-jsons/test1.json`  - this is how you run the tool if you want to use Gambit's configuration file option that lets you control how the mutants are generated.
 - For projects that have complex dependencies and imports, you will likely need to
   pass the `--base-path` argument for `solc` like so:
 `cargo gambit path/to/file.sol --solc-basepath base/path/dir/.`.
