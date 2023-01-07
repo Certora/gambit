@@ -13,7 +13,6 @@ Gambit takes as input a solidity source file (or a configuration file as you can
   and produces a set of uniquely mutated solidity source files which are, by default, dumped in
   the `out/` directory.
 
-
 ### Requirements
 
 - Gambit is implemented in Rust which you can download from [here](https://www.rust-lang.org/tools/install).
@@ -48,6 +47,8 @@ If you are using a config file, you can also pass this argument there as a field
 ```
 For using the other command line arguments, run `cargo gambit-help`.
 You can print log messages by setting the environment variable `RUST_LOG` (e.g., `RUST_LOG=info cargo gambit ...`).
+
+_*NOTE:*_ Gambit currently does not support remappings but we are actively working on adding that to our tool!
 
 #### Output of Gambit
 Gambit produces a set of uniquely mutated solidity source files which are, by default, dumped in
