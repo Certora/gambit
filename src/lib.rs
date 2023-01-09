@@ -235,7 +235,7 @@ impl MutantGenerator {
     }
 
     /// Run Gambit from a json config file.
-    /// You can find examples of comfig files under `benchmarks/config-jsons/`.
+    /// You can find examples of config files under `benchmarks/config-jsons/`.
     /// A configuration allows the user to have more control on
     /// which contracts and functions to mutate and using which kinds of mutations.
     fn run_from_config(&mut self, cfg: &String) -> io::Result<()> {
