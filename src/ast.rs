@@ -318,8 +318,8 @@ impl SolAST {
         let mut new_src = source.to_vec();
         let mut curr_offset = 0;
         for r in sorted {
-            let actual_start = r.start + curr_offset;
-            let actual_end = r.end + curr_offset;
+            let actual_start = r.start.wrapping_add(curr_offset);
+            let actual_end = r.end.wrapping_add(curr_offset);
             let replace_bytes = r.new.as_bytes();
             let new_start = &new_src[0..actual_start];
             let new_end = &new_src[actual_end..new_src.len()];

@@ -3,6 +3,7 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use core::panic;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::BufReader;
@@ -238,6 +239,10 @@ impl MutantGenerator {
     /// A configuration allows the user to have more control on
     /// which contracts and functions to mutate and using which kinds of mutations.
     fn run_from_config(&mut self, cfg: &String) -> io::Result<()> {
+        let cfg = Path::new(cfg);
+        if !cfg.is_file() || !cfg.extension().unwrap().eq("json") {
+           panic!("Must pass a .json config file with the --json argument or gambit-cfg alias. You can use the gambit alias instead!"); 
+        }
         self.mutant_dirs_from_json()?;
         let f = File::open(cfg)?;
         let config: Value = serde_json::from_reader(BufReader::new(f))?;
