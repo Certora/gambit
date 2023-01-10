@@ -247,7 +247,6 @@ impl RunMutations {
                 }
                 remaining -= points_len;
             }
-
             Self::inner_loop(
                 mut_dir,
                 self.fnm,

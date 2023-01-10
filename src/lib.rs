@@ -1,9 +1,9 @@
 use clap::{Parser, ValueEnum};
+use core::panic;
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use core::panic;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::BufReader;
@@ -102,6 +102,12 @@ impl MutantGenerator {
                 flags.push(self.params.solc_basepath.as_ref().unwrap());
             }
 
+            if let Some(remaps) = &self.params.solc_remapping {
+                for r in remaps {
+                    flags.push(r);
+                }
+            }
+
             if invoke_command(&self.params.solc, flags)?
                 .0
                 .unwrap_or_else(|| panic!("solc terminated with a signal."))
@@ -111,6 +117,12 @@ impl MutantGenerator {
             }
 
             std::fs::copy(ast_path, &json_path)?;
+        } else {
+            log::info!(
+                ".ast and .ast.json both exist at {:?} and {:?}.",
+                ast_path,
+                json_path
+            );
         }
         let json_f = File::open(&json_path)?;
         let ast_json: Value = serde_json::from_reader(json_f)?;
@@ -202,7 +214,7 @@ impl MutantGenerator {
         let is_valid = |mutant: &str| -> Result<bool, Box<dyn std::error::Error>> {
             let mut flags: Vec<&str> = vec![];
             let valid;
-            if self.params.solc_basepath.is_some() {
+            if self.params.solc_basepath.is_some() || self.params.solc_remapping.is_some() {
                 let f_path = PathBuf::from(file_to_mutate.as_str());
                 let parent_of_fnm = f_path.parent().unwrap_or_else(|| {
                     panic!("Parent being None here means no file is being mutated.")
@@ -210,8 +222,15 @@ impl MutantGenerator {
                 let tmp = parent_of_fnm.join(TMP);
                 std::fs::write(&tmp, mutant)?;
                 flags.push(tmp.to_str().as_ref().unwrap());
-                flags.push("--base-path");
-                flags.push(self.params.solc_basepath.as_ref().unwrap());
+                if let Some(bp) = &self.params.solc_basepath {
+                    flags.push("--base-path");
+                    flags.push(bp);
+                }
+                if let Some(remaps) = &self.params.solc_remapping {
+                    for r in remaps {
+                        flags.push(r);
+                    }
+                }
                 (valid, _, _) = invoke_command(&self.params.solc, flags)?;
                 if tmp.exists() {
                     let _ = std::fs::remove_file(tmp);
@@ -241,7 +260,7 @@ impl MutantGenerator {
     fn run_from_config(&mut self, cfg: &String) -> io::Result<()> {
         let cfg = Path::new(cfg);
         if !cfg.is_file() || !cfg.extension().unwrap().eq("json") {
-           panic!("Must pass a .json config file with the --json argument or gambit-cfg alias. You can use the gambit alias instead!"); 
+            panic!("Must pass a .json config file with the --json argument or gambit-cfg alias. You can use the gambit alias instead!");
         }
         self.mutant_dirs_from_json()?;
         let f = File::open(cfg)?;
@@ -259,6 +278,17 @@ impl MutantGenerator {
                 }
                 if let Some(solc_basepath) = &v.get("solc-basepath") {
                     self.params.solc_basepath = solc_basepath.as_str().unwrap().to_string().into();
+                }
+                if let Some(remap_args) = &v.get("remappings") {
+                    let remaps: Vec<String> = remap_args
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|v| v.as_str().unwrap().to_string())
+                        .collect();
+                    if !remaps.is_empty() {
+                        self.params.solc_remapping = remaps.into();
+                    }
                 }
                 if let Some(seed) = &v.get("seed") {
                     self.params.seed = seed.as_u64().unwrap();
@@ -362,6 +392,9 @@ pub struct MutationParams {
     /// Basepath argument to solc
     #[arg(long)]
     pub solc_basepath: Option<String>,
+    /// Solidity remappings
+    #[arg(long)]
+    pub solc_remapping: Option<Vec<String>>,
 }
 
 #[derive(Parser)]
