@@ -61,7 +61,6 @@ or
 For using the other command line arguments, run `cargo gambit-help`.
 You can print log messages by setting the environment variable `RUST_LOG` (e.g., `RUST_LOG=info cargo gambit ...`).
 
-_*NOTE:*_ Gambit currently does not support remappings but we are actively working on adding that to our tool!
 
 #### Output of Gambit
 Gambit produces a set of uniquely mutated solidity source files which are, by default, dumped in
