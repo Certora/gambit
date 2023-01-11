@@ -127,6 +127,7 @@ impl RunMutations {
                         mutant = res;
                     }
                     let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
+                        + "_"
                         + &attempts.to_string()
                         + ".sol";
                     let mut_path = Path::new(&mut_file);
