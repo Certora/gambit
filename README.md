@@ -114,7 +114,7 @@ You can see the implementation details in `mutation.rs`.
 
 
 ### Contact
-If you have ideas for intersting mutations or other features,
+If you have ideas for interesting mutations or other features,
   we encourage you to make a PR or [email](mailto:chandra@certora.com) us.
 
 ### Credits
