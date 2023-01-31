@@ -151,7 +151,7 @@ impl MutantGenerator {
     /// This is used when Gambit is run using a config file as opposed
     /// to individual solidity files using the `-f` flag.
     fn mutant_dirs_from_json(&self) -> io::Result<()> {
-        let f = File::open(&self.params.json.as_ref().unwrap())?;
+        let f = File::open(self.params.json.as_ref().unwrap())?;
         let config: Value = serde_json::from_reader(BufReader::new(f))?;
         match config {
             Value::Array(elems) => {
@@ -236,7 +236,7 @@ impl MutantGenerator {
                     let _ = std::fs::remove_file(tmp);
                 }
             } else {
-                std::fs::write(&TMP, mutant)?;
+                std::fs::write(TMP, mutant)?;
                 flags.push(TMP);
                 (valid, _, _) = invoke_command(&self.params.solc, flags)?;
                 std::fs::remove_file(TMP)?;
