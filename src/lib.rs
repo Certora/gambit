@@ -71,13 +71,14 @@ impl MutantGenerator {
         (sol_ast_dir, ast_path, json_path)
     }
 
-    /// This method compiles an input solc file to get the json AST.
+    /// This method compiles an input sol file to get the json AST.
     /// For simple examples, it simply sufficies to run the right version of
     /// solc on the file but for more complex examples,
-    /// it uses the `--solc-basepath` flag (that the user must provide in the config file)
-    /// to set the `--base-path` when invoking the Solidity compiler.
+    /// it uses the `--solc-basepath`,
+    ///  `--solc-allowpaths` and `remappings` flags (that the user must provide in the config file)
+    /// to set the `--base-path`, `--allow-paths`, and node-modules when invoking the Solidity compiler.
     /// You can read more about it in the [Solidity documentation](https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#base-path-and-include-paths).
-    pub fn compile_solc(
+    pub fn compile_sol(
         &self,
         sol: &String,
         out: PathBuf,
@@ -102,12 +103,21 @@ impl MutantGenerator {
                 flags.push(self.params.solc_basepath.as_ref().unwrap());
             }
 
-            if let Some(remaps) = &self.params.solc_remapping {
+            if let Some(remaps) = &self.params.solc_allowpaths {
+                flags.push("--allow-paths");
                 for r in remaps {
                     flags.push(r);
                 }
             }
 
+            if let Some(remaps) = &self.params.solc_remapping {
+                for r in remaps {
+                    flags.push(r);
+                }
+            }
+            for f in &flags {
+                println!("{}", f);
+            }
             if invoke_command(&self.params.solc, flags)?
                 .0
                 .unwrap_or_else(|| panic!("solc terminated with a signal."))
@@ -185,7 +195,7 @@ impl MutantGenerator {
         let rand = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self
-            .compile_solc(file_to_mutate, outdir.to_path_buf())
+            .compile_sol(file_to_mutate, outdir.to_path_buf())
             .ok()
             .unwrap();
         let mut_types = muts.map_or(MutationType::value_variants().to_vec(), |ms| {
@@ -214,7 +224,7 @@ impl MutantGenerator {
         let is_valid = |mutant: &str| -> Result<bool, Box<dyn std::error::Error>> {
             let mut flags: Vec<&str> = vec![];
             let valid;
-            if self.params.solc_basepath.is_some() || self.params.solc_remapping.is_some() {
+            if self.params.solc_basepath.is_some() || self.params.solc_remapping.is_some() || self.params.solc_allowpaths.is_some() {
                 let f_path = PathBuf::from(file_to_mutate.as_str());
                 let parent_of_fnm = f_path.parent().unwrap_or_else(|| {
                     panic!("Parent being None here means no file is being mutated.")
@@ -226,6 +236,14 @@ impl MutantGenerator {
                     flags.push("--base-path");
                     flags.push(bp);
                 }
+
+                if let Some(aps) = &self.params.solc_allowpaths {
+                    flags.push("--allow-paths");
+                    for a in aps {
+                        flags.push(a);
+                    }
+                }
+
                 if let Some(remaps) = &self.params.solc_remapping {
                     for r in remaps {
                         flags.push(r);
@@ -278,6 +296,17 @@ impl MutantGenerator {
                 }
                 if let Some(solc_basepath) = &v.get("solc-basepath") {
                     self.params.solc_basepath = solc_basepath.as_str().unwrap().to_string().into();
+                }
+                if let Some(allowed_paths) = &v.get("solc-allowpaths") {
+                    let allowed: Vec<String> = allowed_paths
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|v| v.as_str().unwrap().to_string())
+                        .collect();
+                    if !allowed.is_empty() {
+                        self.params.solc_allowpaths = allowed.into();
+                    }
                 }
                 if let Some(remap_args) = &v.get("remappings") {
                     let remaps: Vec<String> = remap_args
@@ -392,6 +421,9 @@ pub struct MutationParams {
     /// Basepath argument to solc
     #[arg(long)]
     pub solc_basepath: Option<String>,
+    /// Allowpath argument to solc
+    #[arg(long)]
+    pub solc_allowpaths: Option<Vec<String>>,
     /// Solidity remappings
     #[arg(long)]
     pub solc_remapping: Option<Vec<String>>,
