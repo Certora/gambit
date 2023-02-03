@@ -127,7 +127,6 @@ impl RunMutations {
                         mutant = res;
                     }
                     let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
-                        + "_"
                         + &MUTANT_COUNTER.get_cloned().to_string()
                         + ".sol";
                     MUTANT_COUNTER.inc();

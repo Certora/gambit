@@ -1,7 +1,7 @@
 use clap::{Parser, ValueEnum};
 use core::panic;
 use global_counter::*;
-use rand::SeedableRng;
+use rand::{SeedableRng};
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -39,7 +39,7 @@ impl MutantGenerator {
     /// Initialize the MutantGenerator
     pub fn new(params: MutationParams) -> Self {
         MutantGenerator {
-            rng: rand_pcg::Pcg64::seed_from_u64(params.seed),
+            rng: SeedableRng::seed_from_u64(params.seed),
             params,
         }
     }
@@ -192,7 +192,7 @@ impl MutantGenerator {
         funcs: Option<Vec<String>>,
         contract: Option<String>,
     ) -> io::Result<()> {
-        let rand = self.rng.clone();
+        let rand: Pcg64 = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self
             .compile_sol(file_to_mutate, outdir.to_path_buf())
