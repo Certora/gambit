@@ -7,6 +7,7 @@ use serde_json::Value;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::BufReader;
+use global_counter::*;
 use std::{fs, io};
 use std::{
     fs::File,
@@ -24,6 +25,7 @@ pub use util::*;
 
 /// temporary paths for compiling mutants.
 static TMP: &str = "tmp.sol";
+global_counter!(MUTANT_COUNTER, u64, 0);
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
@@ -222,7 +224,10 @@ impl MutantGenerator {
         let is_valid = |mutant: &str| -> Result<bool, Box<dyn std::error::Error>> {
             let mut flags: Vec<&str> = vec![];
             let valid;
-            if self.params.solc_basepath.is_some() || self.params.solc_remapping.is_some() || self.params.solc_allowpaths.is_some() {
+            if self.params.solc_basepath.is_some()
+                || self.params.solc_remapping.is_some()
+                || self.params.solc_allowpaths.is_some()
+            {
                 let f_path = PathBuf::from(file_to_mutate.as_str());
                 let parent_of_fnm = f_path.parent().unwrap_or_else(|| {
                     panic!("Parent being None here means no file is being mutated.")

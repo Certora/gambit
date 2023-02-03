@@ -12,7 +12,7 @@ use std::{
 use crate::{
     ast, get_indent, get_path_normals, invoke_command, mutation, Mutation,
     MutationType::{self},
-    SolAST,
+    SolAST, MUTANT_COUNTER,
 };
 
 /// How many tries for generating mutants.
@@ -128,8 +128,9 @@ impl RunMutations {
                     }
                     let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
                         + "_"
-                        + &attempts.to_string()
+                        + &MUTANT_COUNTER.get_cloned().to_string()
                         + ".sol";
+                    MUTANT_COUNTER.inc();
                     let mut_path = Path::new(&mut_file);
                     log::info!(
                         "Found a valid mutant of type {}",
