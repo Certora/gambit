@@ -115,9 +115,7 @@ impl MutantGenerator {
                     flags.push(r);
                 }
             }
-            for f in &flags {
-                println!("{}", f);
-            }
+
             if invoke_command(&self.params.solc, flags)?
                 .0
                 .unwrap_or_else(|| panic!("solc terminated with a signal."))
