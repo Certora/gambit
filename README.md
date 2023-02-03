@@ -114,7 +114,7 @@ At the moment, Gambit implements the following mutations:
 - Swap Function Arguments Mutation: swap the arguments to a function,
 - Swap Operator Arguments Mutation: swap the operands of a binary operator,
 - Swap Lines Mutation: swap two lines
-- Eliminate Delegate Mutation: replace a delgate call by `call`.
+- Eliminate Delegate Mutation: replace a delegate call by `call`.
 
 As you can imagine, many of these mutations may lead to invalid mutants
   that do not compile.
