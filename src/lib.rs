@@ -1,5 +1,6 @@
 use clap::{Parser, ValueEnum};
 use core::panic;
+use global_counter::*;
 use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
@@ -7,7 +8,6 @@ use serde_json::Value;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::BufReader;
-use global_counter::*;
 use std::{fs, io};
 use std::{
     fs::File,
