@@ -56,6 +56,7 @@ or
         "@openzeppelin=PATH/TO/node_modules/@openzeppelin"
     ]
 }
+```
 or
 ```
 {
