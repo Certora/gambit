@@ -123,6 +123,7 @@ impl RunMutations {
             if let Some(point) = points.choose(&mut rand) {
                 let mut mutant = mut_type.mutate_randomly(point, &source, &mut rand);
                 if !seen.contains(&mutant) && is_valid(&mutant)? {
+                    seen.insert(mutant.clone());
                     if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
                         mutant = res;
                     }
@@ -146,7 +147,6 @@ impl RunMutations {
                 } else {
                     mutation_points_todo.push_back(mut_type);
                 }
-                seen.insert(mutant);
                 attempts += 1;
             }
         }

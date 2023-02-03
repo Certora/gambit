@@ -1,7 +1,7 @@
 use clap::{Parser, ValueEnum};
 use core::panic;
 use global_counter::*;
-use rand::{SeedableRng};
+use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -86,54 +86,54 @@ impl MutantGenerator {
         out: PathBuf,
     ) -> Result<SolAST, Box<dyn std::error::Error>> {
         let (sol_ast_dir, ast_path, json_path) = self.mk_ast_dir(sol, out);
-        if !ast_path.exists() || !json_path.exists() {
-            std::fs::create_dir_all(sol_ast_dir.parent().unwrap())?;
-            log::info!(
-                "made parent directories for writing the json ast at {}.",
-                sol_ast_dir.to_str().unwrap()
-            );
-            let mut flags: Vec<&str> = vec![
-                "--ast-compact-json",
-                sol,
-                "-o",
-                sol_ast_dir.to_str().unwrap(),
-                "--overwrite",
-            ];
+        // if !ast_path.exists() || !json_path.exists() {
+        std::fs::create_dir_all(sol_ast_dir.parent().unwrap())?;
+        log::info!(
+            "made parent directories for writing the json ast at {}.",
+            sol_ast_dir.to_str().unwrap()
+        );
+        let mut flags: Vec<&str> = vec![
+            "--ast-compact-json",
+            sol,
+            "-o",
+            sol_ast_dir.to_str().unwrap(),
+            "--overwrite",
+        ];
 
-            if self.params.solc_basepath.is_some() {
-                flags.push("--base-path");
-                flags.push(self.params.solc_basepath.as_ref().unwrap());
-            }
-
-            if let Some(remaps) = &self.params.solc_allowpaths {
-                flags.push("--allow-paths");
-                for r in remaps {
-                    flags.push(r);
-                }
-            }
-
-            if let Some(remaps) = &self.params.solc_remapping {
-                for r in remaps {
-                    flags.push(r);
-                }
-            }
-
-            if invoke_command(&self.params.solc, flags)?
-                .0
-                .unwrap_or_else(|| panic!("solc terminated with a signal."))
-                != 0
-            {
-                panic!("Failed to compile source. Maybe try with a different version of solc (e.g., --solc solc8.10)")
-            }
-
-            std::fs::copy(ast_path, &json_path)?;
-        } else {
-            log::info!(
-                ".ast and .ast.json both exist at {:?} and {:?}.",
-                ast_path,
-                json_path
-            );
+        if self.params.solc_basepath.is_some() {
+            flags.push("--base-path");
+            flags.push(self.params.solc_basepath.as_ref().unwrap());
         }
+
+        if let Some(remaps) = &self.params.solc_allowpaths {
+            flags.push("--allow-paths");
+            for r in remaps {
+                flags.push(r);
+            }
+        }
+
+        if let Some(remaps) = &self.params.solc_remapping {
+            for r in remaps {
+                flags.push(r);
+            }
+        }
+
+        if invoke_command(&self.params.solc, flags)?
+            .0
+            .unwrap_or_else(|| panic!("solc terminated with a signal."))
+            != 0
+        {
+            panic!("Failed to compile source. Maybe try with a different version of solc (e.g., --solc solc8.10)")
+        }
+
+        std::fs::copy(ast_path, &json_path)?;
+        // } else {
+        //     log::info!(
+        //         ".ast and .ast.json both exist at {:?} and {:?}.",
+        //         ast_path,
+        //         json_path
+        //     );
+        // }
         let json_f = File::open(&json_path)?;
         let ast_json: Value = serde_json::from_reader(json_f)?;
         Ok(SolAST {
