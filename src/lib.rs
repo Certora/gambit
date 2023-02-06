@@ -5,9 +5,11 @@ use rand::SeedableRng;
 use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_json::Value::Array;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::BufReader;
+use std::io::Write;
 use std::{fs, io};
 use std::{
     fs::File,
@@ -191,7 +193,7 @@ impl MutantGenerator {
         muts: Option<Vec<String>>,
         funcs: Option<Vec<String>>,
         contract: Option<String>,
-    ) -> io::Result<()> {
+    ) -> io::Result<Vec<serde_json::Value>> {
         let rand: Pcg64 = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self
@@ -268,17 +270,16 @@ impl MutantGenerator {
             }
         };
         match run_mutation.get_mutations(is_valid) {
-            Ok(_) => (),
+            Ok(map) => Ok(map.iter().map(|(_, y)| y.clone()).collect()),
             Err(_) => panic!("Mutation generation failed."),
-        };
-        Ok(())
+        }
     }
 
     /// Run Gambit from a json config file.
     /// You can find examples of config files under `benchmarks/config-jsons/`.
     /// A configuration allows the user to have more control on
     /// which contracts and functions to mutate and using which kinds of mutations.
-    fn run_from_config(&mut self, cfg: &String) -> io::Result<()> {
+    fn run_from_config(&mut self, cfg: &String) -> io::Result<Vec<serde_json::Value>> {
         let cfg = Path::new(cfg);
         if !cfg.is_file() || !cfg.extension().unwrap().eq("json") {
             panic!("Must pass a .json config file with the --json argument or gambit-cfg alias. You can use the gambit alias instead!");
@@ -286,7 +287,7 @@ impl MutantGenerator {
         self.mutant_dirs_from_json()?;
         let f = File::open(cfg)?;
         let config: Value = serde_json::from_reader(BufReader::new(f))?;
-        let mut process_single_file = |v: &Value| -> io::Result<()> {
+        let mut process_single_file = |v: &Value| -> io::Result<Vec<serde_json::Value>> {
             if let Some(filename) = &v.get("filename") {
                 let mut funcs_to_mutate: Option<Vec<String>> = None;
                 let mut selected_muts: Option<Vec<String>> = None;
@@ -350,22 +351,26 @@ impl MutantGenerator {
                         funcs_to_mutate = fs.into();
                     }
                 }
-                self.run_one(&fnm.to_string(), selected_muts, funcs_to_mutate, contract)?;
+                Ok(self.run_one(&fnm.to_string(), selected_muts, funcs_to_mutate, contract)?)
             }
-            Ok(())
+	    else{
+		Ok(vec![])
+	    }
         };
         match config {
             Value::Array(elems) => {
+		let mut results_json = vec![];
                 for elem in elems {
-                    process_single_file(&elem)?;
-                }
+                    let mut new_results = process_single_file(&elem)?;
+		    results_json.append(&mut new_results)
+                };
+		Ok(results_json)
             }
             Value::Object(_) => {
-                process_single_file(&config)?;
+                process_single_file(&config)
             }
             _ => panic!("Ill-formed json."),
         }
-        Ok(())
     }
 
     /// Main runner that either runs Gambit on one or more .sol
@@ -375,16 +380,24 @@ impl MutantGenerator {
         log::info!("starting run()");
         let files = &self.params.filename;
         let json = &self.params.json.clone();
-        if files.is_some() {
+        let results = if files.is_some() {
+	    let mut results_json: Vec<serde_json::Value> = vec![];
             for f in files.as_ref().unwrap() {
                 self.mk_mutant_dir(&f.to_string())?;
-                self.run_one(f, None, None, None)?;
+                let mut new_results = self.run_one(f, None, None, None)?;
+		results_json.append(&mut new_results)
             }
+	    results_json
         } else if json.is_some() {
-            self.run_from_config(json.as_ref().unwrap())?;
+            self.run_from_config(json.as_ref().unwrap())?
         } else {
             panic!("Must provide either --filename file.sol or --json config.json.")
-        }
+        };
+	let json_string = Array(results).to_string();
+	let results_fn = format!("{}results.json", self.params.outdir); 
+	let results_path = Path::new(&results_fn);
+	let mut results_file = File::create(results_path)?;
+	File::write(&mut results_file, json_string.as_bytes())?;
         Ok(())
     }
 }

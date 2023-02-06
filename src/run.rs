@@ -9,6 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use serde_json;
 use crate::{
     ast, get_indent, get_path_normals, invoke_command, mutation, Mutation,
     MutationType::{self},
@@ -101,7 +102,7 @@ impl RunMutations {
         mut is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
         mutation_points: HashMap<MutationType, Vec<SolAST>>,
         mut mutation_points_todo: VecDeque<MutationType>,
-    ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
         let mut source = Vec::new();
         if mut_dir.is_none() {
             panic!("Mutation directory is empty.")
@@ -111,7 +112,7 @@ impl RunMutations {
         f.read_to_end(&mut source)?;
         let source_to_str = std::str::from_utf8(&source)?.into();
         let mut attempts = 0;
-        let mut mutants: Vec<PathBuf> = vec![];
+        let mut mutants: Vec<(PathBuf, serde_json::Value)> = vec![];
         let mut seen: HashSet<String> = HashSet::new();
         let total_attempts = num_mutants * ATTEMPTS;
         seen.insert(source_to_str);
@@ -143,7 +144,10 @@ impl RunMutations {
                         mut_path
                     );
                     Self::diff_mutant(orig_path, mut_path)?;
-                    mutants.push(mut_path.to_owned());
+		    let mut_json = serde_json::json!({
+			"dummy": "false",
+		    });
+                    mutants.push((mut_path.to_owned(), mut_json));
                 } else {
                     mutation_points_todo.push_back(mut_type);
                 }
@@ -223,7 +227,7 @@ impl RunMutations {
     pub fn get_mutations(
         self,
         is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
-    ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
         let mut_dir = self.lkup_mutant_dir();
         let (visitor, skip, accept) =
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
