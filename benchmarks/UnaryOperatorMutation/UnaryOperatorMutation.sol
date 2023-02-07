@@ -2,7 +2,7 @@
 pragma solidity >0.7.0;
 pragma experimental ABIEncoderV2;
 
-contract UnaryOperatorExample {
+contract UnaryOperatorMutation {
     function myBitwiseNeg(uint256 x) public pure returns (uint256) {
 	return ~ x;
     }

@@ -1,8 +1,8 @@
 {
-  "absolutePath": "IfStatementExample.sol",
+  "absolutePath": "benchmarks/IfStatementMutation/IfStatementMutation.sol",
   "exportedSymbols":
   {
-    "IfStatementExample":
+    "IfStatementMutation":
     [
       19
     ]
@@ -37,7 +37,7 @@
     {
       "abstract": false,
       "baseContracts": [],
-      "canonicalName": "IfStatementExample",
+      "canonicalName": "IfStatementMutation",
       "contractDependencies": [],
       "contractKind": "contract",
       "fullyImplemented": true,
@@ -46,8 +46,8 @@
       [
         19
       ],
-      "name": "IfStatementExample",
-      "nameLocation": "109:18:0",
+      "name": "IfStatementMutation",
+      "nameLocation": "109:19:0",
       "nodeType": "ContractDefinition",
       "nodes":
       [
@@ -56,7 +56,7 @@
           {
             "id": 17,
             "nodeType": "Block",
-            "src": "196:68:0",
+            "src": "197:68:0",
             "statements":
             [
               {
@@ -67,7 +67,7 @@
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
                   "referencedDeclaration": 4,
-                  "src": "203:1:0",
+                  "src": "204:1:0",
                   "typeDescriptions":
                   {
                     "typeIdentifier": "t_bool",
@@ -78,7 +78,7 @@
                 {
                   "id": 15,
                   "nodeType": "Block",
-                  "src": "235:23:0",
+                  "src": "236:23:0",
                   "statements":
                   [
                     {
@@ -92,7 +92,7 @@
                         "kind": "bool",
                         "lValueRequested": false,
                         "nodeType": "Literal",
-                        "src": "249:5:0",
+                        "src": "250:5:0",
                         "typeDescriptions":
                         {
                           "typeIdentifier": "t_bool",
@@ -103,18 +103,18 @@
                       "functionReturnParameters": 8,
                       "id": 14,
                       "nodeType": "Return",
-                      "src": "242:12:0"
+                      "src": "243:12:0"
                     }
                   ]
                 },
                 "id": 16,
                 "nodeType": "IfStatement",
-                "src": "199:59:0",
+                "src": "200:59:0",
                 "trueBody":
                 {
                   "id": 12,
                   "nodeType": "Block",
-                  "src": "206:22:0",
+                  "src": "207:22:0",
                   "statements":
                   [
                     {
@@ -128,7 +128,7 @@
                         "kind": "bool",
                         "lValueRequested": false,
                         "nodeType": "Literal",
-                        "src": "220:4:0",
+                        "src": "221:4:0",
                         "typeDescriptions":
                         {
                           "typeIdentifier": "t_bool",
@@ -139,7 +139,7 @@
                       "functionReturnParameters": 8,
                       "id": 11,
                       "nodeType": "Return",
-                      "src": "213:11:0"
+                      "src": "214:11:0"
                     }
                   ]
                 }
@@ -152,7 +152,7 @@
           "kind": "function",
           "modifiers": [],
           "name": "myBooleanNegation",
-          "nameLocation": "143:17:0",
+          "nameLocation": "144:17:0",
           "nodeType": "FunctionDefinition",
           "parameters":
           {
@@ -165,10 +165,10 @@
                 "id": 4,
                 "mutability": "mutable",
                 "name": "a",
-                "nameLocation": "166:1:0",
+                "nameLocation": "167:1:0",
                 "nodeType": "VariableDeclaration",
                 "scope": 18,
-                "src": "161:6:0",
+                "src": "162:6:0",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions":
@@ -181,7 +181,7 @@
                   "id": 3,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
-                  "src": "161:4:0",
+                  "src": "162:4:0",
                   "typeDescriptions":
                   {
                     "typeIdentifier": "t_bool",
@@ -191,7 +191,7 @@
                 "visibility": "internal"
               }
             ],
-            "src": "160:8:0"
+            "src": "161:8:0"
           },
           "returnParameters":
           {
@@ -207,7 +207,7 @@
                 "nameLocation": "-1:-1:-1",
                 "nodeType": "VariableDeclaration",
                 "scope": 18,
-                "src": "190:4:0",
+                "src": "191:4:0",
                 "stateVariable": false,
                 "storageLocation": "default",
                 "typeDescriptions":
@@ -220,7 +220,7 @@
                   "id": 6,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
-                  "src": "190:4:0",
+                  "src": "191:4:0",
                   "typeDescriptions":
                   {
                     "typeIdentifier": "t_bool",
@@ -230,19 +230,19 @@
                 "visibility": "internal"
               }
             ],
-            "src": "189:6:0"
+            "src": "190:6:0"
           },
           "scope": 19,
-          "src": "134:130:0",
+          "src": "135:130:0",
           "stateMutability": "pure",
           "virtual": false,
           "visibility": "public"
         }
       ],
       "scope": 20,
-      "src": "100:166:0",
+      "src": "100:167:0",
       "usedErrors": []
     }
   ],
-  "src": "41:226:0"
+  "src": "41:227:0"
 }

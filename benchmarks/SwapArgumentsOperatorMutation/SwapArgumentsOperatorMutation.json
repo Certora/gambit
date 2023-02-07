@@ -1,5 +1,5 @@
 {
-  "absolutePath": "SwapArgumentsOperatorExample.sol",
+  "absolutePath": "benchmarks/SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
   "exportedSymbols":
   {
     "SwapArgumentsOperatorMutation":

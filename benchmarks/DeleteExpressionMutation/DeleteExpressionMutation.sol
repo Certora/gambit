@@ -2,7 +2,7 @@
 pragma solidity >0.7.0;
 pragma experimental ABIEncoderV2;
 
-contract DeleteExpressionExample {
+contract DeleteExpressionMutation {
 
     function myIdentity(uint256 x) public pure returns (uint256) {
 	uint256 result = 0;

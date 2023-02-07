@@ -1,0 +1,57 @@
+[
+    {
+    "filename": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/RequireMutation/RequireMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/AssignmentMutation/AssignmentMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/DeleteExpressionMutation/DeleteExpressionMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },    
+    {
+    "filename": "benchmarks/FunctionCallMutation/FunctionCallMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/IfStatementMutation/IfStatementMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/SwapLinesMutation/SwapLinesMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/UnaryOperatorMutation/UnaryOperatorMutation.sol",
+    "solc": "solc8.10",
+    "num-mutants": 1
+    },
+    {
+    "filename": "benchmarks/ElimDelegateMutation/ElimDelegateMutation.sol",
+    "solc": "solc8.13",
+    "num-mutants": 1
+    }
+]

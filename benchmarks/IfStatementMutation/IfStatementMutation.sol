@@ -2,7 +2,7 @@
 pragma solidity >0.7.0;
 pragma experimental ABIEncoderV2;
 
-contract IfStatementExample {
+contract IfStatementMutation {
     function myBooleanNegation(bool a) public pure returns (bool) {
 	if (a) {
 	    return true;

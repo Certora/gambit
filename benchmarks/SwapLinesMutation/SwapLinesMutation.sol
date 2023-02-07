@@ -2,7 +2,7 @@
 pragma solidity >0.7.0;
 pragma experimental ABIEncoderV2;
 
-contract SwapLinesExample {
+contract SwapLinesMutation {
     function addFifteen(uint256 x) public pure returns (uint256) {
 	x += 1;
 	x += 2;
