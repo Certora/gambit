@@ -4,17 +4,17 @@ import subprocess
 from pathlib import Path
 
 MUTATIONS = [
-    "BinaryOpMutation",
-    "RequireMutation",
     "AssignmentMutation",
+    "BinaryOpMutation",
     "DeleteExpressionMutation",
+    "ElimDelegateMutation",
     "FunctionCallMutation",
     "IfStatementMutation",
+    "RequireMutation",
     "SwapArgumentsFunctionMutation",
     "SwapArgumentsOperatorMutation",
     "SwapLinesMutation",
     "UnaryOperatorMutation",
-    "ElimDelegateMutation",
 ]
 
 BENCHMARKS = "./benchmarks"
@@ -47,6 +47,7 @@ def mutate():
     subprocess.run(gambit_invocation)
 
 def compare():
+    succeeded = 0
     for name in MUTATIONS:
         print(f'Running sanity check for {name}...')
         actual = os.listdir(f'out/benchmarks/{name}/')
@@ -59,14 +60,16 @@ def compare():
         diff = subprocess.run(diff_invocation, capture_output=True, text=True)
         if diff.returncode == 0: # files are same
             print("SUCCESS")
+            succeeded += 1
         elif diff.returncode == 1: # files are different
             diff_file = open(f'out/{name}.{DIFF}', 'w')
             diff_file.write(diff.stdout)
             diff_file.close()
             print(f'FAIL: output did not match expected. See diff at out/{name}.{DIFF}')
         else:
-            print(f'The `diff` subprocess failed to run on {name}. Install a `diff` program and try again')
+            print(f'The `diff` subprocess failed to run on {name}. Check for missing files or install a `diff` program and try again')
             sys.exit(diff.returncode)
+    print(f'Sanity check finished with {succeeded} of {len(MUTATIONS)} succeeded.')
         
 def main():
     update()
