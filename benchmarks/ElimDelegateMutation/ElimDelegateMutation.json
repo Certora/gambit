@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/ElimDelegateMutation/ElimDelegateMutation.sol =======
 {
   "absolutePath": "benchmarks/ElimDelegateMutation/ElimDelegateMutation.sol",
   "exportedSymbols":

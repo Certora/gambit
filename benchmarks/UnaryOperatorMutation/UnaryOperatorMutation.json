@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/UnaryOperatorMutation/UnaryOperatorMutation.sol =======
 {
   "absolutePath": "benchmarks/UnaryOperatorMutation/UnaryOperatorMutation.sol",
   "exportedSymbols":

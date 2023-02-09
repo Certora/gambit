@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol =======
 {
   "absolutePath": "benchmarks/SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
   "exportedSymbols":

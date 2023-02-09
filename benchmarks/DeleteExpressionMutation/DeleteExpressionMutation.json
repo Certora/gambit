@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/DeleteExpressionMutation/DeleteExpressionMutation.sol =======
 {
   "absolutePath": "benchmarks/DeleteExpressionMutation/DeleteExpressionMutation.sol",
   "exportedSymbols":

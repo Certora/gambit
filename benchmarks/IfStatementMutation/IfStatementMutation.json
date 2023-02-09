@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/IfStatementMutation/IfStatementMutation.sol =======
 {
   "absolutePath": "benchmarks/IfStatementMutation/IfStatementMutation.sol",
   "exportedSymbols":

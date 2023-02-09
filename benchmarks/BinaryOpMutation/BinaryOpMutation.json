@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/BinaryOpMutation/BinaryOpMutation.sol =======
 {
   "absolutePath": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
   "exportedSymbols":

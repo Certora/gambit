@@ -1,3 +1,6 @@
+import os
+import sys
+import subprocess
 from pathlib import Path
 
 MUTATIONS = [
@@ -13,51 +16,60 @@ MUTATIONS = [
     "UnaryOperatorMutation",
     "ElimDelegateMutation",
 ]
-import os
 
 BENCHMARKS = "./benchmarks"
 SOL = "sol"
-CONFIG = "config"
+CONFIG = "benchmarks/config-jsons/sanity-config.json"
 JSON = "json"
 
 def update():
     for name in MUTATIONS:
         sol_file = f'benchmarks/{name}/{name}.{SOL}'
-        outdir = f'benchmarks/{name}/'
+        ast_json = f'benchmarks/{name}/{name}.{JSON}'
+        ast_file = open(ast_json, 'w')
         solc_invocation = [
             "solc",
             "--ast-compact-json",
             "--overwrite",
             sol_file,
-            "-o",
-            outdir
         ]
-        os.system(" ".join(solc_invocation))
-        solc_output = f'benchmarks/{name}/{name}.sol_json.ast'
-        ast_json = f'benchmarks/{name}/{name}.json'
-        mv_invocation = ["mv", solc_output, ast_json]
-        os.system(" ".join(mv_invocation))
+        subprocess.run(solc_invocation, stdout=ast_file)
+        ast_file.close()
 
 def mutate():
-    config_file = "benchmarks/config-jsons/sanity-config.json"
     gambit_invocation = [
         "gambit",
         "mutate",
         "--json",
-        config_file
+        CONFIG,
     ]
-    os.system(" ".join(gambit_invocation))
+    subprocess.run(gambit_invocation)
 
 def compare():
-    pass # TODO
-
-def clean():
-    os.system("rm -rf out")
+    for name in MUTATIONS:
+        actual = os.listdir('out/benchmarks/{name}/')
+        if not actual:
+            print("{name} failed sanity check. No mutants produced.")
+            sys.exit(1)
+        actual = actual[0]
+        expected = f'benchmarks/{name}/expected.{SOL}'
+        diff_invocation = ["diff", actual, expected]
+        diff = subprocess.run(diff_invocation, capture_output=True, text=True)
+        if diff.returncode == 0: # files are same
+            print(f'{name} passed sanity check.')
+        elif diff.returncode == 1: # files are different
+            diff_file = open(f'out/{name}.{DIFF}', 'w')
+            diff_file.write(subprocess.stdout)
+            diff_file.close()
+            print(f'{name} failed sanity check. See diff at out/{name}.{DIFF}')
+        else:
+            print("The `diff` subprocess failed to run. Install a `diff` program and try again")
+            sys.exit(diff.returncode)
         
 def main():
     update()
     mutate()
-    compare()
+    # compare()
     # clean()
 
 if __name__ == "__main__":

@@ -1,3 +1,7 @@
+JSON AST (compact format):
+
+
+======= benchmarks/RequireMutation/RequireMutation.sol =======
 {
   "absolutePath": "benchmarks/RequireMutation/RequireMutation.sol",
   "exportedSymbols":
