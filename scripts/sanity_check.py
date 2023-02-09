@@ -21,6 +21,7 @@ BENCHMARKS = "./benchmarks"
 SOL = "sol"
 CONFIG = "benchmarks/config-jsons/sanity-config.json"
 JSON = "json"
+DIFF = "diff"
 
 def update():
     for name in MUTATIONS:
@@ -47,30 +48,30 @@ def mutate():
 
 def compare():
     for name in MUTATIONS:
-        actual = os.listdir('out/benchmarks/{name}/')
+        print(f'Running sanity check for {name}...')
+        actual = os.listdir(f'out/benchmarks/{name}/')
         if not actual:
-            print("{name} failed sanity check. No mutants produced.")
-            sys.exit(1)
-        actual = actual[0]
+            print("FAIL: no mutants produced")
+            continue
+        actual = f'out/benchmarks/{name}/{actual[0]}'
         expected = f'benchmarks/{name}/expected.{SOL}'
         diff_invocation = ["diff", actual, expected]
         diff = subprocess.run(diff_invocation, capture_output=True, text=True)
         if diff.returncode == 0: # files are same
-            print(f'{name} passed sanity check.')
+            print("SUCCESS")
         elif diff.returncode == 1: # files are different
             diff_file = open(f'out/{name}.{DIFF}', 'w')
-            diff_file.write(subprocess.stdout)
+            diff_file.write(diff.stdout)
             diff_file.close()
-            print(f'{name} failed sanity check. See diff at out/{name}.{DIFF}')
+            print(f'FAIL: output did not match expected. See diff at out/{name}.{DIFF}')
         else:
-            print("The `diff` subprocess failed to run. Install a `diff` program and try again")
+            print(f'The `diff` subprocess failed to run on {name}. Install a `diff` program and try again')
             sys.exit(diff.returncode)
         
 def main():
     update()
     mutate()
-    # compare()
-    # clean()
+    compare()
 
 if __name__ == "__main__":
     main()
