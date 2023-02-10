@@ -119,13 +119,16 @@ impl MutantGenerator {
                 flags.push(r);
             }
         }
+        let pretty_flags = flags.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(" ");
 
         if invoke_command(&self.params.solc, flags)?
             .0
             .unwrap_or_else(|| panic!("solc terminated with a signal."))
             != 0
         {
-            panic!("Failed to compile source. Maybe try with a different version of solc (e.g., --solc solc8.10)")
+            eprintln!("Solidity compiler failed unexpectedly. For more deatils, try running the following command from your terminal:");
+            eprintln!("`{} {}`", &self.params.solc, pretty_flags);
+            std::process::exit(1)
         }
 
         std::fs::copy(ast_path, &json_path)?;
