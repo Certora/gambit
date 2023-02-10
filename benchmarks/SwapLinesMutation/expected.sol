@@ -6,7 +6,8 @@ contract SwapLinesMutation {
     uint public num;
     
     function incTwice() public {
-	num += 1;
+	/// SwapLinesMutation of: num += 1;
 	num += 2;
+	num += 1;
     }
 }
