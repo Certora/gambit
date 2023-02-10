@@ -17,16 +17,18 @@ MUTATIONS = [
     "UnaryOperatorMutation",
 ]
 
-BENCHMARKS = "./benchmarks"
+BENCHMARKS = "benchmarks"
 SOL = "sol"
 CONFIG = "benchmarks/config-jsons/sanity-config.json"
 JSON = "json"
 DIFF = "diff"
+OUTDIR = "out"
+EXPECTED = "expected"
 
 def update():
     for name in MUTATIONS:
-        sol_file = f'benchmarks/{name}/{name}.{SOL}'
-        ast_json = f'benchmarks/{name}/{name}.{JSON}'
+        sol_file = f'{BENCHMARKS}/{name}/{name}.{SOL}'
+        ast_json = f'{BENCHMARKS}/{name}/{name}.{JSON}'
         ast_file = open(ast_json, 'w')
         solc_invocation = [
             "solc",
@@ -35,7 +37,6 @@ def update():
             sol_file,
         ]
         subprocess.run(solc_invocation, stdout=ast_file)
-        ast_file.close()
 
 def mutate():
     gambit_invocation = [
@@ -50,22 +51,21 @@ def compare():
     succeeded = 0
     for name in MUTATIONS:
         print(f'Running sanity check for {name}...')
-        actual = os.listdir(f'out/benchmarks/{name}/')
+        actual = os.listdir(f'{OUTDIR}/{BENCHMARKS}/{name}/')
         if not actual:
             print("FAIL: no mutants produced")
             continue
-        actual = f'out/benchmarks/{name}/{actual[0]}'
-        expected = f'benchmarks/{name}/expected.{SOL}'
-        diff_invocation = ["diff", actual, expected]
+        actual = f'{OUTDIR}/{BENCHMARKS}/{name}/{actual[0]}'
+        expected = f'{BENCHMARKS}/{name}/{EXPECTED}.{SOL}'
+        diff_invocation = [DIFF, actual, expected]
         diff = subprocess.run(diff_invocation, capture_output=True, text=True)
         if diff.returncode == 0: # files are same
             print("SUCCESS")
             succeeded += 1
         elif diff.returncode == 1: # files are different
-            diff_file = open(f'out/{name}.{DIFF}', 'w')
+            diff_file = open(f'{OUTDIR}/{name}.{DIFF}', 'w')
             diff_file.write(diff.stdout)
-            diff_file.close()
-            print(f'FAIL: output did not match expected. See diff at out/{name}.{DIFF}')
+            print(f'FAIL: output did not match expected. See diff at {OUTDIR}/{name}.{DIFF}')
         else:
             print(f'The `diff` subprocess failed to run on {name}. Check for missing files or install a `diff` program and try again')
             sys.exit(diff.returncode)
