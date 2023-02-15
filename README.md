@@ -3,15 +3,14 @@
 This is a mutation generator for Solidity.
 It takes as input a solidity source file (or a configuration file as you can see below)
 and produces a set of uniquely mutated solidity source files which are output in the `out/` directory by default.
-The source is [publicly available](https://github.com/Certora/gambit).
+More details on Gambit and integration with the Certora prover can be found [here](https://docs.certora.com/en/latest/docs/gambit/index.html).
 
 ## Installing Gambit
 - Gambit is implemented in Rust, which you can download [here](https://www.rust-lang.org/tools/install).
 - To run Gambit, do the following:
     - `git clone git@github.com:Certora/gambit.git`
     - Install by running `cargo install --path .` from the `gambit/` directory after you clone the repository. This will add the Gambit binary to your `.cargo` directory.
-    - If you prefer to run Gambit without installing, you can also build it by running `cargo build --release` from the `gambit/` directory.
-- You will need OS specific binaries for various versions of Solidity.
+   - You will need OS specific binaries for various versions of Solidity.
   The version of the binary will depend on your Solidity project.
   You can download them
   [here](https://github.com/ethereum/solc-bin). Make sure you add them to your `PATH`.
@@ -33,54 +32,7 @@ the randomization of the generated mutants,
 and `outdir (default out)` that lets you choose
 where you want to output the mutant files.
 
-```
-Command line arguments for running Gambit. Following are the main ways to run it.
-
-1. cargo gambit path/to/file.sol: this will apply all mutations to file.sol.
-
-2. cargo run --release -- mutate -f path/to/file1.sol -f path/to/file2.sol: this will apply all mutations to file1.sol and file2.sol.
-
-3. cargo gambit-cfg path/to/config.json: this gives the user finer control on what functions in which files, contracts to mutate using which types of mutations.
-
-Usage: gambit mutate [OPTIONS]
-
-Options:
-  -j, --json <JSON>
-          Json file with config
-
-  -f, --filename <FILENAME>
-          File to mutate
-
-  -n, --num-mutants <NUM_MUTANTS>
-          Number of mutants
-          [default: 5]
-
-  -o, --outdir <OUTDIR>
-          Directory to store all mutants
-          [default: out]
-
-  -s, --seed <SEED>
-          Seed for random number generator
-          [default: 0]
-
-      --solc <SOLC>
-          Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc
-          [default: solc]
-
-      --solc-basepath <SOLC_BASEPATH>
-          Basepath argument to solc
-
-      --solc-allowpaths <SOLC_ALLOWPATHS>
-          Allowpath argument to solc
-
-      --solc-remapping <SOLC_REMAPPING>
-          Solidity remappings
-
-  -h, --help
-          Print help (see a summary with '-h')
-```
-
-These flags are explained in the following section.
+These flags are explained in more detail in the following section.
 
 ### Examples of How to Run Gambit
 You can run Gambit on a single solidity file with various additional arguments.
@@ -117,7 +69,6 @@ and no complex dependencies or mutation requirements.
 [basepath]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#base-path-and-include-paths
 [allowed]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#allowed-paths
 
-(gambit-config)=
 #### Running Gambit Through a Configuration File
 This is the recommended way to run Gambit.
 This approach allows you to control and localize
@@ -199,14 +150,26 @@ For example, one of the mutant files for
 uint256 res = decimals ** a;
 ```
 
-(mutation-types)=
-## Mutation Types
-At the moment, Gambit implements the following types of mutations, detailed below:
+Also included in the `out/` directory is a JSON summary of all mutants produced, `out/results.json`.
+The results include the filename and unique string ID of each mutant, along with
+a brief description and the `diff` between the mutant and the original file.
 
-```{contents}
-:local:
+### Demo
+Here is a demo of Gambit generating mutants for [AaveTokenV3.sol](https://github.com/Certora/aave-token-v3/blob/main/src/AaveTokenV3.sol).
+You can clone the Aave repo and then run Gambit with a config file like:
+
+```
+{
+    "filename": "PATH/TO/aave-token-v3/src/AaveTokenV3.sol",
+    "solc-basepath": "PATH/TO/aave-token-v3/.",
+    "contract": "AaveTokenV3",
+}
 ```
 
+<img src="doc/gambit-animation.jif" height="450">
+
+## Mutation Types
+At the moment, Gambit implements the following types of mutations, listed below.
 Many of these mutations may lead to invalid mutants
 that do not compile.
 At the moment, Gambit simply compiles the mutants and only keeps valid ones &mdash;
@@ -216,123 +179,29 @@ invalid mutants by constructions.
 Gambit does not apply any mutations to libraries unless they are
 explicitly passed as arguments.
 
-### Change binary operators: `binary-op-mutation`
-Change a binary operator like `+, -, <` to a different operator. For example:
-```solidity
-x = y + z - 8
+What follows is a list of supported mutation types which may be specified in the configuration file.
+For more details on each mutation type, refer to the [full documentation](https://docs.certora.com/en/latest/docs/gambit/gambit.html#mutation-types).
+
 ```
-might become
-```solidity
-x = y * z - 8
+binary-op-mutation
+unary-operator-mutation
+require-mutation
+assignment-mutation
+delete-expression-mutation
+function-call-mutation
+if-statement-mutation
+swap-arguments-function-mutation
+swap-arguments-operator-mutation
+swap-lines-mutation
+elim-delegate-mutation
 ```
 
-### Change unary operators: `unary-operator-mutation`
-Change a unary operator like `++` or `--` to a different operator. For example,
+### Contact
+If you have ideas for interesting mutations or other features,
+we encourage you to make a PR or [email](mailto:chandra@certora.com) us.
 
-```solidity
-x++
-```
-might become
-
-```solidity
-x--
-```
-
-### Change require statements: `require-mutation`
-Negate or change the condition. For example,
-
-```solidity
-require (x + y > 6)
-```
-might become
-```solidity
-require (true)
-```
-or
-```solidity
-require (!(x + y > 6))
-```
-
-### Change assignment statements: `assignment-mutation`
-Change the right hand side of an assignment. For example,
-```solidity
-x = true;
-```
-might become
-```solidity
-x = false
-```
-
-### Delete expressions: `delete-expression-mutation`
-Comment out some expression. For example,
-```solidity
-for (uint256 i = 0; i < x; i++)
-```
-might become
-```solidity
-for (uint256 i = 0; i < x; /* i++ */)
-```
-
-### Replace function calls: `function-call-mutation`
-Randomly replace a function call with one of its operands. For example,
-
-```solidity
-return foo(x, y)
-```
-might become
-```solidity
-return y
-```
-
-### Change if statements: `if-statement-mutation`
-Change the condition. For example,
-
-```solidity
-if (cond)
-```
-might become
-```solidity
-if (false)
-```
-
-### Swap function arguments: `swap-arguments-function-mutation`
-Swap the arguments to a function. For example,
-```solidity
-foo(a, b)
-```
-might become
-```solidity
-foo(b, a)
-```
-
-### Swap operator arguments: `swap-arguments-operator-mutation`
-Swap the operands of a non-commutative binary operator. For example,
-```solidity
-a - b
-```
-might become
-```solidity
-b - a
-```
-
-### Swap adjacent lines: `swap-lines-mutation`
-Swap two lines. For example,
-```solidity
-x = foo (y, z);
-x += 2;
-```
-might become
-```solidity
-x += 2;
-x = foo (y, z);
-```
-
-### Eliminate Delegate Call: `elim-delegate-mutation`
-Replace a delegate call by `call`. For example,
-```solidity
-_contract.delegatecall(abi.encodeWithSignature("setVars(uint256)", _num)
-```
-might become
-```solidity
-_contract.call(abi.encodeWithSignature("setVars(uint256)", _num)
-```
+### Credits
+We thank
+[Oliver Flatt](https://www.oflatt.com/) and
+[Vishal Canumalla](https://homes.cs.washington.edu/~vishalc/)
+for their excellent contributions to an earlier prototype of Gambit.
