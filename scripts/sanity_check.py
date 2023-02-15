@@ -25,20 +25,20 @@ DIFF = "diff"
 OUTDIR = "out"
 EXPECTED = "expected"
 
-def update():
+def update() -> None:
     for name in MUTATIONS:
-        sol_file = f'{BENCHMARKS}/{name}/{name}.{SOL}'
-        ast_json = f'{BENCHMARKS}/{name}/{name}.{JSON}'
-        ast_file = open(ast_json, 'w')
-        solc_invocation = [
-            "solc",
-            "--ast-compact-json",
-            "--overwrite",
-            sol_file,
-        ]
-        subprocess.run(solc_invocation, stdout=ast_file)
+        sol_file = Path(BENCHMARKS) / name / f'{name}.{SOL}'
+        ast_json = Path(BENCHMARKS) / name / f'{name}.{JSON}'
+        with ast_json.open('w') as ast_file:
+            solc_invocation = [
+                "solc",
+                "--ast-compact-json",
+                "--overwrite",
+                sol_file,
+            ]
+            subprocess.run(solc_invocation, stdout=ast_file)
 
-def mutate():
+def mutate() -> None:
     gambit_invocation = [
         "gambit",
         "mutate",
@@ -47,31 +47,33 @@ def mutate():
     ]
     subprocess.run(gambit_invocation)
 
-def compare():
+def compare() -> None:
     succeeded = 0
     for name in MUTATIONS:
+        mutant_parent = Path(OUTDIR) / BENCHMARKS / name
         print(f'Running sanity check for {name}...')
-        actual = os.listdir(f'{OUTDIR}/{BENCHMARKS}/{name}/')
+        actual = os.listdir(mutant_parent)
         if not actual:
             print("FAIL: no mutants produced")
             continue
-        actual = f'{OUTDIR}/{BENCHMARKS}/{name}/{actual[0]}'
-        expected = f'{BENCHMARKS}/{name}/{EXPECTED}.{SOL}'
+        actual = mutant_parent / (actual[0])
+        expected = Path(BENCHMARKS) / name / f'{EXPECTED}.{SOL}'
         diff_invocation = [DIFF, actual, expected]
         diff = subprocess.run(diff_invocation, capture_output=True, text=True)
         if diff.returncode == 0: # files are same
             print("SUCCESS")
             succeeded += 1
         elif diff.returncode == 1: # files are different
-            diff_file = open(f'{OUTDIR}/{name}.{DIFF}', 'w')
-            diff_file.write(diff.stdout)
-            print(f'FAIL: output did not match expected. See diff at {OUTDIR}/{name}.{DIFF}')
+            diff_path = Path(OUTDIR) / f'{name}.{DIFF}'
+            with open(diff_path, 'w') as diff_file:
+                diff_file.write(diff.stdout)
+                print(f'FAIL: output did not match expected. See diff at {diff_path}')
         else:
             print(f'The `diff` subprocess failed to run on {name}. Check for missing files or install a `diff` program and try again')
             sys.exit(diff.returncode)
     print(f'Sanity check finished with {succeeded} of {len(MUTATIONS)} succeeded.')
         
-def main():
+def main() -> None:
     update()
     mutate()
     compare()
