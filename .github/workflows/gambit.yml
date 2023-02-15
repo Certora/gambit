@@ -9,6 +9,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
       - name: Cache cargo bin
@@ -19,27 +21,33 @@ jobs:
       - name: Build and Test
         run: make
       - name: Rename gambit binary
-        run: mv ./target/release/gambit ./target/release/gambit-${{ github.ref_name }}
+        run: mv ./target/release/gambit ./target/release/gambit-$TAG
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
       - name: Upload artifact to action
         uses: actions/upload-artifact@v3
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         with:
-          name: gambit-${{ github.ref_name }}
-          path: ./target/release/gambit-${{ github.ref_name }}
+          name: gambit-${{ env.TAG }}
+          path: ./target/release/gambit-${{ env.TAG }}
 
   release:
     runs-on: ubuntu-latest
     needs: build
     if: startsWith(github.event.ref, 'refs/tags/v') #  only on new tag creation
+    env:
+      TAG: ${{ github.ref_name }}
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: gambit-${{ github.ref_name }}
-      - name: Create release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "gambit-${{ github.ref_name }}"
-          allowUpdates: true
-          name: Release ${{ github.ref_name }}
+          name: gambit-${{ env.TAG }}
+      - name: Create a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_exist=$(gh release view $TAG 2>&1 || exit 0)
+          if [ "$release_exist" = "release not found" ]; then
+            gh release create $TAG gambit-$TAG --title "Release $TAG" --generate-notes --latest
+          else
+            gh release upload $TAG gambit-$TAG
+          fi
