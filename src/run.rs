@@ -101,7 +101,7 @@ impl RunMutations {
         mut is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
         mutation_points: HashMap<MutationType, Vec<SolAST>>,
         mut mutation_points_todo: VecDeque<MutationType>,
-    ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
         let mut source = Vec::new();
         if mut_dir.is_none() {
             panic!("Mutation directory is empty.")
@@ -111,7 +111,7 @@ impl RunMutations {
         f.read_to_end(&mut source)?;
         let source_to_str = std::str::from_utf8(&source)?.into();
         let mut attempts = 0;
-        let mut mutants: Vec<PathBuf> = vec![];
+        let mut mutants: Vec<(PathBuf, serde_json::Value)> = vec![];
         let mut seen: HashSet<String> = HashSet::new();
         let total_attempts = num_mutants * ATTEMPTS;
         seen.insert(source_to_str);
@@ -127,9 +127,9 @@ impl RunMutations {
                     if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
                         mutant = res;
                     }
-                    let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
-                        + &MUTANT_COUNTER.get_cloned().to_string()
-                        + ".sol";
+                    let id = &MUTANT_COUNTER.get_cloned().to_string();
+                    let mut_file =
+                        mut_dir.as_ref().unwrap().to_str().unwrap().to_owned() + id + ".sol";
                     MUTANT_COUNTER.inc();
                     let mut_path = Path::new(&mut_file);
                     log::info!(
@@ -142,8 +142,14 @@ impl RunMutations {
                         ansi_term::Colour::Green.paint("SUCCESS"),
                         mut_path
                     );
-                    Self::diff_mutant(orig_path, mut_path)?;
-                    mutants.push(mut_path.to_owned());
+                    let diff = Self::diff_mutant(orig_path, mut_path)?;
+                    let mut_json = serde_json::json!({
+                    "name" : &mut_file,
+                    "description" : mut_type.to_string(),
+                    "id" : &id,
+                    "diff": &diff,
+                    });
+                    mutants.push((mut_path.to_owned(), mut_json));
                 } else {
                     mutation_points_todo.push_back(mut_type);
                 }
@@ -161,7 +167,7 @@ impl RunMutations {
     }
 
     /// Logs the diff of the mutants w.r.t. the origin program.
-    fn diff_mutant(orig: &Path, mutant: &Path) -> Result<(), Box<dyn Error>> {
+    fn diff_mutant(orig: &Path, mutant: &Path) -> Result<String, Box<dyn Error>> {
         let (succ, diff, _) = invoke_command(
             "diff",
             vec![
@@ -172,11 +178,19 @@ impl RunMutations {
         )?;
         log::info!("{}", String::from_utf8(diff.to_vec()).unwrap());
         match succ.unwrap_or_else(|| panic!("diff call terminated with a signal.")) {
-            0 => log::info!("mutant identical to original program"),
-            1 => log::info!("{}", std::str::from_utf8(&diff).unwrap()),
-            _ => log::info!("install a `diff` program to see the diff"),
+            0 => {
+                log::info!("mutant identical to original program");
+                Ok(String::new())
+            }
+            1 => {
+                log::info!("{}", std::str::from_utf8(&diff).unwrap());
+                Ok(std::str::from_utf8(&diff).unwrap().to_string())
+            }
+            _ => {
+                log::info!("install a `diff` program to see the diff");
+                Ok(String::new())
+            }
         }
-        Ok(())
     }
 
     /// Adds a comment to indicate what kind of mutation happened.
@@ -223,7 +237,7 @@ impl RunMutations {
     pub fn get_mutations(
         self,
         is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
-    ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+    ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
         let mut_dir = self.lkup_mutant_dir();
         let (visitor, skip, accept) =
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);

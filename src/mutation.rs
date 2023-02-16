@@ -28,33 +28,33 @@ pub trait Mutation {
 /// Kinds of mutations.
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
-    BinaryOpMutation,
-    RequireMutation,
     AssignmentMutation,
+    BinaryOpMutation,
     DeleteExpressionMutation,
+    ElimDelegateMutation,
     FunctionCallMutation,
     IfStatementMutation,
+    RequireMutation,
     SwapArgumentsFunctionMutation,
     SwapArgumentsOperatorMutation,
     SwapLinesMutation,
     UnaryOperatorMutation,
-    ElimDelegateMutation,
 }
 
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
-            MutationType::BinaryOpMutation => "BinaryOpMutation",
-            MutationType::RequireMutation => "RequireMutation",
             MutationType::AssignmentMutation => "AssignmentMutation",
+            MutationType::BinaryOpMutation => "BinaryOpMutation",
             MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
+            MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
             MutationType::IfStatementMutation => "IfStatementMutation",
+            MutationType::RequireMutation => "RequireMutation",
             MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
             MutationType::SwapLinesMutation => "SwapLinesMutation",
             MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
-            MutationType::ElimDelegateMutation => "ElimDelegateMutation",
         };
         str.into()
     }
@@ -63,9 +63,45 @@ impl ToString for MutationType {
 impl Mutation for MutationType {
     fn is_mutation_point(&self, node: &SolAST) -> bool {
         match self {
+            MutationType::AssignmentMutation => {
+                if let Some(n) = node.node_type() {
+                    return n == "Assignment";
+                }
+            }
             MutationType::BinaryOpMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation";
+                }
+            }
+            MutationType::DeleteExpressionMutation => {
+                if let Some(n) = node.node_type() {
+                    return n == "ExpressionStatement";
+                }
+            }
+            MutationType::ElimDelegateMutation => {
+                return node.node_type().map_or_else(
+                    || false,
+                    |n| {
+                        n == "FunctionCall"
+                            && (node
+                                .expression()
+                                .node_type()
+                                .map_or_else(|| false, |nt| nt == "MemberAccess"))
+                            && (node
+                                .expression()
+                                .get_string("memberName")
+                                .map_or_else(|| false, |mn| mn == "delegatecall"))
+                    },
+                );
+            }
+            MutationType::FunctionCallMutation => {
+                if let Some(n) = node.node_type() {
+                    return n == "FunctionCall" && !node.arguments().is_empty();
+                }
+            }
+            MutationType::IfStatementMutation => {
+                if let Some(n) = node.node_type() {
+                    return n == "IfStatement";
                 }
             }
             MutationType::RequireMutation => {
@@ -80,26 +116,6 @@ impl Mutation for MutationType {
                             && !node.arguments().is_empty()
                     },
                 );
-            }
-            MutationType::AssignmentMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "Assignment";
-                }
-            }
-            MutationType::DeleteExpressionMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "ExpressionStatement";
-                }
-            }
-            MutationType::FunctionCallMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && !node.arguments().is_empty();
-                }
-            }
-            MutationType::IfStatementMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "IfStatement";
-                }
             }
             MutationType::SwapArgumentsFunctionMutation => {
                 if let Some(n) = node.node_type() {
@@ -128,28 +144,25 @@ impl Mutation for MutationType {
                     return n == "UnaryOperation";
                 }
             }
-            MutationType::ElimDelegateMutation => {
-                return node.node_type().map_or_else(
-                    || false,
-                    |n| {
-                        n == "FunctionCall"
-                            && (node
-                                .expression()
-                                .node_type()
-                                .map_or_else(|| false, |nt| nt == "MemberAccess"))
-                            && (node
-                                .expression()
-                                .get_string("memberName")
-                                .map_or_else(|| false, |mn| mn == "delegatecall"))
-                    },
-                );
-            }
         }
         false
     }
 
     fn mutate_randomly(&self, node: &SolAST, source: &[u8], rand: &mut Pcg64) -> String {
         match self {
+            MutationType::AssignmentMutation => {
+                assert!(&self.is_mutation_point(node));
+                let new: Vec<String> =
+                    vec!["true", "false", "0", "1", &rand.next_u64().to_string()]
+                        .iter()
+                        .map(|e| e.to_string())
+                        .collect();
+                let rhs = node.right_hand_side();
+                match rhs.element {
+                    Some(_) => rhs.replace_in_source(source, new.choose(rand).unwrap().to_string()),
+                    None => panic!("No rhs for this assignment!"),
+                }
+            }
             MutationType::BinaryOpMutation => {
                 assert!(&self.is_mutation_point(node));
                 let ops = vec!["+", "-", "*", "/", "%", "**"];
@@ -162,14 +175,15 @@ impl Mutation for MutationType {
                     startr,
                 )
             }
-            MutationType::RequireMutation => {
-                assert!(&self.is_mutation_point(node));
-                let arg = &node.arguments()[0];
-                arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
-            }
             MutationType::DeleteExpressionMutation => {
                 assert!(&self.is_mutation_point(node));
                 node.comment_out(source)
+            }
+            MutationType::ElimDelegateMutation => {
+                assert!(&self.is_mutation_point(node));
+                let (_, endl) = node.expression().expression().get_bounds();
+                let (_, endr) = node.expression().get_bounds();
+                node.replace_part(source, "call".to_string(), endl + 1, endr)
             }
             MutationType::FunctionCallMutation => {
                 assert!(&self.is_mutation_point(node));
@@ -188,6 +202,11 @@ impl Mutation for MutationType {
                 } else {
                     cond.replace_in_source(source, "!(".to_owned() + &cond.get_text(source) + ")")
                 }
+            }
+            MutationType::RequireMutation => {
+                assert!(&self.is_mutation_point(node));
+                let arg = &node.arguments()[0];
+                arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")
             }
             MutationType::SwapArgumentsFunctionMutation => {
                 assert!(&self.is_mutation_point(node));
@@ -258,25 +277,6 @@ impl Mutation for MutationType {
                         end,
                     )
                 };
-            }
-            MutationType::AssignmentMutation => {
-                assert!(&self.is_mutation_point(node));
-                let new: Vec<String> =
-                    vec!["true", "false", "0", "1", &rand.next_u64().to_string()]
-                        .iter()
-                        .map(|e| e.to_string())
-                        .collect();
-                let rhs = node.right_hand_side();
-                match rhs.element {
-                    Some(_) => rhs.replace_in_source(source, new.choose(rand).unwrap().to_string()),
-                    None => panic!("No rhs for this assignment!"),
-                }
-            }
-            MutationType::ElimDelegateMutation => {
-                assert!(&self.is_mutation_point(node));
-                let (_, endl) = node.expression().expression().get_bounds();
-                let (_, endr) = node.expression().get_bounds();
-                node.replace_part(source, "call".to_string(), endl + 1, endr)
             }
         }
     }

@@ -7,3 +7,10 @@ Cargo.lock
 
 # Mac
 .DS_Store
+
+# swap files
+*.py~
+*.rs~
+*.sol~
+*.conf~
+*.json~

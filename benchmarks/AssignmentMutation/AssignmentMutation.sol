@@ -2,7 +2,7 @@
 pragma solidity >0.7.0;
 pragma experimental ABIEncoderV2;
 
-contract AssignmentExample {
+contract AssignmentMutation {
     uint256 public x;
     uint256 public y;
     uint256 public z;

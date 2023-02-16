@@ -9,3 +9,7 @@ build:
 .PHONY: test
 test:
 	cargo test --release
+
+.PHONY: sanity
+sanity:
+	python3 scripts/sanity_check.py
