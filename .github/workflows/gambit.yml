@@ -18,6 +18,15 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
+      - name: Install solc for sanity checks
+        run: |
+              if [[ ! -f "/usr/bin/solc" ]]
+              then
+                wget -q https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-static-linux 
+                mv solc-static-linux solc
+                chmod +x solc
+                sudo mv solc /usr/bin/solc
+              fi
       - name: Build and Test
         run: make
       - name: Rename gambit binary
