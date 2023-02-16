@@ -1,4 +1,4 @@
-all: build sanity test
+all: build test
 
 .PHONY: build
 build:
