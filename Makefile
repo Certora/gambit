@@ -3,6 +3,7 @@ all: build test sanity
 .PHONY: build
 build:
 	cargo build --release
+	cargo install --path .
 	cargo clippy
 	cargo fmt
 
