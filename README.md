@@ -114,13 +114,13 @@ Here is an example that shows how to configure these options.
         "filename": "Foo.sol",
         "contract": "C",
         "functions": ["bar", "baz"],
-        "solc": "solc5.12"
+        "solc": "solc8.12"
     },
     {
         "filename": "Blip.sol",
         "contract": "D",
         "functions": ["bang"],
-        "solc": "solc5.12"
+        "solc": "solc8.12"
         "mutations": [
           "binary-op-mutation",
           "swap-arguments-operator-mutation"
@@ -148,8 +148,20 @@ uint256 res = decimals ** a;
 ```
 
 Also included in the `out/` directory is a JSON summary of all mutants produced, `out/results.json`.
-The results include the filename and unique string ID of each mutant, along with
-a brief description and the `diff` between the mutant and the original file.
+The results include the filename and a unique string ID of each mutant, along with
+a brief description and the `diff` between the mutant and the original file. For example,
+
+```json
+[
+  {
+    "description": "<brief summary of mutant>",
+    "diff": "<stdout of `diff` command on the mutant and original file>"
+    "id": "0",
+    "name": "out/path/to/mutant.sol"
+  },
+  ...
+]
+```
 
 ### Demo
 Here is a demo of Gambit generating mutants for [AaveTokenV3.sol](https://github.com/Certora/aave-token-v3/blob/main/src/AaveTokenV3.sol).
