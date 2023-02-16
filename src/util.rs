@@ -26,7 +26,7 @@ pub fn invoke_command(cmd: &str, args: Vec<&str>) -> Result<CommandOutput, Box<d
         .args(args.iter().map(|a| a.to_string()))
         .output();
     if out.is_err() {
-        panic!("Failed to invoke {}.", cmd);
+        panic!("Failed to invoke {cmd}.");
     } else {
         let res = out.ok().unwrap();
         Ok((res.status.code(), res.stdout, res.stderr))
