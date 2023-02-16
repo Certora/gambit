@@ -9,7 +9,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use serde_json;
 use crate::{
     ast, get_indent, get_path_normals, invoke_command, mutation, Mutation,
     MutationType::{self},
@@ -128,10 +127,9 @@ impl RunMutations {
                     if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
                         mutant = res;
                     }
-		    let id = &MUTANT_COUNTER.get_cloned().to_string();
-                    let mut_file = mut_dir.as_ref().unwrap().to_str().unwrap().to_owned()
-                        + id
-                        + ".sol";
+                    let id = &MUTANT_COUNTER.get_cloned().to_string();
+                    let mut_file =
+                        mut_dir.as_ref().unwrap().to_str().unwrap().to_owned() + id + ".sol";
                     MUTANT_COUNTER.inc();
                     let mut_path = Path::new(&mut_file);
                     log::info!(
@@ -145,12 +143,12 @@ impl RunMutations {
                         mut_path
                     );
                     let diff = Self::diff_mutant(orig_path, mut_path)?;
-		    let mut_json = serde_json::json!({
-			"name" : &mut_file,
-			"description" : mut_type.to_string(),
-			"id" : &id,
-			"diff": &diff,
-		    });
+                    let mut_json = serde_json::json!({
+                    "name" : &mut_file,
+                    "description" : mut_type.to_string(),
+                    "id" : &id,
+                    "diff": &diff,
+                    });
                     mutants.push((mut_path.to_owned(), mut_json));
                 } else {
                     mutation_points_todo.push_back(mut_type);
@@ -181,17 +179,17 @@ impl RunMutations {
         log::info!("{}", String::from_utf8(diff.to_vec()).unwrap());
         match succ.unwrap_or_else(|| panic!("diff call terminated with a signal.")) {
             0 => {
-		log::info!("mutant identical to original program");
-		Ok(String::new())
-	    },
+                log::info!("mutant identical to original program");
+                Ok(String::new())
+            }
             1 => {
-		log::info!("{}", std::str::from_utf8(&diff).unwrap());
-		Ok(std::str::from_utf8(&diff).unwrap().to_string())
-	    },
+                log::info!("{}", std::str::from_utf8(&diff).unwrap());
+                Ok(std::str::from_utf8(&diff).unwrap().to_string())
+            }
             _ => {
-		log::info!("install a `diff` program to see the diff");
-		Ok(String::new())
-	    }
+                log::info!("install a `diff` program to see the diff");
+                Ok(String::new())
+            }
         }
     }
 

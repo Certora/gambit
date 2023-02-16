@@ -119,7 +119,11 @@ impl MutantGenerator {
                 flags.push(r);
             }
         }
-        let pretty_flags = flags.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(" ");
+        let pretty_flags = flags
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(" ");
 
         if invoke_command(&self.params.solc, flags)?
             .0
@@ -355,23 +359,20 @@ impl MutantGenerator {
                     }
                 }
                 Ok(self.run_one(&fnm.to_string(), selected_muts, funcs_to_mutate, contract)?)
+            } else {
+                Ok(vec![])
             }
-	    else{
-		Ok(vec![])
-	    }
         };
         match config {
             Value::Array(elems) => {
-		let mut results_json = vec![];
+                let mut results_json = vec![];
                 for elem in elems {
                     let mut new_results = process_single_file(&elem)?;
-		    results_json.append(&mut new_results)
-                };
-		Ok(results_json)
+                    results_json.append(&mut new_results)
+                }
+                Ok(results_json)
             }
-            Value::Object(_) => {
-                process_single_file(&config)
-            }
+            Value::Object(_) => process_single_file(&config),
             _ => panic!("Ill-formed json."),
         }
     }
@@ -384,23 +385,23 @@ impl MutantGenerator {
         let files = &self.params.filename;
         let json = &self.params.json.clone();
         let results = if files.is_some() {
-	    let mut results_json: Vec<serde_json::Value> = vec![];
+            let mut results_json: Vec<serde_json::Value> = vec![];
             for f in files.as_ref().unwrap() {
                 self.mk_mutant_dir(&f.to_string())?;
                 let mut new_results = self.run_one(f, None, None, None)?;
-		results_json.append(&mut new_results)
+                results_json.append(&mut new_results)
             }
-	    results_json
+            results_json
         } else if json.is_some() {
             self.run_from_config(json.as_ref().unwrap())?
         } else {
             panic!("Must provide either --filename file.sol or --json config.json.")
         };
-	let json_string = Array(results).to_string();
-	let results_fn = format!("{}/results.json", self.params.outdir); 
-	let results_path = Path::new(&results_fn);
-	let mut results_file = File::create(results_path)?;
-	File::write(&mut results_file, json_string.as_bytes())?;
+        let json_string = Array(results).to_string();
+        let results_fn = format!("{}/results.json", self.params.outdir);
+        let results_path = Path::new(&results_fn);
+        let mut results_file = File::create(results_path)?;
+        File::write(&mut results_file, json_string.as_bytes())?;
         Ok(())
     }
 }

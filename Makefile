@@ -1,4 +1,4 @@
-all: build test
+all: build sanity test
 
 .PHONY: build
 build:
@@ -9,3 +9,7 @@ build:
 .PHONY: test
 test:
 	cargo test --release
+
+.PHONY: sanity
+sanity:
+	python3 scripts/sanity_check.py
