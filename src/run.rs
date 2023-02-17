@@ -173,7 +173,7 @@ impl RunMutations {
             vec![
                 orig.to_str().unwrap(),
                 mutant.to_str().unwrap(),
-                "--color=always",
+                // "--color=always",
             ],
         )?;
         log::info!("{}", String::from_utf8(diff.to_vec()).unwrap());
