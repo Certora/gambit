@@ -398,7 +398,7 @@ impl MutantGenerator {
             panic!("Must provide either --filename file.sol or --json config.json.")
         };
         let json_string = Array(results).to_string();
-        let results_fn = format!("{}/results.json", self.params.outdir);
+        let results_fn = format!("{}/gambit_result.json", self.params.outdir);
         let results_path = Path::new(&results_fn);
         let mut results_file = File::create(results_path)?;
         File::write(&mut results_file, json_string.as_bytes())?;
