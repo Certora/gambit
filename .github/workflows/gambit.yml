@@ -102,13 +102,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          ls -lR
           release_exist=$(gh release view $TAG 2>&1 || exit 0)
           if [ "$release_exist" = "release not found" ]; then
-            gh release create $TAG gambit-linux-$TAG --title "Release $TAG" --generate-notes --latest
-            gh release upload $TAG gambit-macos-x86_64-$TAG
-            gh release upload $TAG gambit-macos-aarch64-$TAG
+            gh release create $TAG gambit-linux-$TAG/gambit-linux-$TAG --title "Release $TAG" --generate-notes --latest
+            gh release upload $TAG gambit-macos-$TAG/x86_64-apple-darwin/release/gambit-macos-x86_64-$TAG
+            gh release upload $TAG gambit-macos-$TAG/aarch64-apple-darwin/release/gambit-macos-aarch64-$TAG
           else
             gh release upload $TAG gambit-linux-$TAG
-            gh release upload $TAG gambit-macos-x86_64-$TAG
-            gh release upload $TAG gambit-macos-aarch64-$TAG
+            gh release upload $TAG gambit-macos-$TAG/x86_64-apple-darwin/release/gambit-macos-x86_64-$TAG
+            gh release upload $TAG gambit-macos-$TAG/aarch64-apple-darwin/release/gambit-macos-aarch64-$TAG
           fi
