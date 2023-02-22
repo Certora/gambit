@@ -13,13 +13,13 @@ jobs:
       TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
-      - name: Install rust
+      - name: Check rust
         run: |
-          curl "https://sh.rustup.rs" -o "rust-init.sh"
-          chmod +x "rust-init.sh"
-          ./rust-init.sh -y --default-toolchain stable --no-modify-path --profile minimal
-          export PATH="$HOME/.cargo/bin:$PATH"
-          echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> $BASH_ENV
+          # curl "https://sh.rustup.rs" -o "rust-init.sh"
+          # chmod +x "rust-init.sh"
+          # ./rust-init.sh -y --default-toolchain stable --no-modify-path --profile minimal
+          # export PATH="$HOME/.cargo/bin:$PATH"
+          # echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> $BASH_ENV
           rustup --version
           cargo --version
           rustc --version
@@ -55,13 +55,13 @@ jobs:
       TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
-      - name: Install rust
+      - name: Check rust
         run: |
-          curl "https://sh.rustup.rs" -o "rust-init.sh"
-          chmod +x "rust-init.sh"
-          ./rust-init.sh -y --default-toolchain stable --no-modify-path --profile minimal
-          export PATH="$HOME/.cargo/bin:$PATH"
-          echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> $BASH_ENV
+          # curl "https://sh.rustup.rs" -o "rust-init.sh"
+          # chmod +x "rust-init.sh"
+          # ./rust-init.sh -y --default-toolchain stable --no-modify-path --profile minimal
+          # export PATH="$HOME/.cargo/bin:$PATH"
+          # echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> $BASH_ENV
           rustup --version
           cargo --version
           rustc --version
