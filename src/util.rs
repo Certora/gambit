@@ -85,9 +85,23 @@ mod tests {
 
     #[test]
     fn test_convert_path4() {
-        let path3 = "";
-        let res3 = get_path_normals(path3);
-        assert_eq!(res3, None);
+        let path4 = ".";
+        let res4 = get_path_normals(path4);
+        assert_eq!(res4, None);
+    }
+
+    #[test]
+    fn test_convert_path5() {
+        let path5 = "";
+        let res5 = get_path_normals(path5);
+        assert_eq!(res5, None);
+    }
+
+    #[test]
+    fn test_convert_path6() {
+        let path6 = "./Foo/bar";
+        let res6 = get_path_normals(path6).unwrap();
+        assert_eq!(res6, Path::new("Foo/bar").to_path_buf());
     }
 
     #[test]
@@ -96,6 +110,7 @@ mod tests {
         let res = get_indent(s);
         assert_eq!(res, "")
     }
+
 
     #[test]
     fn test_get_indent2() {
