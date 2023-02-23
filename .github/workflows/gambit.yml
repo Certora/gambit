@@ -87,23 +87,23 @@ jobs:
 
       - name: Create keychain
         run: |
-          printf $APPLE_P12_BASE64 | base64 -d > dev.p12
-          security create-keychain -p "$APPLE_TEMPKEYCHAIN_PASSWORD" "$APPLE_TEMPKEYCHAIN_NAME"
-          security list-keychains -d user -s "$APPLE_TEMPKEYCHAIN_NAME" $(security list-keychains -d user | tr -d '"')
-          security set-keychain-settings "$APPLE_TEMPKEYCHAIN_NAME"
-          security import dev.p12 -k "$APPLE_TEMPKEYCHAIN_NAME" -P "$APPLE_P12_PASSWORD" -T "/usr/bin/codesign"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_TEMPKEYCHAIN_PASSWORD" -D "$APPLE_CODESIGN_IDENTITY" -t private $APPLE_TEMPKEYCHAIN_NAME
-          security default-keychain -d user -s $APPLE_TEMPKEYCHAIN_NAME
-          security unlock-keychain -p $APPLE_TEMPKEYCHAIN_PASSWORD $APPLE_TEMPKEYCHAIN_NAME
+          printf ${{ secrets.APPLE_P12_BASE64 }} | base64 -d > dev.p12
+          security create-keychain -p "${{ secrets.APPLE_TEMPKEYCHAIN_PASSWORD }}" "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}"
+          security list-keychains -d user -s "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}" $(security list-keychains -d user | tr -d '"')
+          security set-keychain-settings "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}"
+          security import dev.p12 -k "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}" -P "${{ secrets.APPLE_P12_PASSWORD }}" -T "/usr/bin/codesign"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_TEMPKEYCHAIN_PASSWORD" -D "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -t private ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
+          security default-keychain -d user -s ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
+          security unlock-keychain -p ${{ secrets.APPLE_TEMPKEYCHAIN_PASSWORD }} ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
 
       - name: Sign the binary
         run: |
-          codesign -o runtime --timestamp -s "$APPLE_CODESIGN_IDENTITY" -v gambit-universal-apple-darwin-$TAG
+          codesign -o runtime --timestamp -s "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -v gambit-universal-apple-darwin-$TAG
           ditto -c -k gambit-universal-apple-darwin-$TAG gambit-universal-apple-darwin-$TAG.zip
 
       - name: Notarize
         run: |
-          xcrun notarytool store-credentials --apple-id shelly@certora.com --password "$APPLE_CRED" --team-id "$APPLE_TEAMID" altool
+          xcrun notarytool store-credentials --apple-id shelly@certora.com --password "${{ secrets.APPLE_CRED }}" --team-id "${{ secrets.APPLE_TEAMID }}" altool
           xcrun notarytool submit gambit-universal-apple-darwin-$TAG.zip --keychain-profile altool --wait
 
       - name: Upload artifact to action
