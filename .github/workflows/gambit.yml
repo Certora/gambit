@@ -83,7 +83,7 @@ jobs:
       #     mv ./target/aarch64-apple-darwin/release/gambit ./target/aarch64-apple-darwin/release/gambit-macos-aarch64-$TAG
 
       - name: Darwin link as Universal
-        run: lipo -create -output releases/gambit-universal-apple-darwin-$TAG target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
+        run: lipo -create -output gambit-universal-apple-darwin-$TAG target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
 
       - name: Upload artifact to action
         uses: actions/upload-artifact@v3
