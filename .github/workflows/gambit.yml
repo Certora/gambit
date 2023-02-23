@@ -49,7 +49,7 @@ jobs:
   build-mac:
     runs-on: macos-latest
     env:
-      TAG: ${{ github.ref_name }}
+      TAG: v0.1.1 # ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
       - name: Check rust
@@ -71,7 +71,7 @@ jobs:
       #           chmod +x solc
       #           sudo mv solc /usr/bin/solc
       #         fi
-      - name: Build and Test
+      - name: Build x86-64 and ARM
         run: |
           cargo build --release --target=x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
