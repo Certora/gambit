@@ -7,49 +7,49 @@ env:
   RUST_BACKTRACE: full
 
 jobs:
-  # build-linux:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     TAG: ${{ github.ref_name }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Check rust
-  #       run: |
-  #         rustup --version
-  #         cargo --version
-  #         rustc --version
-  #     - name: Cache cargo bin
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.cargo/bin
-  #         key: ${{ runner.os }}-cargo-bin
-  #     - name: Install solc for sanity checks
-  #       run: |
-  #             if [[ ! -f "/usr/bin/solc" ]]
-  #             then
-  #               wget -q https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-static-linux 
-  #               mv solc-static-linux solc
-  #               chmod +x solc
-  #               sudo mv solc /usr/bin/solc
-  #             fi
+  build-linux:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check rust
+        run: |
+          rustup --version
+          cargo --version
+          rustc --version
+      - name: Cache cargo bin
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin
+      - name: Install solc for sanity checks
+        run: |
+              if [[ ! -f "/usr/bin/solc" ]]
+              then
+                wget -q https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-static-linux 
+                mv solc-static-linux solc
+                chmod +x solc
+                sudo mv solc /usr/bin/solc
+              fi
 
-  #     - name: Build and Test
-  #       run: cargo build --release --target x86_64-unknown-linux-gnu
-  #     - name: Rename gambit binary
-  #       if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
-  #       run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
+      - name: Build and Test
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+      - name: Rename gambit binary
+        if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
+        run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
 
-  #     - name: Upload artifact to action
-  #       uses: actions/upload-artifact@v3
-  #       if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
-  #       with:
-  #         name: gambit-linux-${{ env.TAG }}
-  #         path: ./target/x86_64-unknown-linux-gnu/release/gambit-linux-${{ env.TAG }}
+      - name: Upload artifact to action
+        uses: actions/upload-artifact@v3
+        if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
+        with:
+          name: gambit-linux-${{ env.TAG }}
+          path: ./target/x86_64-unknown-linux-gnu/release/gambit-linux-${{ env.TAG }}
 
   build-mac:
     runs-on: macos-latest
     env:
-      TAG: v0.1.1 # ${{ github.ref_name }}
+      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
       - name: Check rust
@@ -76,14 +76,9 @@ jobs:
           cargo build --release --target=x86_64-apple-darwin
           rustup target add aarch64-apple-darwin
           cargo build --release --target=aarch64-apple-darwin
-      # - name: Rename gambit binary
-      #   if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
-      #   run: |
-      #     mv ./target/x86_64-apple-darwin/release/gambit ./target/x86_64-apple-darwin/release/gambit-macos-x86_64-$TAG
-      #     mv ./target/aarch64-apple-darwin/release/gambit ./target/aarch64-apple-darwin/release/gambit-macos-aarch64-$TAG
 
       - name: Darwin link as Universal
-        run: lipo -create -output gambit-universal-apple-darwin-$TAG target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
+        run: lipo -create -output gambit-macos-$TAG target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
 
       - name: Create keychain
         run: |
@@ -98,45 +93,41 @@ jobs:
 
       - name: Sign the binary
         run: |
-          codesign -o runtime --timestamp -s "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -v gambit-universal-apple-darwin-$TAG
-          ditto -c -k gambit-universal-apple-darwin-$TAG gambit-universal-apple-darwin-$TAG.zip
+          codesign -o runtime --timestamp -s "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -v gambit-macos-$TAG
+          ditto -c -k gambit-macos-$TAG gambit-macos-$TAG.zip
 
       - name: Notarize
         run: |
           xcrun notarytool store-credentials --apple-id shelly@certora.com --password "${{ secrets.APPLE_CRED }}" --team-id "${{ secrets.APPLE_TEAMID }}" altool
-          xcrun notarytool submit gambit-universal-apple-darwin-$TAG.zip --keychain-profile altool --wait
+          xcrun notarytool submit gambit-macos-$TAG.zip --keychain-profile altool --wait
 
       - name: Upload artifact to action
         uses: actions/upload-artifact@v3
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         with:
           name: gambit-macos-${{ env.TAG }}
-          path: |
-            ./target/x86_64-apple-darwin/release/gambit-macos-x86_64-${{ env.TAG }}
-            ./target/aarch64-apple-darwin/release/gambit-macos-aarch64-${{ env.TAG }}
+          path: gambit-macos-$TAG
 
-  # release:
-  #   runs-on: ubuntu-latest
-  #   needs: [build-linux, build-mac]
-  #   if: startsWith(github.event.ref, 'refs/tags/v') #  only on new tag creation
-  #   env:
-  #     TAG: ${{ github.ref_name }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Download artifact
-  #       uses: actions/download-artifact@v3
-  #     - name: Create a release
-  #       env:
-  #         GH_TOKEN: ${{ github.token }}
-  #       run: |
-  #         ls -lR
-  #         release_exist=$(gh release view $TAG 2>&1 || exit 0)
-  #         if [ "$release_exist" = "release not found" ]; then
-  #           gh release create $TAG gambit-linux-$TAG/gambit-linux-$TAG --title "Release $TAG" --generate-notes --latest
-  #           gh release upload $TAG gambit-macos-$TAG/x86_64-apple-darwin/release/gambit-macos-x86_64-$TAG
-  #           gh release upload $TAG gambit-macos-$TAG/aarch64-apple-darwin/release/gambit-macos-aarch64-$TAG
-  #         else
-  #           gh release upload $TAG gambit-linux-$TAG
-  #           gh release upload $TAG gambit-macos-$TAG/x86_64-apple-darwin/release/gambit-macos-x86_64-$TAG
-  #           gh release upload $TAG gambit-macos-$TAG/aarch64-apple-darwin/release/gambit-macos-aarch64-$TAG
-  #         fi
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-mac]
+    if: startsWith(github.event.ref, 'refs/tags/v') #  only on new tag creation
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+      - name: Create a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -lR
+          release_exist=$(gh release view $TAG 2>&1 || exit 0)
+          if [ "$release_exist" = "release not found" ]; then
+            gh release create $TAG gambit-linux-$TAG/gambit-linux-$TAG --title "Release $TAG" --generate-notes --latest
+            gh release upload $TAG gambit-macos-$TAG/gambit-macos-$TAG
+          else
+            gh release upload $TAG gambit-linux-$TAG/gambit-linux-$TAG
+            gh release upload $TAG gambit-macos-$TAG/gambit-macos-$TAG
+          fi
