@@ -35,6 +35,7 @@ jobs:
 
       - name: Build and Test
         run: cargo build --release --target x86_64-unknown-linux-gnu
+
       - name: Rename gambit binary
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
@@ -78,7 +79,7 @@ jobs:
           cargo build --release --target=aarch64-apple-darwin
 
       - name: Darwin link as Universal
-        run: lipo -create -output gambit-macos-$TAG target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
+        run: lipo -create -output gambit-macos target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
 
       - name: Create keychain
         run: |
@@ -93,13 +94,17 @@ jobs:
 
       - name: Sign the binary
         run: |
-          codesign -o runtime --timestamp -s "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -v gambit-macos-$TAG
-          ditto -c -k gambit-macos-$TAG gambit-macos-$TAG.zip
+          codesign -o runtime --timestamp -s "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -v gambit-macos
+          ditto -c -k gambit-macos gambit-macos.zip
 
       - name: Notarize
         run: |
           xcrun notarytool store-credentials --apple-id shelly@certora.com --password "${{ secrets.APPLE_CRED }}" --team-id "${{ secrets.APPLE_TEAMID }}" altool
-          xcrun notarytool submit gambit-macos-$TAG.zip --keychain-profile altool --wait
+          xcrun notarytool submit gambit-macos.zip --keychain-profile altool --wait
+
+      - name: Rename gambit binary
+        if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
+        run: mv gambit-macos gambit-macos-$TAG
 
       - name: Upload artifact to action
         uses: actions/upload-artifact@v3
