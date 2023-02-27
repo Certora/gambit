@@ -111,7 +111,7 @@ jobs:
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         with:
           name: gambit-macos-${{ env.TAG }}
-          path: gambit-macos-$TAG
+          path: gambit-macos-${{ env.TAG }}
 
   release:
     runs-on: ubuntu-latest
