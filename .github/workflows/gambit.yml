@@ -92,7 +92,7 @@ jobs:
           security list-keychains -d user -s "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}" $(security list-keychains -d user | tr -d '"')
           security set-keychain-settings "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}"
           security import dev.p12 -k "${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}" -P "${{ secrets.APPLE_P12_PASSWORD }}" -T "/usr/bin/codesign"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$APPLE_TEMPKEYCHAIN_PASSWORD" -D "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -t private ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
+          security set-key-partition-list -S apple-tool:,apple: -s -k "${{ secrets.APPLE_TEMPKEYCHAIN_PASSWORD }}" -D "${{ secrets.APPLE_CODESIGN_IDENTITY }}" -t private ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
           security default-keychain -d user -s ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
           security unlock-keychain -p ${{ secrets.APPLE_TEMPKEYCHAIN_PASSWORD }} ${{ secrets.APPLE_TEMPKEYCHAIN_NAME }}
 
