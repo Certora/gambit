@@ -56,13 +56,16 @@ impl MutantGenerator {
     /// are stored.
     /// This returns the directory, and both the path to the .ast and the .ast.json.
     fn mk_ast_dir(&self, sol: &String, out: PathBuf) -> io::Result<(PathBuf, PathBuf, PathBuf)> {
+        let working_dir = std::env::current_dir()?.canonicalize().unwrap();
         let canon_path = canon_path_from_str(sol)?;
+        let canon_path = canon_path.strip_prefix(working_dir).unwrap();
         let extension = canon_path.extension();
         if extension.is_none() || !extension.unwrap().eq("sol") {
             panic!("{} is not a solidity source file.", sol);
         }
         let sol_ast_dir = out.join(
             INPUT_JSON.to_owned()
+                + &std::path::MAIN_SEPARATOR.to_string()
                 + canon_path
                     .to_str()
                     .unwrap_or_else(|| panic!("Path is not valid.")),
@@ -163,9 +166,14 @@ impl MutantGenerator {
     /// file `fnm`. All mutant files will be dumped here.
     fn mk_mutant_dir(&self, fnm: &str) -> io::Result<()> {
         log::info!("making a mutant dir for {}", fnm);
-        let norm_path = canon_path_from_str(fnm)?;
-        let mut_dir = PathBuf::from(&self.params.outdir)
-            .join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
+        let working_dir = std::env::current_dir()?.canonicalize().unwrap();
+        let norm_path = canon_path_from_str(fnm).unwrap();
+        let norm_path = norm_path.strip_prefix(working_dir).unwrap();
+        let mut_dir = PathBuf::from(&self.params.outdir).join(
+            MUTANTS_DIR.to_owned()
+                + &std::path::MAIN_SEPARATOR.to_string()
+                + norm_path.to_str().unwrap(),
+        );
         if let Some(pd) = mut_dir.parent() {
             if pd.is_dir() {
                 fs::remove_dir_all(pd)?;

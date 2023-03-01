@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess
-from pathlib import Path, PurePath
+from pathlib import Path
 
 MUTATIONS = [
     "AssignmentMutation",
@@ -46,20 +46,15 @@ def mutate() -> None:
         "--json",
         CONFIG,
     ]
-    subprocess.run(gambit_invocation)
+    comp_proc = subprocess.run(gambit_invocation)
+    if comp_proc.returncode != 0:
+        print("FAIL: Gambit failed unexpectedly")
+        os.exit(comp_proc.returncode)
 
 def compare() -> None:
     succeeded = 0
     for name in MUTATIONS:
-        mutant_parent = Path(OUTDIR) / MUTANTS
-        mutant_abs = Path(BENCHMARKS).absolute() / name
-        
-        # print(f'DEBUG: mutant parent is {mutant_parent}')
-        # print(f'DEBUG: mutant abs is {mutant_abs}')
-        for part in mutant_abs.parts[1:]:
-            # print(f'DEBUG: part is {part}')
-            mutant_parent = Path.joinpath(mutant_parent, part)
-        # print(f'DEBUG: mutant parent is {mutant_parent}')
+        mutant_parent = Path(OUTDIR) / MUTANTS/ BENCHMARKS / name
         print(f'Running sanity check for {name}...')
         actual = os.listdir(mutant_parent)
         if not actual:
