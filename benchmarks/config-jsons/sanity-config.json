@@ -60,7 +60,7 @@
 },
 {
     "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
-    "solc": "solc8.13",
+    "solc": "solc",
     "num-mutants": 1,
     "mutations": ["elim-delegate-mutation"]
 }]

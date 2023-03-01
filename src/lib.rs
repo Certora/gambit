@@ -6,7 +6,6 @@ use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_json::Value::Array;
-use std::collections::HashSet;
 use std::fmt::Debug;
 use std::io::BufReader;
 use std::io::Write;
@@ -27,6 +26,12 @@ pub use util::*;
 
 /// temporary paths for compiling mutants.
 static TMP: &str = "tmp.sol";
+static INPUT_JSON: &str = "input_json";
+static BASEPATH: &str = "--base-path";
+static ALLOWPATH: &str = "--allow-paths";
+static DOT_JSON: &str = ".json";
+static FILENAME: &str = "filename";
+
 global_counter!(MUTANT_COUNTER, u64, 0);
 
 #[derive(Debug, Clone)]
@@ -50,16 +55,15 @@ impl MutantGenerator {
     /// AST (.ast) and it's json representation (.ast.json)
     /// are stored.
     /// This returns the directory, and both the path to the .ast and the .ast.json.
-    fn mk_ast_dir(&self, sol: &String, out: PathBuf) -> (PathBuf, PathBuf, PathBuf) {
-        let norms_of_path =
-            get_path_normals(sol).unwrap_or_else(|| panic!("Path to sol file is broken"));
-        let extension = norms_of_path.extension();
+    fn mk_ast_dir(&self, sol: &String, out: PathBuf) -> io::Result<(PathBuf, PathBuf, PathBuf)> {
+        let canon_path = canon_path_from_str(sol)?;
+        let extension = canon_path.extension();
         if extension.is_none() || !extension.unwrap().eq("sol") {
             panic!("{} is not a solidity source file.", sol);
         }
         let sol_ast_dir = out.join(
-            "input_json/".to_owned()
-                + norms_of_path
+            INPUT_JSON.to_owned()
+                + canon_path
                     .to_str()
                     .unwrap_or_else(|| panic!("Path is not valid.")),
         );
@@ -71,8 +75,8 @@ impl MutantGenerator {
             .to_owned()
             + "_json.ast";
         let ast_path = sol_ast_dir.join(&ast_fnm);
-        let json_path = sol_ast_dir.join(ast_fnm + ".json");
-        (sol_ast_dir, ast_path, json_path)
+        let json_path = sol_ast_dir.join(ast_fnm + DOT_JSON);
+        Ok((sol_ast_dir, ast_path, json_path))
     }
 
     /// This method compiles an input sol file to get the json AST.
@@ -87,7 +91,7 @@ impl MutantGenerator {
         sol: &String,
         out: PathBuf,
     ) -> Result<SolAST, Box<dyn std::error::Error>> {
-        let (sol_ast_dir, ast_path, json_path) = self.mk_ast_dir(sol, out);
+        let (sol_ast_dir, ast_path, json_path) = self.mk_ast_dir(sol, out)?;
         // if !ast_path.exists() || !json_path.exists() {
         std::fs::create_dir_all(sol_ast_dir.parent().unwrap())?;
         log::info!(
@@ -103,12 +107,12 @@ impl MutantGenerator {
         ];
 
         if self.params.solc_basepath.is_some() {
-            flags.push("--base-path");
+            flags.push(BASEPATH);
             flags.push(self.params.solc_basepath.as_ref().unwrap());
         }
 
         if let Some(remaps) = &self.params.solc_allowpaths {
-            flags.push("--allow-paths");
+            flags.push(ALLOWPATH);
             for r in remaps {
                 flags.push(r);
             }
@@ -130,11 +134,15 @@ impl MutantGenerator {
             .unwrap_or_else(|| panic!("solc terminated with a signal."))
             != 0
         {
-            eprintln!("Solidity compiler failed unexpectedly. For more deatils, try running the following command from your terminal:");
+            eprintln!("Solidity compiler failed unexpectedly. For more details, try running the following command from your terminal:");
             eprintln!("`{} {}`", &self.params.solc, pretty_flags);
             std::process::exit(1)
         }
 
+        log::info!(
+            "Successfully wrote ASTs to {}",
+            sol_ast_dir.to_str().unwrap()
+        );
         std::fs::copy(ast_path, &json_path)?;
         // } else {
         //     log::info!(
@@ -154,41 +162,30 @@ impl MutantGenerator {
     /// Create a directory for saving the mutants for a given
     /// file `fnm`. All mutant files will be dumped here.
     fn mk_mutant_dir(&self, fnm: &str) -> io::Result<()> {
-        let norm_path = get_path_normals(fnm);
-        assert!(norm_path.is_some());
-        let mut_dir = PathBuf::from(&self.params.outdir).join(norm_path.unwrap());
+        log::info!("making a mutant dir for {}", fnm);
+        let norm_path = canon_path_from_str(fnm)?;
+        let mut_dir = PathBuf::from(&self.params.outdir)
+            .join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
         if let Some(pd) = mut_dir.parent() {
             if pd.is_dir() {
                 fs::remove_dir_all(pd)?;
             }
         }
         std::fs::create_dir_all(mut_dir.parent().unwrap())?;
+        log::info!(
+            "successfully created mutant directory: {}",
+            mut_dir.to_str().unwrap()
+        );
         Ok(())
     }
 
-    /// Create directories for mutants from a json config file.
-    /// This is used when Gambit is run using a config file as opposed
-    /// to individual solidity files using the `-f` flag.
-    fn mutant_dirs_from_json(&self) -> io::Result<()> {
-        let f = File::open(self.params.json.as_ref().unwrap())?;
-        let config: Value = serde_json::from_reader(BufReader::new(f))?;
-        match config {
-            Value::Array(elems) => {
-                let mut paths = HashSet::new();
-                for e in elems {
-                    paths.insert(e["filename"].as_str().unwrap().to_string());
-                }
-                paths.iter().for_each(|p| {
-                    self.mk_mutant_dir(p).ok();
-                });
-            }
-            Value::Object(o) => {
-                self.mk_mutant_dir(o["filename"].as_str().unwrap())?;
-            }
-            _ => panic!("Ill-formed json."),
-        }
-        Ok(())
-    }
+    // fn mk_mutant_dir_from_config(&self, cfg: String) -> io::Result<()> {
+    //     let f = File::open(Path::new(&cfg))?;
+    //     let config: Value = serde_json::from_reader(BufReader::new(f))?;
+    //     if let Some(filename) = config.get(FILENAME) {}
+
+    //     Ok(())
+    // }
 
     /// Generate mutations for a single file.
     /// Irrespective of how Gambit is used,
@@ -245,12 +242,12 @@ impl MutantGenerator {
                 std::fs::write(&tmp, mutant)?;
                 flags.push(tmp.to_str().as_ref().unwrap());
                 if let Some(bp) = &self.params.solc_basepath {
-                    flags.push("--base-path");
+                    flags.push(BASEPATH);
                     flags.push(bp);
                 }
 
                 if let Some(aps) = &self.params.solc_allowpaths {
-                    flags.push("--allow-paths");
+                    flags.push(ALLOWPATH);
                     for a in aps {
                         flags.push(a);
                     }
@@ -282,97 +279,111 @@ impl MutantGenerator {
         }
     }
 
+    fn process_single_file(&mut self, v: &Value, cfg: &str) -> io::Result<Vec<serde_json::Value>> {
+        if let Some(filename) = &v.get(FILENAME) {
+            let mut funcs_to_mutate: Option<Vec<String>> = None;
+            let mut selected_muts: Option<Vec<String>> = None;
+            let fnm = resolve_path_from_str(cfg, filename.as_str().unwrap()); // ok to unwrap because we have prior checks.
+            if let Some(num) = &v.get("num-mutants") {
+                self.params.num_mutants = num.as_i64().unwrap();
+            }
+            if let Some(solc) = &v.get("solc") {
+                self.params.solc = solc.as_str().unwrap().to_string();
+            }
+            if let Some(solc_basepath) = &v.get("solc-basepath") {
+                self.params.solc_basepath =
+                    resolve_path_from_str(cfg, solc_basepath.as_str().unwrap()).into();
+            }
+            if let Some(allowed_paths) = &v.get("solc-allowpaths") {
+                let allowed: Vec<String> = allowed_paths
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| resolve_path_from_str(cfg, v.as_str().unwrap()))
+                    .collect();
+                if !allowed.is_empty() {
+                    self.params.solc_allowpaths = allowed.into();
+                }
+            }
+            if let Some(remap_args) = &v.get("remappings") {
+                let remaps: Vec<String> = remap_args
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| repair_remapping(v.as_str().unwrap(), cfg))
+                    .collect();
+                if !remaps.is_empty() {
+                    self.params.solc_remapping = remaps.into();
+                }
+            }
+            if let Some(seed) = &v.get("seed") {
+                self.params.seed = seed.as_u64().unwrap();
+            }
+            let contract: Option<String> =
+                v.get("contract").map(|v| v.as_str().unwrap().to_string());
+
+            if let Some(muts) = &v.get("mutations") {
+                let mutts: Vec<String> = muts
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| v.as_str().unwrap().to_string())
+                    .collect();
+                if !mutts.is_empty() {
+                    selected_muts = mutts.into();
+                }
+            }
+            if let Some(funcs) = &v.get("functions") {
+                let fs: Vec<String> = funcs
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| v.as_str().unwrap().to_string())
+                    .collect();
+                if !fs.is_empty() {
+                    funcs_to_mutate = fs.into();
+                }
+            }
+            Ok(self.run_one(&fnm, selected_muts, funcs_to_mutate, contract)?)
+        } else {
+            Ok(vec![])
+        }
+    }
+
     /// Run Gambit from a json config file.
     /// You can find examples of config files under `benchmarks/config-jsons/`.
     /// A configuration allows the user to have more control on
     /// which contracts and functions to mutate and using which kinds of mutations.
     fn run_from_config(&mut self, cfg: &String) -> io::Result<Vec<serde_json::Value>> {
-        let cfg = Path::new(cfg);
-        if !cfg.is_file() || !cfg.extension().unwrap().eq("json") {
+        let cfg_path = Path::new(cfg);
+        if !cfg_path.is_file() || !cfg_path.extension().unwrap().eq("json") {
             panic!("Must pass a .json config file with the --json argument or gambit-cfg alias. You can use the gambit alias instead!");
         }
-        self.mutant_dirs_from_json()?;
-        let f = File::open(cfg)?;
-        let config: Value = serde_json::from_reader(BufReader::new(f))?;
-        let mut process_single_file = |v: &Value| -> io::Result<Vec<serde_json::Value>> {
-            if let Some(filename) = &v.get("filename") {
-                let mut funcs_to_mutate: Option<Vec<String>> = None;
-                let mut selected_muts: Option<Vec<String>> = None;
-                let fnm = filename.as_str().unwrap();
-                if let Some(num) = &v.get("num-mutants") {
-                    self.params.num_mutants = num.as_i64().unwrap();
-                }
-                if let Some(solc) = &v.get("solc") {
-                    self.params.solc = solc.as_str().unwrap().to_string();
-                }
-                if let Some(solc_basepath) = &v.get("solc-basepath") {
-                    self.params.solc_basepath = solc_basepath.as_str().unwrap().to_string().into();
-                }
-                if let Some(allowed_paths) = &v.get("solc-allowpaths") {
-                    let allowed: Vec<String> = allowed_paths
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|v| v.as_str().unwrap().to_string())
-                        .collect();
-                    if !allowed.is_empty() {
-                        self.params.solc_allowpaths = allowed.into();
-                    }
-                }
-                if let Some(remap_args) = &v.get("remappings") {
-                    let remaps: Vec<String> = remap_args
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|v| v.as_str().unwrap().to_string())
-                        .collect();
-                    if !remaps.is_empty() {
-                        self.params.solc_remapping = remaps.into();
-                    }
-                }
-                if let Some(seed) = &v.get("seed") {
-                    self.params.seed = seed.as_u64().unwrap();
-                }
-                let contract: Option<String> =
-                    v.get("contract").map(|v| v.as_str().unwrap().to_string());
-
-                if let Some(muts) = &v.get("mutations") {
-                    let mutts: Vec<String> = muts
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|v| v.as_str().unwrap().to_string())
-                        .collect();
-                    if !mutts.is_empty() {
-                        selected_muts = mutts.into();
-                    }
-                }
-                if let Some(funcs) = &v.get("functions") {
-                    let fs: Vec<String> = funcs
-                        .as_array()
-                        .unwrap()
-                        .iter()
-                        .map(|v| v.as_str().unwrap().to_string())
-                        .collect();
-                    if !fs.is_empty() {
-                        funcs_to_mutate = fs.into();
-                    }
-                }
-                Ok(self.run_one(&fnm.to_string(), selected_muts, funcs_to_mutate, contract)?)
-            } else {
-                Ok(vec![])
-            }
-        };
+        let config: Value = serde_json::from_reader(BufReader::new(File::open(cfg_path)?))?;
         match config {
             Value::Array(elems) => {
                 let mut results_json = vec![];
+                // make all directories for mutants first.
+                for elem in &elems {
+                    if let Some(filename) = elem.get(FILENAME) {
+                        let fnm = resolve_path_from_str(cfg, filename.as_str().unwrap());
+                        self.mk_mutant_dir(&fnm)?;
+                    }
+                }
                 for elem in elems {
-                    let mut new_results = process_single_file(&elem)?;
+                    let mut new_results = self.process_single_file(&elem, cfg)?;
                     results_json.append(&mut new_results)
                 }
                 Ok(results_json)
             }
-            Value::Object(_) => process_single_file(&config),
+            Value::Object(_) => {
+                // single mutant case.
+                if let Some(filename) = config.get(FILENAME) {
+                    let fnm = resolve_path_from_str(cfg, filename.as_str().unwrap());
+                    self.mk_mutant_dir(&fnm)?;
+                }
+                self.process_single_file(&config, cfg)
+            }
             _ => panic!("Ill-formed json."),
         }
     }
@@ -385,6 +396,7 @@ impl MutantGenerator {
         let files = &self.params.filename;
         let json = &self.params.json.clone();
         let results = if files.is_some() {
+            log::info!("running with solidity files");
             let mut results_json: Vec<serde_json::Value> = vec![];
             for f in files.as_ref().unwrap() {
                 self.mk_mutant_dir(&f.to_string())?;
@@ -393,12 +405,13 @@ impl MutantGenerator {
             }
             results_json
         } else if json.is_some() {
+            log::info!("running from a json config file");
             self.run_from_config(json.as_ref().unwrap())?
         } else {
             panic!("Must provide either --filename file.sol or --json config.json.")
         };
         let json_string = Array(results).to_string();
-        let results_fn = format!("{}/gambit_result.json", self.params.outdir);
+        let results_fn = self.params.outdir.to_owned() + "/gambit_result" + DOT_JSON;
         let results_path = Path::new(&results_fn);
         let mut results_file = File::create(results_path)?;
         File::write(&mut results_file, json_string.as_bytes())?;
