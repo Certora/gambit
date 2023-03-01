@@ -1,66 +1,66 @@
 [{
-    "filename": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
+    "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["binary-op-mutation"]
 },
 {
-    "filename": "benchmarks/RequireMutation/RequireMutation.sol",
+    "filename": "../RequireMutation/RequireMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["require-mutation"]
 },
 {
-    "filename": "benchmarks/AssignmentMutation/AssignmentMutation.sol",
+    "filename": "../AssignmentMutation/AssignmentMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["assignment-mutation"]
 },
 {
-    "filename": "benchmarks/DeleteExpressionMutation/DeleteExpressionMutation.sol",
+    "filename": "../DeleteExpressionMutation/DeleteExpressionMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["delete-expression-mutation"]
 },    
 {
-    "filename": "benchmarks/FunctionCallMutation/FunctionCallMutation.sol",
+    "filename": "../FunctionCallMutation/FunctionCallMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["function-call-mutation"]
 },
 {
-    "filename": "benchmarks/IfStatementMutation/IfStatementMutation.sol",
+    "filename": "../IfStatementMutation/IfStatementMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["if-statement-mutation"]
 },
 {
-    "filename": "benchmarks/SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
+    "filename": "../SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["swap-arguments-function-mutation"]
 },
 {
-    "filename": "benchmarks/SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
+    "filename": "../SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["swap-arguments-operator-mutation"]
 },
 {
-    "filename": "benchmarks/SwapLinesMutation/SwapLinesMutation.sol",
+    "filename": "../SwapLinesMutation/SwapLinesMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["swap-lines-mutation"]
 },
 {
-    "filename": "benchmarks/UnaryOperatorMutation/UnaryOperatorMutation.sol",
+    "filename": "../UnaryOperatorMutation/UnaryOperatorMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
     "mutations": ["unary-operator-mutation"]
 },
 {
-    "filename": "benchmarks/ElimDelegateMutation/ElimDelegateMutation.sol",
-    "solc": "solc",
+    "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
+    "solc": "solc8.13",
     "num-mutants": 1,
     "mutations": ["elim-delegate-mutation"]
 }]

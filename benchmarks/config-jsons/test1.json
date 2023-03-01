@@ -1,12 +1,12 @@
 [
     {
-        "filename": "benchmarks/MultipleContracts/C.sol",
+        "filename": "../MultipleContracts/C.sol",
         "contract": "C",
         "functions": ["getarray", "get10PowerDecimals"],
         "solc": "solc5.12"
     },
     {
-        "filename": "benchmarks/MultipleContracts/C.sol",
+        "filename": "../MultipleContracts/C.sol",
         "contract": "Utils",
         "functions": ["getarray"],
         "solc": "solc5.12"
