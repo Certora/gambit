@@ -179,14 +179,6 @@ impl MutantGenerator {
         Ok(())
     }
 
-    // fn mk_mutant_dir_from_config(&self, cfg: String) -> io::Result<()> {
-    //     let f = File::open(Path::new(&cfg))?;
-    //     let config: Value = serde_json::from_reader(BufReader::new(f))?;
-    //     if let Some(filename) = config.get(FILENAME) {}
-
-    //     Ok(())
-    // }
-
     /// Generate mutations for a single file.
     /// Irrespective of how Gambit is used,
     /// this is the method which performs mutations

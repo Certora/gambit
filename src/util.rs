@@ -45,7 +45,7 @@ pub fn get_indent(line: &str) -> String {
     res
 }
 
-/// We need to fix solc remappings because they are simply string that look like:
+/// We need to fix solc remappings because they are simple strings that look like:
 /// `@aave=path/to/aave-gho/node_modules/@aave`.
 /// This involves some string manipulation which isn't great.
 pub fn repair_remapping(remap: &str, against_path_str: &str) -> String {
