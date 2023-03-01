@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePath
 
 MUTATIONS = [
     "AssignmentMutation",
@@ -24,6 +24,7 @@ JSON = "json"
 DIFF = "diff"
 OUTDIR = "out"
 EXPECTED = "expected"
+MUTANTS = "mutants"
 
 def update() -> None:
     for name in MUTATIONS:
@@ -50,7 +51,15 @@ def mutate() -> None:
 def compare() -> None:
     succeeded = 0
     for name in MUTATIONS:
-        mutant_parent = Path(OUTDIR) / BENCHMARKS / name
+        mutant_parent = Path(OUTDIR) / MUTANTS
+        mutant_abs = Path(BENCHMARKS).absolute() / name
+        
+        # print(f'DEBUG: mutant parent is {mutant_parent}')
+        # print(f'DEBUG: mutant abs is {mutant_abs}')
+        for part in mutant_abs.parts[1:]:
+            # print(f'DEBUG: part is {part}')
+            mutant_parent = Path.joinpath(mutant_parent, part)
+        # print(f'DEBUG: mutant parent is {mutant_parent}')
         print(f'Running sanity check for {name}...')
         actual = os.listdir(mutant_parent)
         if not actual:
