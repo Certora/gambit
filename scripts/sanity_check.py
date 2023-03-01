@@ -77,8 +77,10 @@ def compare() -> None:
                 print(f'FAIL: output did not match expected. See diff at {diff_path}')
         else:
             print(f'The `diff` subprocess failed to run on {name}. Check for missing files or install a `diff` program and try again')
-            sys.exit(diff.returncode)
+            os.exit(diff.returncode)
     print(f'Sanity check finished with {succeeded} of {len(MUTATIONS)} succeeded.')
+    if (succeeded < len(MUTATIONS)):
+        os.exit(1)
         
 def main() -> None:
     update()
