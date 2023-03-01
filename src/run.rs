@@ -41,14 +41,9 @@ impl RunMutations {
 
     /// Check that the path exists.
     fn lkup_mutant_dir(&self) -> io::Result<PathBuf> {
-        let working_dir = std::env::current_dir()?.canonicalize().unwrap();
-        let norm_path = canon_path_from_str(&self.fnm).unwrap();
-        let norm_path = norm_path.strip_prefix(working_dir).unwrap();
-        let mut_dir = PathBuf::from(&self.out).join(
-            MUTANTS_DIR.to_owned()
-                + &std::path::MAIN_SEPARATOR.to_string()
-                + norm_path.to_str().unwrap(),
-        );
+        let norm_path = canon_path_from_str(&self.fnm)?;
+        let mut_dir =
+            PathBuf::from(&self.out).join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
         Ok(mut_dir)
     }
 

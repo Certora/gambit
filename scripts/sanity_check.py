@@ -54,7 +54,10 @@ def mutate() -> None:
 def compare() -> None:
     succeeded = 0
     for name in MUTATIONS:
-        mutant_parent = Path(OUTDIR) / MUTANTS/ BENCHMARKS / name
+        mutant_parent = Path(OUTDIR) / MUTANTS
+        mutant_abs = Path(BENCHMARKS).absolute() / name
+        for part in mutant_abs.parts[1:]:
+            mutant_parent = Path.joinpath(mutant_parent, part)
         print(f'Running sanity check for {name}...')
         actual = os.listdir(mutant_parent)
         if not actual:
