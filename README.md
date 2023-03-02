@@ -97,6 +97,9 @@ specific functions you wish to mutate, and more.  See {ref}`gambit-config` for
 more details, and [the `benchmark/config-jsons` directory][config-examples] for
 examples.
 
+**NOTE: We use the convention that any paths provided by the configuration file
+are resolved relative to the configuration file's parent directory.**
+
 [json-spec]: https://json.org/
 [config-examples]: https://github.com/Certora/gambit/blob/master/benchmarks/config-jsons/
 [test6]: https://github.com/Certora/gambit/blob/master/benchmarks/config-jsons/test6.json
