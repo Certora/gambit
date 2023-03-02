@@ -23,7 +23,16 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
-      - name: Build
+      - name: Install solc for sanity checks
+        run: |
+              if [[ ! -f "/usr/bin/solc" ]]
+              then
+                wget -q https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-static-linux 
+                mv solc-static-linux solc
+                chmod +x solc
+                sudo mv solc /usr/bin/solc
+              fi
+      - name: Build and Test
         run: make linux
 
       - name: Rename gambit binary
@@ -91,38 +100,9 @@ jobs:
           name: gambit-macos-${{ env.TAG }}
           path: gambit-macos-${{ env.TAG }}
 
-  test-linux: 
-    runs-on: ubuntu-latest
-    needs: build-linux
-    env:
-      TAG: ${{ github.ref_name }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: gambit-linux-${{ env.TAG }}
-      - name: Move gambit
-        run: |
-          mv gambit-linux-${{ env.TAG }} /usr/bin/gambit
-          chmod +x /usr/bin/gambit
-      - name: Install solc for sanity checks
-        run: |
-              if [[ ! -f "/usr/bin/solc" ]]
-              then
-                wget -q https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-static-linux 
-                mv solc-static-linux solc
-                chmod +x solc
-                sudo mv solc /usr/bin/solc
-              fi
-      - name: Cargo test
-        run: cargo test --release
-      - name: Sanity test
-        run: python3 scripts/sanity_check.py
-
   release:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-mac, test-linux]
+    needs: [build-linux, build-mac]
     if: startsWith(github.event.ref, 'refs/tags/v') #  only on new tag creation
     env:
       TAG: ${{ github.ref_name }}

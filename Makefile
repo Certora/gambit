@@ -4,6 +4,8 @@ linux:
 	cargo install --path .
 	cargo clippy
 	cargo fmt
+	cargo test --release
+	python3 scripts/sanity_check.py
 
 .PHONY: macos
 macos:
