@@ -26,19 +26,6 @@ OUTDIR = "out"
 EXPECTED = "expected"
 MUTANTS = "mutants"
 
-def update() -> None:
-    for name in MUTATIONS:
-        sol_file = Path(BENCHMARKS) / name / f'{name}.{SOL}'
-        ast_json = Path(BENCHMARKS) / name / f'{name}.{JSON}'
-        with ast_json.open('w') as ast_file:
-            solc_invocation = [
-                "solc",
-                "--ast-compact-json",
-                "--overwrite",
-                sol_file,
-            ]
-            subprocess.run(solc_invocation, stdout=ast_file)
-
 def mutate() -> None:
     gambit_invocation = [
         "gambit",
@@ -83,7 +70,6 @@ def compare() -> None:
         sys.exit(1)
         
 def main() -> None:
-    update()
     mutate()
     compare()
 
