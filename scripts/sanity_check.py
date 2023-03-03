@@ -49,7 +49,7 @@ def mutate() -> None:
     comp_proc = subprocess.run(gambit_invocation)
     if comp_proc.returncode != 0:
         print("FAIL: Gambit failed unexpectedly")
-        os.exit(comp_proc.returncode)
+        sys.exit(comp_proc.returncode)
 
 def compare() -> None:
     succeeded = 0
@@ -77,10 +77,10 @@ def compare() -> None:
                 print(f'FAIL: output did not match expected. See diff at {diff_path}')
         else:
             print(f'The `diff` subprocess failed to run on {name}. Check for missing files or install a `diff` program and try again')
-            os.exit(diff.returncode)
+            sys.exit(diff.returncode)
     print(f'Sanity check finished with {succeeded} of {len(MUTATIONS)} succeeded.')
     if (succeeded < len(MUTATIONS)):
-        os.exit(1)
+        sys.exit(1)
         
 def main() -> None:
     update()
