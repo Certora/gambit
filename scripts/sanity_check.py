@@ -24,19 +24,7 @@ JSON = "json"
 DIFF = "diff"
 OUTDIR = "out"
 EXPECTED = "expected"
-
-def update() -> None:
-    for name in MUTATIONS:
-        sol_file = Path(BENCHMARKS) / name / f'{name}.{SOL}'
-        ast_json = Path(BENCHMARKS) / name / f'{name}.{JSON}'
-        with ast_json.open('w') as ast_file:
-            solc_invocation = [
-                "solc",
-                "--ast-compact-json",
-                "--overwrite",
-                sol_file,
-            ]
-            subprocess.run(solc_invocation, stdout=ast_file)
+MUTANTS = "mutants"
 
 def mutate() -> None:
     gambit_invocation = [
@@ -45,12 +33,18 @@ def mutate() -> None:
         "--json",
         CONFIG,
     ]
-    subprocess.run(gambit_invocation)
+    comp_proc = subprocess.run(gambit_invocation)
+    if comp_proc.returncode != 0:
+        print("FAIL: Gambit failed unexpectedly")
+        sys.exit(comp_proc.returncode)
 
 def compare() -> None:
     succeeded = 0
     for name in MUTATIONS:
-        mutant_parent = Path(OUTDIR) / BENCHMARKS / name
+        mutant_parent = Path(OUTDIR) / MUTANTS
+        mutant_abs = Path(BENCHMARKS).absolute() / name
+        for part in mutant_abs.parts[1:]:
+            mutant_parent = Path.joinpath(mutant_parent, part)
         print(f'Running sanity check for {name}...')
         actual = os.listdir(mutant_parent)
         if not actual:
@@ -72,9 +66,10 @@ def compare() -> None:
             print(f'The `diff` subprocess failed to run on {name}. Check for missing files or install a `diff` program and try again')
             sys.exit(diff.returncode)
     print(f'Sanity check finished with {succeeded} of {len(MUTATIONS)} succeeded.')
+    if (succeeded < len(MUTATIONS)):
+        sys.exit(1)
         
 def main() -> None:
-    update()
     mutate()
     compare()
 

@@ -5,18 +5,21 @@ use std::{
     collections::{HashMap, HashSet, VecDeque},
     error::Error,
     fs::File,
-    io::Read,
+    io::{self, Read},
     path::{Path, PathBuf},
 };
 
 use crate::{
-    ast, get_indent, get_path_normals, invoke_command, mutation, Mutation,
+    ast, canon_path_from_str, get_indent, invoke_command, mutation, Mutation,
     MutationType::{self},
     SolAST, MUTANT_COUNTER,
 };
 
 /// How many tries for generating mutants.
 static ATTEMPTS: i64 = 50;
+pub static MUTANTS_DIR: &str = "mutants";
+static FUNCTIONDEFINITION: &str = "FunctionDefinition";
+static DOT_SOL: &str = ".sol";
 
 /// Data structure for running mutations.
 pub struct RunMutations {
@@ -37,15 +40,11 @@ impl RunMutations {
     }
 
     /// Check that the path exists.
-    fn lkup_mutant_dir(&self) -> Option<PathBuf> {
-        let norm_path = get_path_normals(&self.fnm);
-        assert!(norm_path.is_some());
-        let mut_dir = PathBuf::from(&self.out).join(norm_path.unwrap());
-        if mut_dir.parent().is_none() {
-            None
-        } else {
-            mut_dir.into()
-        }
+    fn lkup_mutant_dir(&self) -> io::Result<PathBuf> {
+        let norm_path = canon_path_from_str(&self.fnm)?;
+        let mut_dir =
+            PathBuf::from(&self.out).join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
+        Ok(mut_dir)
     }
 
     /// Returns the closures for visiting, accepting, and skipping AST nodes.
@@ -77,14 +76,14 @@ impl RunMutations {
             (Some(c), None) => node.contract.as_ref().map_or_else(|| false, |n| n.eq(c)),
             (None, Some(f)) => {
                 node.node_type()
-                    .map_or_else(|| false, |n| n == "FunctionDefinition")
+                    .map_or_else(|| false, |n| n == FUNCTIONDEFINITION)
                     && f.contains(&node.name().unwrap())
             }
             (Some(c), Some(f)) => {
                 node.contract.as_ref().map_or_else(|| false, |n| n.eq(c))
                     && node
                         .node_type()
-                        .map_or_else(|| false, |n| n == "FunctionDefinition")
+                        .map_or_else(|| false, |n| n == FUNCTIONDEFINITION)
                     && f.contains(&node.name().unwrap())
             }
         };
@@ -94,7 +93,7 @@ impl RunMutations {
     /// Inner loop of mutation generation that uniformly
     /// genrates mutants from each possible mutation kind.
     fn inner_loop(
-        mut_dir: Option<PathBuf>,
+        mut_dir: PathBuf,
         fnm: String,
         num_mutants: i64,
         mut rand: rand_pcg::Pcg64,
@@ -103,9 +102,6 @@ impl RunMutations {
         mut mutation_points_todo: VecDeque<MutationType>,
     ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
         let mut source = Vec::new();
-        if mut_dir.is_none() {
-            panic!("Mutation directory is empty.")
-        }
         let orig_path = Path::new(&fnm);
         let mut f = File::open(orig_path)?;
         f.read_to_end(&mut source)?;
@@ -128,8 +124,7 @@ impl RunMutations {
                         mutant = res;
                     }
                     let id = &MUTANT_COUNTER.get_cloned().to_string();
-                    let mut_file =
-                        mut_dir.as_ref().unwrap().to_str().unwrap().to_owned() + id + ".sol";
+                    let mut_file = mut_dir.to_str().unwrap().to_owned() + id + DOT_SOL;
                     MUTANT_COUNTER.inc();
                     let mut_path = Path::new(&mut_file);
                     log::info!(
@@ -176,7 +171,6 @@ impl RunMutations {
                 // "--color=always",
             ],
         )?;
-        log::info!("{}", String::from_utf8(diff.to_vec()).unwrap());
         match succ.unwrap_or_else(|| panic!("diff call terminated with a signal.")) {
             0 => {
                 log::info!("mutant identical to original program");
@@ -238,7 +232,7 @@ impl RunMutations {
         self,
         is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
     ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
-        let mut_dir = self.lkup_mutant_dir();
+        let mut_dir = self.lkup_mutant_dir()?;
         let (visitor, skip, accept) =
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
         // each pair represents a mutation type and the AST node on which it is applicable.
