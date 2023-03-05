@@ -62,6 +62,14 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
+      - name: Install solc for sanity checks
+        run: |
+              if [[ ! -f "/usr/bin/solc" ]]
+              then
+                wget -q https://github.com/ethereum/solidity/releases/download/v0.8.13/solc-macos
+                chmod +x solc-macos
+                sudo mv solc-macos /usr/local/bin/solc
+              fi
       - name: Build and Test
         run: make all_macos
 
