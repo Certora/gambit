@@ -1,11 +1,12 @@
+all_linux: linux test sanity
+all_macos: macos test sanity
+
 .PHONY: linux
 linux:
 	cargo build --release --target x86_64-unknown-linux-gnu
 	cargo install --path .
 	cargo clippy
 	cargo fmt
-	cargo test --release
-	python3 scripts/sanity_check.py
 
 .PHONY: macos
 macos:
@@ -15,3 +16,11 @@ macos:
 	cargo install --path .
 	cargo clippy
 	cargo fmt
+
+.PHONY: test
+test:
+	cargo test --release
+
+.PHONY: sanity
+sanity:
+	python3 scripts/sanity_check.py

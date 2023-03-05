@@ -33,7 +33,7 @@ jobs:
                 sudo mv solc /usr/bin/solc
               fi
       - name: Build and Test
-        run: make linux
+        run: make all_linux
 
       - name: Rename gambit binary
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
@@ -62,8 +62,8 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
-      - name: Build x86-64 and ARM
-        run: make macos
+      - name: Build and Test
+        run: make all_macos
 
       - name: Darwin link as Universal
         run: lipo -create -output gambit-macos target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
