@@ -1,8 +1,18 @@
-all: build test sanity
+all_linux: linux test sanity
+all_macos: macos test sanity
 
-.PHONY: build
-build:
-	cargo build --release
+.PHONY: linux
+linux:
+	cargo build --release --target x86_64-unknown-linux-gnu
+	cargo install --path .
+	cargo clippy
+	cargo fmt
+
+.PHONY: macos
+macos:
+	rustup target add aarch64-apple-darwin
+	cargo build --release --target=x86_64-apple-darwin
+	cargo build --release --target=aarch64-apple-darwin
 	cargo install --path .
 	cargo clippy
 	cargo fmt
