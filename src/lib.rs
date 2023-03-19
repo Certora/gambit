@@ -102,6 +102,7 @@ impl MutantGenerator {
             "--ast-compact-json",
             sol,
             "-o",
+            // "--optimize",
             sol_ast_dir.to_str().unwrap(),
             "--overwrite",
         ];
@@ -222,17 +223,17 @@ impl MutantGenerator {
         let is_valid = |mutant: &str| -> Result<bool, Box<dyn std::error::Error>> {
             let mut flags: Vec<&str> = vec![];
             let valid;
+            let f_path = PathBuf::from(file_to_mutate.as_str());
+            let parent_of_fnm = f_path.parent().unwrap_or_else(|| {
+                panic!("Parent being None here means no file is being mutated.")
+            });
+            let tmp = parent_of_fnm.join(TMP);
+            std::fs::write(&tmp, mutant)?;
+            flags.push(tmp.to_str().as_ref().unwrap());
             if self.params.solc_basepath.is_some()
                 || self.params.solc_remapping.is_some()
                 || self.params.solc_allowpaths.is_some()
             {
-                let f_path = PathBuf::from(file_to_mutate.as_str());
-                let parent_of_fnm = f_path.parent().unwrap_or_else(|| {
-                    panic!("Parent being None here means no file is being mutated.")
-                });
-                let tmp = parent_of_fnm.join(TMP);
-                std::fs::write(&tmp, mutant)?;
-                flags.push(tmp.to_str().as_ref().unwrap());
                 if let Some(bp) = &self.params.solc_basepath {
                     flags.push(BASEPATH);
                     flags.push(bp);
@@ -250,15 +251,10 @@ impl MutantGenerator {
                         flags.push(r);
                     }
                 }
-                (valid, _, _) = invoke_command(&self.params.solc, flags)?;
-                if tmp.exists() {
-                    let _ = std::fs::remove_file(tmp);
-                }
-            } else {
-                std::fs::write(TMP, mutant)?;
-                flags.push(TMP);
-                (valid, _, _) = invoke_command(&self.params.solc, flags)?;
-                std::fs::remove_file(TMP)?;
+            }
+            (valid, _, _) = invoke_command(&self.params.solc, flags)?;
+            if tmp.exists() {
+                let _ = std::fs::remove_file(tmp);
             }
             match valid {
                 Some(n) => Ok(n == 0),
