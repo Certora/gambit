@@ -230,26 +230,21 @@ impl MutantGenerator {
             let tmp = parent_of_fnm.join(TMP);
             std::fs::write(&tmp, mutant)?;
             flags.push(tmp.to_str().as_ref().unwrap());
-            if self.params.solc_basepath.is_some()
-                || self.params.solc_remapping.is_some()
-                || self.params.solc_allowpaths.is_some()
-            {
-                if let Some(bp) = &self.params.solc_basepath {
-                    flags.push(BASEPATH);
-                    flags.push(bp);
-                }
+            if let Some(bp) = &self.params.solc_basepath {
+                flags.push(BASEPATH);
+                flags.push(bp);
+            }
 
-                if let Some(aps) = &self.params.solc_allowpaths {
-                    flags.push(ALLOWPATH);
-                    for a in aps {
-                        flags.push(a);
-                    }
+            if let Some(aps) = &self.params.solc_allowpaths {
+                flags.push(ALLOWPATH);
+                for a in aps {
+                    flags.push(a);
                 }
+            }
 
-                if let Some(remaps) = &self.params.solc_remapping {
-                    for r in remaps {
-                        flags.push(r);
-                    }
+            if let Some(remaps) = &self.params.solc_remapping {
+                for r in remaps {
+                    flags.push(r);
                 }
             }
             (valid, _, _) = invoke_command(&self.params.solc, flags)?;
