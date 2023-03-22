@@ -32,10 +32,10 @@ struct Replacement {
 }
 
 /// Solidity AST representation.
-/// There are two fields, `element`
-/// which is the underlying json object representing
-/// an AST node and `contract` which indicates
-/// the name of the contract that this node belongs to.
+///
+/// There are two fields, `element` which is the underlying json object
+/// representing an AST node and `contract` which indicates the name of the
+/// contract that this node belongs to.
 #[derive(Debug, Deserialize, Default, Clone)]
 #[serde(default)]
 pub struct SolAST {
@@ -201,10 +201,14 @@ impl SolAST {
     }
 
     /// Recursively traverses the AST.
-    /// This is how
-    /// Gambit determines what nodes can be mutated
-    /// using which types of mutations and
-    /// the exact location in the source where the mutation must be done.
+    ///
+    /// This is how Gambit determines what nodes can be mutated using which
+    /// types of mutations and the exact location in the source where the
+    /// mutation must be done.
+    ///
+    /// # Arguments
+    ///
+    /// * `visitor` -
     pub fn traverse<T, F>(
         self,
         mut visitor: F,

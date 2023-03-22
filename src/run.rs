@@ -52,6 +52,21 @@ impl RunMutations {
     }
 
     /// Returns the closures for visiting, skipping, and accepting AST nodes.
+    ///
+    /// # Returns
+    ///
+    /// Returns a 3-tuple `(visitor, skip, accept)`:
+    ///
+    /// * `visitor` - a closure mapping AST node `node` to all `(mut_type, node)`
+    ///   tuples where `mut_type` is applicable to `node` (i.e.,
+    ///   `mut_type.is_mutation_point(node)`)
+    /// * `skip` - a closure that returns `true` when a node should be skipped
+    ///   TODO: what does skipping mean? Do we not recursively visit it?
+    /// * `accept` - a closure that returns `true` when the node satisfies all
+    ///   given mutation constraints:
+    ///   1. the node belongs to a specified function if at least one function
+    ///      name was given, and
+    ///   2. the node's contract is the specified contract if one was given
     fn mk_closures(
         mutation_types: Vec<MutationType>,
         funcs_to_mutate: Option<Vec<String>>,
@@ -61,6 +76,7 @@ impl RunMutations {
         impl Fn(&SolAST) -> bool,
         impl Fn(&SolAST) -> bool,
     ) {
+        // visitor: map an AST node to a vec of (MutationType, node)
         let visitor = move |node: &ast::SolAST| {
             let mapping: Vec<(mutation::MutationType, ast::SolAST)> = mutation_types
                 .iter()
@@ -81,6 +97,7 @@ impl RunMutations {
             (None, Some(f)) => {
                 node.node_type()
                     .map_or_else(|| false, |n| n == FUNCTIONDEFINITION)
+                    // TODO: is `f.contains` right? What if one function name is a substring of another?
                     && f.contains(&node.name().unwrap())
             }
             (Some(c), Some(f)) => {
