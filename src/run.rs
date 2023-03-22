@@ -18,21 +18,23 @@ pub static MUTANTS_DIR: &str = "mutants";
 static FUNCTIONDEFINITION: &str = "FunctionDefinition";
 static DOT_SOL: &str = ".sol";
 
-/// Data structure for running mutations.
+/// Data structure performing mutation generation on a single file
 /// TODO: Document this
 pub struct RunMutations {
     /// Name of file to mutate
     pub filename: String,
     /// Root node of mutation: all mutations will be performed on this node or on children nodes
     pub mutation_root: SolAST,
-    /// TODO: ?
+    /// Root of the output directory structure; defaults to `out/` in the
+    /// current working directory
     pub out: PathBuf,
     /// Mutation operators to be applied
     pub mutation_types: Vec<MutationType>,
-    /// An optional list of functions to mutate: if `None`, then all functions
-    /// are mutated
+    /// If this is `Some(fnames)` then only mutate functions with names in
+    /// `fnames`. If this is `None` then mutate all function names
     pub funcs_to_mutate: Option<Vec<String>>,
-    /// TODO: ?
+    /// If this is `Some(c)` then only mutate SolAST `ast` when `ast.contract ==
+    /// c`. When this is `None` then no constraints are given.
     pub contract: Option<String>,
 }
 
