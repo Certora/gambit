@@ -41,12 +41,12 @@ pub fn next_mid() -> u64 {
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
     /// Params for controlling the mutants.
-    pub params: MutationParams,
+    pub params: MutateParams,
 }
 
 impl MutantGenerator {
     /// Initialize the MutantGenerator
-    pub fn new(params: MutationParams) -> Self {
+    pub fn new(params: MutateParams) -> Self {
         MutantGenerator { params }
     }
 
@@ -420,7 +420,7 @@ impl MutantGenerator {
 ///
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[command(rename_all = "kebab-case")]
-pub struct MutationParams {
+pub struct MutateParams {
     /// Json file with config
     #[arg(long, short, conflicts_with = "filename")]
     pub json: Option<String>,
@@ -453,5 +453,5 @@ pub struct MutationParams {
 #[derive(Parser)]
 #[clap(rename_all = "kebab-case")]
 pub enum Command {
-    Mutate(MutationParams), // Maybe we want to do other things in the future like support checking mutants?
+    Mutate(MutateParams), // Maybe we want to do other things in the future like support checking mutants?
 }
