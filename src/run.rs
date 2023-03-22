@@ -1,8 +1,6 @@
-use itertools::Itertools;
-use rand::seq::SliceRandom;
 use scanner_rust::{Scanner, ScannerError};
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::HashSet,
     error::Error,
     fs::File,
     io::{self, Read},
@@ -10,26 +8,31 @@ use std::{
 };
 
 use crate::{
-    ast, canon_path_from_str, get_indent, invoke_command, mutation, Mutation,
+    ast, canon_path_from_str, get_indent, invoke_command, mutation, next_mid, Mutation,
     MutationType::{self},
-    SolAST, MUTANT_COUNTER,
+    SolAST,
 };
 
 /// How many tries for generating mutants.
-static ATTEMPTS: i64 = 50;
 pub static MUTANTS_DIR: &str = "mutants";
 static FUNCTIONDEFINITION: &str = "FunctionDefinition";
 static DOT_SOL: &str = ".sol";
 
 /// Data structure for running mutations.
+/// TODO: Document this
 pub struct RunMutations {
-    pub fnm: String,
-    pub node: SolAST,
-    pub num_mutants: i64,
-    pub rand: rand_pcg::Pcg64,
+    /// Name of file to mutate
+    pub filename: String,
+    /// Root node of mutation: all mutations will be performed on this node or on children nodes
+    pub mutation_root: SolAST,
+    /// TODO: ?
     pub out: PathBuf,
+    /// Mutation operators to be applied
     pub mutation_types: Vec<MutationType>,
+    /// An optional list of functions to mutate: if `None`, then all functions
+    /// are mutated
     pub funcs_to_mutate: Option<Vec<String>>,
+    /// TODO: ?
     pub contract: Option<String>,
 }
 
@@ -40,14 +43,15 @@ impl RunMutations {
     }
 
     /// Check that the path exists.
+    /// TODO: This doesn't seem to do any checking
     fn lkup_mutant_dir(&self) -> io::Result<PathBuf> {
-        let norm_path = canon_path_from_str(&self.fnm)?;
+        let norm_path = canon_path_from_str(&self.filename)?;
         let mut_dir =
             PathBuf::from(&self.out).join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
         Ok(mut_dir)
     }
 
-    /// Returns the closures for visiting, accepting, and skipping AST nodes.
+    /// Returns the closures for visiting, skipping, and accepting AST nodes.
     fn mk_closures(
         mutation_types: Vec<MutationType>,
         funcs_to_mutate: Option<Vec<String>>,
@@ -95,68 +99,56 @@ impl RunMutations {
     fn inner_loop(
         mut_dir: PathBuf,
         fnm: String,
-        num_mutants: i64,
-        mut rand: rand_pcg::Pcg64,
         mut is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
-        mutation_points: HashMap<MutationType, Vec<SolAST>>,
-        mut mutation_points_todo: VecDeque<MutationType>,
+        mutations: Vec<(MutationType, SolAST)>,
     ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
         let mut source = Vec::new();
         let orig_path = Path::new(&fnm);
         let mut f = File::open(orig_path)?;
         f.read_to_end(&mut source)?;
         let source_to_str = std::str::from_utf8(&source)?.into();
-        let mut attempts = 0;
+
         let mut mutants: Vec<(PathBuf, serde_json::Value)> = vec![];
+
         let mut seen: HashSet<String> = HashSet::new();
-        let total_attempts = num_mutants * ATTEMPTS;
         seen.insert(source_to_str);
-        while !mutation_points_todo.is_empty() && attempts < total_attempts {
-            let mut_type = mutation_points_todo.remove(0).unwrap();
-            let points = mutation_points
-                .get(&mut_type)
-                .expect("Found unexpected mutation.");
-            if let Some(point) = points.choose(&mut rand) {
-                let mut mutant = mut_type.mutate_randomly(point, &source, &mut rand);
-                if !seen.contains(&mutant) && is_valid(&mutant)? {
-                    seen.insert(mutant.clone());
-                    if let Ok(res) = Self::add_mutant_comment(orig_path, &mutant, &mut_type) {
-                        mutant = res;
-                    }
-                    let id = &MUTANT_COUNTER.get_cloned().to_string();
-                    let mut_file = mut_dir.to_str().unwrap().to_owned() + id + DOT_SOL;
-                    MUTANT_COUNTER.inc();
-                    let mut_path = Path::new(&mut_file);
-                    log::info!(
-                        "Found a valid mutant of type {}",
-                        ansi_term::Colour::Cyan.paint(mut_type.to_string()),
-                    );
-                    std::fs::write(mut_path, &mutant)?;
-                    log::info!(
-                        "{}: Mutant written at {:?}",
-                        ansi_term::Colour::Green.paint("SUCCESS"),
-                        mut_path
-                    );
-                    let diff = Self::diff_mutant(orig_path, mut_path)?;
-                    let mut_json = serde_json::json!({
-                    "name" : &mut_file,
-                    "description" : mut_type.to_string(),
-                    "id" : &id,
-                    "diff": &diff,
-                    });
-                    mutants.push((mut_path.to_owned(), mut_json));
-                } else {
-                    mutation_points_todo.push_back(mut_type);
+
+        for (mtype, node) in mutations {
+            for m in mtype.mutate(&node, &source) {
+                if seen.contains(&m) || !is_valid(&m)? {
+                    continue;
                 }
-                attempts += 1;
+                seen.insert(m.clone());
+                // TODO: what happens if we can't add a comment?
+                let m = if let Ok(res) = Self::add_mutant_comment(orig_path, &m, &mtype) {
+                    res
+                } else {
+                    m
+                };
+                let id = next_mid().to_string();
+                let mut_file = mut_dir.to_str().unwrap().to_owned() + &id + DOT_SOL;
+                let mut_path = Path::new(&mut_file);
+
+                log::info!(
+                    "Found a valid mutant of type {}",
+                    ansi_term::Colour::Cyan.paint(mtype.to_string()),
+                );
+
+                std::fs::write(mut_path, &m)?;
+                log::info!(
+                    "{}: Mutant written at {:?}",
+                    ansi_term::Colour::Green.paint("SUCCESS"),
+                    mut_path
+                );
+                let diff = Self::diff_mutant(orig_path, mut_path)?;
+                let mut_json = serde_json::json!({
+                "name" : &mut_file,
+                "description" : mtype.to_string(),
+                "id" : &id,
+                "diff": &diff,
+                });
+                mutants.push((mut_path.to_owned(), mut_json));
             }
-        }
-        if (attempts >= total_attempts) && (mutants.len() < num_mutants.try_into().unwrap()) {
-            log::info!(
-                "Found {} valid mutants in {} attempts.",
-                mutants.len(),
-                total_attempts
-            );
         }
         Ok(mutants)
     }
@@ -237,37 +229,11 @@ impl RunMutations {
             Self::mk_closures(self.mutation_types, self.funcs_to_mutate, self.contract);
         // each pair represents a mutation type and the AST node on which it is applicable.
         let mutations: Vec<(MutationType, SolAST)> = self
-            .node
+            .mutation_root
             .traverse(visitor, skip, accept)
             .into_iter()
             .flatten()
             .collect();
-        if !mutations.is_empty() {
-            let mutation_points = mutations.into_iter().into_group_map();
-            let points: Vec<&MutationType> = mutation_points.keys().collect();
-            let points_len = points.len() as i64;
-            let mut mutation_points_todo: VecDeque<MutationType> = VecDeque::new();
-            let mut remaining = self.num_mutants;
-            while remaining > 0 {
-                let to_take = std::cmp::min(remaining, points_len);
-                let selected: Vec<&&MutationType> = points.iter().take(to_take as usize).collect();
-                for s in selected {
-                    mutation_points_todo.push_back(**s);
-                }
-                remaining -= points_len;
-            }
-            Self::inner_loop(
-                mut_dir,
-                self.fnm,
-                self.num_mutants,
-                self.rand,
-                is_valid,
-                mutation_points,
-                mutation_points_todo,
-            )
-        } else {
-            log::info!("Did not find any mutations");
-            Ok(vec![])
-        }
+        Self::inner_loop(mut_dir, self.filename, is_valid, mutations)
     }
 }

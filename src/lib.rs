@@ -1,8 +1,6 @@
 use clap::{Parser, ValueEnum};
 use core::panic;
 use global_counter::*;
-use rand::SeedableRng;
-use rand_pcg::Pcg64;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_json::Value::Array;
@@ -34,21 +32,22 @@ static FILENAME: &str = "filename";
 
 global_counter!(MUTANT_COUNTER, u64, 0);
 
+pub fn next_mid() -> u64 {
+    let id = &MUTANT_COUNTER.get_cloned();
+    MUTANT_COUNTER.inc();
+    *id
+}
+
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
     /// Params for controlling the mutants.
     pub params: MutationParams,
-    /// will need this for randomization
-    pub rng: Pcg64,
 }
 
 impl MutantGenerator {
     /// Initialize the MutantGenerator
     pub fn new(params: MutationParams) -> Self {
-        MutantGenerator {
-            rng: SeedableRng::seed_from_u64(params.seed),
-            params,
-        }
+        MutantGenerator { params }
     }
 
     /// A helper function to create the directory where the
@@ -181,17 +180,25 @@ impl MutantGenerator {
     }
 
     /// Generate mutations for a single file.
-    /// Irrespective of how Gambit is used,
-    /// this is the method which performs mutations
-    /// on a single solidity file.
-    fn run_one(
+    ///
+    /// Irrespective of how Gambit is used, this is the method which performs
+    /// mutations on a single solidity file.
+    ///
+    /// # Arguments
+    ///
+    /// * `file_to_mutate` - Path to the file we are mutating
+    /// * `muts` - An optional list of mutation operators to be applied: if
+    ///   `None`, use the default set of operators
+    /// * `funcs` - An optional list of functions to mutate: if `None`, all
+    ///   functions will be mutated
+    /// * `contract` - TODO: what is this?
+    fn mutate_file(
         &self,
         file_to_mutate: &String,
         muts: Option<Vec<String>>,
         funcs: Option<Vec<String>>,
         contract: Option<String>,
     ) -> io::Result<Vec<serde_json::Value>> {
-        let rand: Pcg64 = self.rng.clone();
         let outdir = Path::new(&self.params.outdir);
         let ast = self
             .compile_sol(file_to_mutate, outdir.to_path_buf())
@@ -207,10 +214,8 @@ impl MutantGenerator {
         });
 
         let run_mutation = RunMutations {
-            fnm: file_to_mutate.into(),
-            node: ast,
-            num_mutants: self.params.num_mutants,
-            rand,
+            filename: file_to_mutate.into(),
+            mutation_root: ast,
             out: outdir.to_path_buf(),
             mutation_types: mut_types,
             funcs_to_mutate: funcs,
@@ -327,7 +332,7 @@ impl MutantGenerator {
                     funcs_to_mutate = fs.into();
                 }
             }
-            Ok(self.run_one(&fnm, selected_muts, funcs_to_mutate, contract)?)
+            Ok(self.mutate_file(&fnm, selected_muts, funcs_to_mutate, contract)?)
         } else {
             Ok(vec![])
         }
@@ -383,7 +388,7 @@ impl MutantGenerator {
             let mut results_json: Vec<serde_json::Value> = vec![];
             for f in files.as_ref().unwrap() {
                 self.mk_mutant_dir(&f.to_string())?;
-                let mut new_results = self.run_one(f, None, None, None)?;
+                let mut new_results = self.mutate_file(f, None, None, None)?;
                 results_json.append(&mut new_results)
             }
             results_json
@@ -419,7 +424,7 @@ pub struct MutationParams {
     /// Json file with config
     #[arg(long, short, conflicts_with = "filename")]
     pub json: Option<String>,
-    /// File to mutate
+    /// Files to mutate
     #[arg(long, short, conflicts_with = "json")]
     pub filename: Option<Vec<String>>,
     /// Number of mutants
