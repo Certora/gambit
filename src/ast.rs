@@ -208,7 +208,7 @@ impl SolAST {
     ///
     /// # Arguments
     ///
-    /// * `visitor` -
+    /// See [`run::RunMutations::mk_closures()`] for details
     pub fn traverse<T, F>(
         self,
         mut visitor: F,
