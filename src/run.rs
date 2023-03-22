@@ -117,19 +117,22 @@ impl RunMutations {
     /// genrates mutants from each possible mutation kind.
     fn inner_loop(
         mut_dir: PathBuf,
-        fnm: String,
+        orig_path: &Path,
         mut is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
         mutations: Vec<(MutationType, SolAST)>,
     ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
-        let mut source = Vec::new();
-        let orig_path = Path::new(&fnm);
-        let mut f = File::open(orig_path)?;
-        f.read_to_end(&mut source)?;
-        let source_to_str = std::str::from_utf8(&source)?.into();
-
+        let (source, source_to_str) = get_source_from_path(orig_path)?;
+        // Keep track of all (mutant_path, mutant_json) values we generate
         let mut mutants: Vec<(PathBuf, serde_json::Value)> = vec![];
 
+        // We are keeping track of all mutants we've seen before to ensure we
+        // don't add the same program multiple times.
+        //
+        // TODO: we can probably get this guarantee by updating our mutation
+        // operators
         let mut seen: HashSet<String> = HashSet::new();
+
+        // We've already seen the original program, so ensure we don't add this again.
         seen.insert(source_to_str);
 
         for (mtype, node) in mutations {
@@ -253,6 +256,14 @@ impl RunMutations {
             .into_iter()
             .flatten()
             .collect();
-        Self::inner_loop(mut_dir, self.filename, is_valid, mutations)
+        Self::inner_loop(mut_dir, &Path::new(&self.filename), is_valid, mutations)
     }
+}
+
+fn get_source_from_path(orig_path: &Path) -> Result<(Vec<u8>, String), Box<dyn Error>> {
+    let mut source = Vec::new();
+    let mut f = File::open(orig_path)?;
+    f.read_to_end(&mut source)?;
+    let source_to_str = std::str::from_utf8(&source)?.into();
+    Ok((source, source_to_str))
 }
