@@ -242,14 +242,14 @@ impl SolAST {
         accepted: bool,
         acc: &mut Vec<T>,
     ) {
-        let accepted = accept(&self) || accepted;
-
         if skip(&self) {
             return;
         }
+
+        let accepted = accept(&self) || accepted;
+
         if accepted {
-            let res = visitor(&self);
-            if let Some(r) = res {
+            if let Some(r) = visitor(&self) {
                 acc.push(r)
             } else {
                 // log::info!("no mutation points found");
