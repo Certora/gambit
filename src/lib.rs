@@ -32,10 +32,15 @@ static FILENAME: &str = "filename";
 
 global_counter!(MUTANT_COUNTER, u64, 0);
 
+/// Produce the next available mutant id and increment the counter
 pub fn next_mid() -> u64 {
-    let id = &MUTANT_COUNTER.get_cloned();
+    let id = MUTANT_COUNTER.get_cloned();
     MUTANT_COUNTER.inc();
-    *id
+    id
+}
+
+pub fn current_mid() -> u64 {
+    MUTANT_COUNTER.get_cloned()
 }
 
 #[derive(Debug, Clone)]
