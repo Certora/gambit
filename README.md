@@ -61,6 +61,11 @@ and no complex dependencies or mutation requirements.
       ```bash
       cargo gambit path/to/file.sol --solc-allowpaths @openzepplin=... --solc-allowpaths ...
       ```
+    * To run the solidity compiler with optimizations, you can use the `--solc-optimize` flag.
+     For example:
+      ```bash
+      cargo gambit path/to/file.sol --solc-optimize
+      ```
 
 [remapping]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#import-remapping
 [basepath]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#base-path-and-include-paths
@@ -117,7 +122,8 @@ Here is an example that shows how to configure these options.
         "filename": "Foo.sol",
         "contract": "C",
         "functions": ["bar", "baz"],
-        "solc": "solc8.12"
+        "solc": "solc8.12",
+        "solc-optimize": true
     },
     {
         "filename": "Blip.sol",

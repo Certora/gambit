@@ -27,6 +27,7 @@ pub use util::*;
 /// temporary paths for compiling mutants.
 static TMP: &str = "tmp.sol";
 static INPUT_JSON: &str = "input_json";
+static OPTIMIZE: &str = "--optimize";
 static BASEPATH: &str = "--base-path";
 static ALLOWPATH: &str = "--allow-paths";
 static DOT_JSON: &str = ".json";
@@ -102,7 +103,6 @@ impl MutantGenerator {
             "--ast-compact-json",
             sol,
             "-o",
-            // "--optimize",
             sol_ast_dir.to_str().unwrap(),
             "--overwrite",
         ];
@@ -124,6 +124,11 @@ impl MutantGenerator {
                 flags.push(r);
             }
         }
+
+        if self.params.solc_optimize {
+            flags.push(OPTIMIZE);
+        }
+
         let pretty_flags = flags
             .iter()
             .map(|x| x.to_string())
@@ -247,6 +252,9 @@ impl MutantGenerator {
                     flags.push(r);
                 }
             }
+            if self.params.solc_optimize {
+                flags.push(OPTIMIZE);
+           }
             (valid, _, _) = invoke_command(&self.params.solc, flags)?;
             if tmp.exists() {
                 let _ = std::fs::remove_file(tmp);
@@ -277,6 +285,10 @@ impl MutantGenerator {
                 self.params.solc_basepath =
                     resolve_path_from_str(cfg, solc_basepath.as_str().unwrap()).into();
             }
+            if let Some(opt) = &v.get("solc-optimize") {
+                self.params.solc_optimize = opt.as_bool().unwrap().into();
+            }
+
             if let Some(allowed_paths) = &v.get("solc-allowpaths") {
                 let allowed: Vec<String> = allowed_paths
                     .as_array()
@@ -443,6 +455,9 @@ pub struct MutationParams {
     /// Solidity remappings
     #[arg(long)]
     pub solc_remapping: Option<Vec<String>>,
+    /// Solidity optimizations
+    #[arg(long, default_value = "false")]
+    pub solc_optimize: bool,
 }
 
 #[derive(Parser)]

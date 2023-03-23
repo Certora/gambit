@@ -3,6 +3,6 @@
      "mutations": [
         "binary-op-mutation",
         "swap-arguments-operator-mutation"
-    ]
-    
+    ],
+    "solc-optimize": true
 }

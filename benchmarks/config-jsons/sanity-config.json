@@ -32,7 +32,8 @@
     "filename": "../IfStatementMutation/IfStatementMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
-    "mutations": ["if-statement-mutation"]
+    "mutations": ["if-statement-mutation"],
+    "solc-optimize": true
 },
 {
     "filename": "../SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
