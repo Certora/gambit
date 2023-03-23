@@ -30,6 +30,7 @@ static ALLOWPATH: &str = "--allow-paths";
 static DOT_JSON: &str = ".json";
 static FILENAME: &str = "filename";
 
+// TODO: This should belong to MutantGenerator
 global_counter!(MUTANT_COUNTER, u64, 0);
 
 /// Produce the next available mutant id and increment the counter
