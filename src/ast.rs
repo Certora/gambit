@@ -208,7 +208,9 @@ impl SolAST {
     ///
     /// # Arguments
     ///
-    /// See [`run::RunMutations::mk_closures()`] for details
+    /// * `visitor` - see [`run::RunMutations::mk_closures()`]
+    /// * `skip` - see [`run::RunMutations::mk_closures()`]
+    /// * `accept` - see [`run::RunMutations::mk_closures()`]
     pub fn traverse<T, F>(
         self,
         mut visitor: F,
@@ -223,6 +225,15 @@ impl SolAST {
         result
     }
 
+    /// Helper function to traverse AST
+    ///
+    /// # Arguments
+    ///
+    /// * `visitor` - see [`run::RunMutations::mk_closures()`]
+    /// * `skip` - see [`run::RunMutations::mk_closures()`]
+    /// * `accept` - see [`run::RunMutations::mk_closures()`]
+    /// * `accepted` - TODO: ?
+    /// * `acc` - TODO: ?
     fn traverse_internal<T>(
         mut self,
         visitor: &mut impl FnMut(&SolAST) -> Option<T>,
@@ -231,14 +242,12 @@ impl SolAST {
         accepted: bool,
         acc: &mut Vec<T>,
     ) {
-        let mut new_accepted = accepted;
-        if accept(&self) {
-            new_accepted = true;
-        }
+        let accepted = accept(&self) || accepted;
+
         if skip(&self) {
             return;
         }
-        if new_accepted {
+        if accepted {
             let res = visitor(&self);
             if let Some(r) = res {
                 acc.push(r)
@@ -255,13 +264,13 @@ impl SolAST {
                 }
                 for v in e_obj.values() {
                     let child: SolAST = SolAST::new(v.clone(), self.contract.clone());
-                    child.traverse_internal(visitor, skip, accept, new_accepted, acc);
+                    child.traverse_internal(visitor, skip, accept, accepted, acc);
                 }
             } else if e.is_array() {
                 let e_arr = e.as_array().unwrap();
                 for a in e_arr {
                     let child: SolAST = SolAST::new(a.clone(), self.contract.clone());
-                    child.traverse_internal(visitor, skip, accept, new_accepted, acc);
+                    child.traverse_internal(visitor, skip, accept, accepted, acc);
                 }
             }
         }
