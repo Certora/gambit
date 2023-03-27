@@ -232,7 +232,9 @@ impl SolAST {
     /// * `visitor` - see [`run::RunMutations::mk_closures()`]
     /// * `skip` - see [`run::RunMutations::mk_closures()`]
     /// * `accept` - see [`run::RunMutations::mk_closures()`]
-    /// * `accepted` - TODO: ?
+    /// * `accepted` - is this node the descendent of an accepted node? This
+    ///   value is monotonic as we descend an AST: it begins as false but once
+    ///   set to true will be true for all recursive calls
     /// * `acc` - TODO: ?
     fn traverse_internal<T>(
         mut self,
@@ -246,17 +248,27 @@ impl SolAST {
             return;
         }
 
-        let accepted = accept(&self) || accepted;
+        // NOTE: So I think I understand what's happening here. We are
+        // traversing the AST until we see a node that matches a function we
+        // want to mutate. We then recursively mutate all nodes inside of that.
+        //
+        // A possible optimization is to abort early if we see a function we are
+        // _not_ mutating?
+        let accepted = accepted || accept(&self);
 
+        // If we have been accepted, mutate this node with all applicable
+        // mutation operators
         if accepted {
             if let Some(r) = visitor(&self) {
                 acc.push(r)
-            } else {
-                // log::info!("no mutation points found");
             }
         }
-        if self.element.is_some() {
-            let e = self.element.unwrap();
+
+        if self.element.is_none() {
+            return;
+        }
+
+        let e = self.element.as_ref().unwrap();
             if e.is_object() {
                 let e_obj = e.as_object().unwrap();
                 if e_obj.contains_key("contractKind") {
@@ -271,7 +283,6 @@ impl SolAST {
                 for a in e_arr {
                     let child: SolAST = SolAST::new(a.clone(), self.contract.clone());
                     child.traverse_internal(visitor, skip, accept, accepted, acc);
-                }
             }
         }
     }
