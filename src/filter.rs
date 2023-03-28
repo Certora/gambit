@@ -28,21 +28,6 @@ impl std::fmt::Display for MutantFilterError {
 
 impl std::error::Error for MutantFilterError {}
 
-pub trait MutantFilter {
-    fn filter_mutants(&self, num_mutants: usize) -> Result<usize, Box<dyn error::Error>>;
-}
-
-pub struct RandomDownSampleFilter {
-    /// Root of all mutants (typically `out/`). This should point to a directory
-    /// containing `mutants/` and `mutants.log`
-    all: String,
-
-    /// Root of filtered mutants output. This will have the same directory
-    /// structure as `all` (i.e.., filtering all will output a new `mutants.log`
-    /// and a new `mutants/` directory here).
-    filtered: String,
-}
-
 #[allow(dead_code)]
 pub struct OutputDirectoryStructure {
     /// Root of the output directory structure
@@ -106,6 +91,21 @@ fn get_output_directory_structure(
         mutants_dir: mutants_dir_path.to_owned(),
         mutants: mutants,
     })
+}
+
+pub trait MutantFilter {
+    fn filter_mutants(&self, num_mutants: usize) -> Result<usize, Box<dyn error::Error>>;
+}
+
+pub struct RandomDownSampleFilter {
+    /// Root of all mutants (typically `out/`). This should point to a directory
+    /// containing `mutants/` and `mutants.log`
+    all: String,
+
+    /// Root of filtered mutants output. This will have the same directory
+    /// structure as `all` (i.e.., filtering all will output a new `mutants.log`
+    /// and a new `mutants/` directory here).
+    filtered: String,
 }
 
 impl MutantFilter for RandomDownSampleFilter {
