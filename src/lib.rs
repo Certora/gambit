@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_json::Value::Array;
 use std::fmt::Debug;
+use std::io;
 use std::io::BufReader;
 use std::io::Write;
-use std::{fs, io};
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -17,6 +17,8 @@ mod ast;
 pub use ast::*;
 mod mutation;
 pub use mutation::*;
+mod filter;
+pub use filter::*;
 mod run;
 pub use run::*;
 mod util;
@@ -35,8 +37,8 @@ global_counter!(MUTANT_COUNTER, u64, 0);
 
 /// Produce the next available mutant id and increment the counter
 pub fn next_mid() -> u64 {
-    let id = MUTANT_COUNTER.get_cloned();
     MUTANT_COUNTER.inc();
+    let id = MUTANT_COUNTER.get_cloned();
     id
 }
 
@@ -56,22 +58,28 @@ impl MutantGenerator {
         MutantGenerator { params }
     }
 
-    /// A helper function to create the directory where the
-    /// AST (.ast) and it's json representation (.ast.json)
-    /// are stored.
-    /// This returns the directory, and both the path to the .ast and the .ast.json.
+    /// A helper function to create the directory where the AST (.ast) and it's
+    /// json representation (.ast.json) are stored.
+    ///
+    /// # Arguments
+    ///
+    /// * `sol` - Solidity file that is going to be compiled
+    /// * `out` - The output directory
+    ///
+    /// # Returns
+    ///
+    /// This returns a 3-tuple:
+    /// * `sol_ast_dir` - the path to the directory of the solidity AST
+    /// * `ast_path` - the solidity AST file (contained inside `sol_ast_dir`)
+    /// * `json_path` - the solidity AST JSON file (contained inside
+    ///   `sol_ast_dir`)
     fn mk_ast_dir(&self, sol: &String, out: PathBuf) -> io::Result<(PathBuf, PathBuf, PathBuf)> {
-        let canon_path = canon_path_from_str(sol)?;
-        let extension = canon_path.extension();
+        let sol_path = Path::new(sol);
+        let extension = sol_path.extension();
         if extension.is_none() || !extension.unwrap().eq("sol") {
             panic!("{} is not a solidity source file.", sol);
         }
-        let sol_ast_dir = out.join(
-            INPUT_JSON.to_owned()
-                + canon_path
-                    .to_str()
-                    .unwrap_or_else(|| panic!("Path is not valid.")),
-        );
+        let sol_ast_dir = out.join(INPUT_JSON.to_owned()).join(sol);
         let ast_fnm = Path::new(sol)
             .file_name()
             .unwrap()
@@ -163,26 +171,6 @@ impl MutantGenerator {
             element: Some(ast_json),
             contract: None,
         })
-    }
-
-    /// Create a directory for saving the mutants for a given
-    /// file `fnm`. All mutant files will be dumped here.
-    fn mk_mutant_dir(&self, fnm: &str) -> io::Result<()> {
-        log::info!("making a mutant dir for {}", fnm);
-        let norm_path = canon_path_from_str(fnm)?;
-        let mut_dir = PathBuf::from(&self.params.outdir)
-            .join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
-        if let Some(pd) = mut_dir.parent() {
-            if pd.is_dir() {
-                fs::remove_dir_all(pd)?;
-            }
-        }
-        std::fs::create_dir_all(mut_dir.parent().unwrap())?;
-        log::info!(
-            "successfully created mutant directory: {}",
-            mut_dir.to_str().unwrap()
-        );
-        Ok(())
     }
 
     /// Generate mutations for a single file.
@@ -357,27 +345,13 @@ impl MutantGenerator {
         match config {
             Value::Array(elems) => {
                 let mut results_json = vec![];
-                // make all directories for mutants first.
-                for elem in &elems {
-                    if let Some(filename) = elem.get(FILENAME) {
-                        let fnm = resolve_path_from_str(cfg, filename.as_str().unwrap());
-                        self.mk_mutant_dir(&fnm)?;
-                    }
-                }
                 for elem in elems {
                     let mut new_results = self.process_single_file(&elem, cfg)?;
                     results_json.append(&mut new_results)
                 }
                 Ok(results_json)
             }
-            Value::Object(_) => {
-                // single mutant case.
-                if let Some(filename) = config.get(FILENAME) {
-                    let fnm = resolve_path_from_str(cfg, filename.as_str().unwrap());
-                    self.mk_mutant_dir(&fnm)?;
-                }
-                self.process_single_file(&config, cfg)
-            }
+            Value::Object(_) => self.process_single_file(&config, cfg),
             _ => panic!("Ill-formed json."),
         }
     }
@@ -393,7 +367,6 @@ impl MutantGenerator {
             log::info!("running with solidity files");
             let mut results_json: Vec<serde_json::Value> = vec![];
             for f in files.as_ref().unwrap() {
-                self.mk_mutant_dir(&f.to_string())?;
                 let mut new_results = self.mutate_file(f, None, None, None)?;
                 results_json.append(&mut new_results)
             }
