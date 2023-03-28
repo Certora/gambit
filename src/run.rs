@@ -2,21 +2,17 @@ use scanner_rust::{Scanner, ScannerError};
 use std::{
     collections::HashSet,
     error::Error,
+    fs,
     fs::File,
     io::{self, Read},
     path::{Path, PathBuf},
 };
 
-use crate::{
-    ast, canon_path_from_str, get_indent, invoke_command, mutation, next_mid, Mutation,
-    MutationType::{self},
-    SolAST,
-};
+use crate::{ast, get_indent, invoke_command, mutation, next_mid, Mutation, MutationType, SolAST};
 
 /// How many tries for generating mutants.
 pub static MUTANTS_DIR: &str = "mutants";
 static FUNCTIONDEFINITION: &str = "FunctionDefinition";
-static DOT_SOL: &str = ".sol";
 
 /// Data structure performing mutation generation on a single file
 /// TODO: Document this
@@ -47,10 +43,8 @@ impl RunMutations {
     /// Check that the path exists.
     /// TODO: This doesn't seem to do any checking
     fn lkup_mutant_dir(&self) -> io::Result<PathBuf> {
-        let norm_path = canon_path_from_str(&self.filename)?;
-        let mut_dir =
-            PathBuf::from(&self.out).join(MUTANTS_DIR.to_owned() + norm_path.to_str().unwrap());
-        Ok(mut_dir)
+        let mut_dir = &self.out.join("mutants");
+        Ok(mut_dir.clone())
     }
 
     /// Returns the closures for visiting, skipping, and accepting AST nodes.
@@ -121,6 +115,8 @@ impl RunMutations {
         mut is_valid: impl FnMut(&str) -> Result<bool, Box<dyn std::error::Error>>,
         mutations: Vec<(MutationType, SolAST)>,
     ) -> Result<Vec<(PathBuf, serde_json::Value)>, Box<dyn Error>> {
+        let orig_file_name = orig_path.file_name().unwrap();
+
         let (source, source_to_str) = get_source_from_path(orig_path)?;
         // Keep track of all (mutant_path, mutant_json) values we generate
         let mut mutants: Vec<(PathBuf, serde_json::Value)> = vec![];
@@ -148,23 +144,43 @@ impl RunMutations {
                     m
                 };
                 let id = next_mid().to_string();
-                let mut_file = mut_dir.to_str().unwrap().to_owned() + &id + DOT_SOL;
-                let mut_path = Path::new(&mut_file);
+
+                let mut_id_dir = Path::new(&mut_dir).join(&id);
+                if mut_id_dir.is_file() {
+                    log::debug!(
+                        "Mutant Id Directory {} already exists! Removing...",
+                        ansi_term::Colour::Cyan.paint(mut_id_dir.to_str().unwrap())
+                    );
+                    fs::remove_file(&mut_id_dir)?;
+                } else if mut_id_dir.is_dir() {
+                    log::debug!(
+                        "Mutant Id Directory {} already exists! Removing...",
+                        ansi_term::Colour::Cyan.paint(mut_id_dir.to_str().unwrap())
+                    );
+                    fs::remove_dir_all(&mut_id_dir)?;
+                }
+                log::debug!(
+                    "Creating Mutant Id Directory {}",
+                    ansi_term::Colour::Cyan.paint(mut_id_dir.to_str().unwrap())
+                );
+                fs::create_dir_all(&mut_id_dir)?;
+
+                let mut_path = mut_id_dir.join(orig_file_name);
 
                 log::info!(
                     "Found a valid mutant of type {}",
                     ansi_term::Colour::Cyan.paint(mtype.to_string()),
                 );
 
-                std::fs::write(mut_path, &m)?;
+                std::fs::write(mut_path.as_path(), &m)?;
                 log::info!(
                     "{}: Mutant written at {:?}",
                     ansi_term::Colour::Green.paint("SUCCESS"),
-                    mut_path
+                    mut_path.as_path()
                 );
-                let diff = Self::diff_mutant(orig_path, mut_path)?;
+                let diff = Self::diff_mutant(orig_path, mut_path.as_path())?;
                 let mut_json = serde_json::json!({
-                "name" : &mut_file,
+                "name" : mut_path,
                 "description" : mtype.to_string(),
                 "id" : &id,
                 "diff": &diff,
