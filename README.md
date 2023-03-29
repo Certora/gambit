@@ -59,7 +59,7 @@ and no complex dependencies or mutation requirements.
       you provide Solidity's [allowed paths][allowed] to `solc` using the `--allow-paths` argument.
       For example:
       ```bash
-      cargo gambit path/to/file.sol --solc-allowpaths @openzepplin=... --solc-allowpaths ...
+      cargo gambit path/to/file.sol --solc-allowpaths PATH1 --solc-allowpaths PATH2 ...
       ```
     * To run the solidity compiler with optimizations, you can use the `--solc-optimize` flag.
      For example:
@@ -97,9 +97,8 @@ to `gambit benchmarks/10Power/TenPower.sol --solc-remapping @openzepplin=node_mo
 ```
 
 In addition to specifying the command line arguments, you can list the
-specific {ref}`types of mutations <mutation-types>` that you want to apply, the
-specific functions you wish to mutate, and more.  See {ref}`gambit-config` for
-more details, and [the `benchmark/config-jsons` directory][config-examples] for
+specific mutants that you want to apply, the
+specific functions you wish to mutate, and more.  See the [`benchmark/config-jsons` directory][config-examples] for
 examples.
 
 **NOTE: We use the convention that any paths provided by the configuration file
@@ -114,7 +113,7 @@ are resolved relative to the configuration file's parent directory.**
 If you are using Gambit through a configuration file,
 you can localize the mutations to some
 functions and contracts.
-You can also choose which mutations you want (see {ref}`mutation-types` for the list of possible mutations).
+You can also choose which mutations you want.
 Here is an example that shows how to configure these options.
 ```
 [
