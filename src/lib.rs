@@ -15,6 +15,8 @@ use std::{
 
 mod ast;
 pub use ast::*;
+mod compile;
+pub use compile::*;
 mod mutation;
 pub use mutation::*;
 mod mutator;
