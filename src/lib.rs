@@ -17,10 +17,14 @@ mod ast;
 pub use ast::*;
 mod mutation;
 pub use mutation::*;
+mod mutator;
+pub use mutator::*;
 mod filter;
 pub use filter::*;
 mod run;
 pub use run::*;
+mod source;
+pub use source::*;
 mod util;
 pub use util::*;
 
