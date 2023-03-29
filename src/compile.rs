@@ -74,11 +74,14 @@ impl SolcConf {
 
 /// A wrapper around solc. A separate Solc must be created for each compiled file.
 struct Solc {
-    conf: SolcConf,
-    ast_dir: PathBuf,
+    pub conf: SolcConf,
 }
 
 impl Solc {
+    pub fn new(conf: SolcConf) -> Solc {
+        Solc { conf }
+    }
+
     /// Compile a solidity file to an AST
     ///
     /// This method:
