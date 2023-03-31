@@ -8,33 +8,30 @@ use std::{
 };
 
 /// compilation constants
-static TMP: &str = "tmp.sol";
 static INPUT_JSON: &str = "input_json";
-static BASEPATH: &str = "--base-path";
 static ALLOWPATH: &str = "--allow-paths";
 static DOT_JSON: &str = ".json";
 
 /// Compilation configurations. This exists across compilations of individual
 /// files
 #[derive(Debug, Clone)]
-struct SolcConf {
-    solc: String,
+pub struct Solc {
+    /// The solc executable string
+    pub solc: String,
     output_directory: PathBuf,
     basepath: Option<String>,
     allow_paths: Option<Vec<String>>,
     remappings: Option<Vec<String>>,
-    optimize: bool,
 }
 
-impl SolcConf {
-    pub fn new(solc: String, output_directory: PathBuf) -> SolcConf {
-        SolcConf {
+impl Solc {
+    pub fn new(solc: String, output_directory: PathBuf) -> Solc {
+        Solc {
             solc: solc,
             output_directory: output_directory,
             basepath: None,
             allow_paths: None,
             remappings: None,
-            optimize: true,
         }
     }
 
@@ -43,45 +40,18 @@ impl SolcConf {
         self
     }
 
-    pub fn with_allow_paths(&mut self, allow_paths: &mut Vec<String>) -> &Self {
-        match self.allow_paths {
-            None => {
-                let mut paths = vec![];
-                paths.append(allow_paths);
-                self.allow_paths = Some(paths);
-            }
-            Some(mut vec) => {
-                vec.append(allow_paths);
-            }
-        };
-        &self
+    pub fn with_allow_paths(&mut self, allow_paths: Vec<String>) -> &Self {
+        self.allow_paths = Some(allow_paths);
+        self
     }
 
-    pub fn with_remappings(&mut self, remappings: &mut Vec<String>) -> &Self {
-        match self.remappings {
-            None => {
-                let mut remaps = vec![];
-                remaps.append(remappings);
-                self.allow_paths = Some(remaps);
-            }
-            Some(mut vec) => {
-                vec.append(remappings);
-            }
-        };
-        &self
+    pub fn with_remappings(&mut self, remappings: Vec<String>) -> &Self {
+        self.remappings = Some(remappings);
+        self
     }
-}
-
-/// A wrapper around solc. A separate Solc must be created for each compiled file.
-struct Solc {
-    pub conf: SolcConf,
 }
 
 impl Solc {
-    pub fn new(conf: SolcConf) -> Solc {
-        Solc { conf }
-    }
-
     /// Compile a solidity file to an AST
     ///
     /// This method:
@@ -91,9 +61,9 @@ impl Solc {
     /// 3. Copies the AST file to a JSON file in the same directory
     /// 4. Reads the JSON into a SolAST struct and returns it
     pub fn compile(&self, solidity_file: &Path) -> Result<SolAST, Box<dyn error::Error>> {
-        let outdir = self.conf.output_directory;
+        let outdir = &self.output_directory;
         let (ast_dir, ast_path, json_path) = Self::make_ast_dir(solidity_file, outdir.as_path())?;
-        self.invoke_compiler(solidity_file, &ast_dir);
+        self.invoke_compiler(solidity_file, &ast_dir)?;
 
         std::fs::copy(ast_path, &json_path)?;
 
@@ -113,6 +83,7 @@ impl Solc {
         ast_dir: &Path,
     ) -> Result<(), Box<dyn error::Error>> {
         let flags = self.make_compilation_flags(solidity_file, ast_dir);
+        let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
             .iter()
             .map(|x| x.to_string())
@@ -122,11 +93,11 @@ impl Solc {
         log::info!(
             "Invoking solc on {}: `{} {}`",
             solidity_file.display(),
-            self.conf.solc,
+            self.solc,
             pretty_flags,
         );
 
-        let (code, _, _) = invoke_command(&self.conf.solc, flags)?;
+        let (code, _, _) = invoke_command(&self.solc, flags)?;
 
         match code {
             None => {
@@ -137,7 +108,7 @@ impl Solc {
                 if code != 0 {
                     log::error!("Solidity compiler failed unexpectedly.");
                     eprintln!("Solidity compiler failed unexpectedly. For more details, try running the following command from your terminal:");
-                    eprintln!("`{} {}`", &self.conf.solc, pretty_flags);
+                    eprintln!("`{} {}`", &self.solc, pretty_flags);
                     std::process::exit(1)
                 }
             }
@@ -187,30 +158,36 @@ impl Solc {
         Ok((sol_ast_dir, ast_path, json_path))
     }
 
-    fn make_compilation_flags(&self, solidity_file: &Path, ast_dir: &Path) -> Vec<&str> {
-        let mut flags: Vec<&str> = vec![
-            "--ast-compact-json",
-            solidity_file.to_str().unwrap(),
-            "-o", // TODO: Do we do this by default?
-            ast_dir.to_str().unwrap(),
-            "--overwrite",
+    /// Create the compilation flags for compiling `solidity_file` in `ast_dir`
+    ///
+    /// TODO: I'm currently cloning `String`s because of lifetime issues, but I'd
+    /// like to convert this back to `&str`s.
+    fn make_compilation_flags(&self, solidity_file: &Path, ast_dir: &Path) -> Vec<String> {
+        let mut flags: Vec<String> = vec![
+            "--ast-compact-json".into(),
+            "--stop-after".into(),
+            "--parsing".into(),
+            solidity_file.to_str().unwrap().into(),
+            "--output-dir".into(), // TODO: Do we do this by default?
+            ast_dir.to_str().unwrap().into(),
+            "--overwrite".into(),
         ];
 
-        if let Some(basepath) = self.conf.basepath {
-            flags.push(BASEPATH);
-            flags.push(&basepath);
+        if let Some(basepath) = &self.basepath {
+            flags.push("--base-path".into());
+            flags.push(basepath.clone());
         }
 
-        if let Some(allow_paths) = &self.conf.allow_paths {
-            flags.push(ALLOWPATH);
+        if let Some(allow_paths) = &self.allow_paths {
+            flags.push(ALLOWPATH.into());
             for r in allow_paths {
-                flags.push(r);
+                flags.push(r.clone());
             }
         }
 
-        if let Some(remaps) = &self.conf.remappings {
+        if let Some(remaps) = &self.remappings {
             for r in remaps {
-                flags.push(r);
+                flags.push(r.clone());
             }
         }
 
