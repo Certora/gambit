@@ -1,5 +1,4 @@
 use clap::Parser;
-use global_counter::*;
 use serde::{Deserialize, Serialize};
 
 mod ast;
@@ -24,20 +23,6 @@ mod source;
 pub use source::*;
 mod util;
 pub use util::*;
-
-// TODO: This should belong to MutantGenerator
-global_counter!(MUTANT_COUNTER, u64, 0);
-
-/// Produce the next available mutant id and increment the counter
-pub fn next_mid() -> u64 {
-    MUTANT_COUNTER.inc();
-    let id = MUTANT_COUNTER.get_cloned();
-    id
-}
-
-pub fn current_mid() -> u64 {
-    MUTANT_COUNTER.get_cloned()
-}
 
 #[derive(Debug, Clone)]
 pub struct MutantGenerator {
