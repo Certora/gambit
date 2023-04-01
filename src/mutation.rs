@@ -1,7 +1,7 @@
 use crate::{SolAST, Source};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, rc::Rc, string::FromUtf8Error};
+use std::{error, fmt::Display, rc::Rc, string::FromUtf8Error};
 
 /// This struct describes a mutant.
 #[derive(Debug, Clone)]
@@ -11,6 +11,9 @@ pub struct Mutant {
 
     /// The mutation operator that was applied to generate this mutant
     pub op: MutationType,
+
+    /// The string representation of the original node
+    pub orig: String,
 
     /// The index into the program source marking the beginning (inclusive) of
     /// the source to be replaced
@@ -32,9 +35,11 @@ impl Mutant {
         end: usize,
         repl: String,
     ) -> Mutant {
+        let orig = String::from_utf8(source.contents()[start..end].to_vec()).unwrap();
         Mutant {
             source,
             op,
+            orig,
             start,
             end,
             repl,
@@ -48,6 +53,10 @@ impl Mutant {
 
         let res = [prelude, &self.repl.as_bytes(), postlude].concat();
         String::from_utf8(res)
+    }
+
+    pub fn get_line_column(&self) -> Result<(usize, usize), Box<dyn error::Error>> {
+        self.source.get_line_column(self.start)
     }
 }
 

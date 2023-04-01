@@ -1,4 +1,5 @@
 use crate::Mutant;
+use csv::Writer;
 use std::error;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -36,6 +37,7 @@ impl MutantWriter {
         }
     }
 
+    /// Write and log mutants based on `self`'s parameters
     pub fn write_mutants(&self, mutants: &[Mutant]) -> Result<(), Box<dyn error::Error>> {
         let mutants_dir = self.outdir.join("mutants");
 
@@ -45,9 +47,9 @@ impl MutantWriter {
             fs::remove_dir_all(mutants_dir.clone())?;
         }
 
-        for (i, mutant) in mutants.iter().enumerate() {
-            let mid = i + 1;
-            if self.export_mutants {
+        if self.export_mutants {
+            for (i, mutant) in mutants.iter().enumerate() {
+                let mid = i + 1;
                 let this_mutant_dir = &mutants_dir.join(Path::new(&mid.to_string()));
                 fs::create_dir_all(this_mutant_dir)?;
                 let filename = mutant.source.filename().file_name().unwrap();
@@ -56,8 +58,32 @@ impl MutantWriter {
                 let mutant_contents = mutant.as_source_file()?;
                 fs::write(filename, mutant_contents)?;
             }
-            if self.log_mutants {
-                // todo
+        }
+
+        // Log format:
+        // 1. Mutant ID
+        // 2. Operator
+        // 3. File
+        // 4. line:column
+        // 5. Initial
+        // 6. To
+
+        if self.log_mutants {
+            let mutants_log = self.outdir.join("mutants.log");
+            let mut w = Writer::from_path(mutants_log)?;
+
+            for (i, mutant) in mutants.iter().enumerate() {
+                let mid = i + 1;
+                let (lineno, colno) = mutant.get_line_column()?;
+                let line_col = format!("{}:{}", lineno, colno);
+                w.write_record(&[
+                    mid.to_string().as_str(),
+                    mutant.op.to_string().as_str(),
+                    mutant.source.filename().to_str().unwrap(),
+                    line_col.as_str(),
+                    mutant.orig.as_str(),
+                    mutant.repl.as_str(),
+                ])?;
             }
         }
         Ok(())
