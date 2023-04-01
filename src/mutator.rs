@@ -21,6 +21,17 @@ pub struct MutatorConf {
     /// c`. When this is `None` then no constraints are given.
     pub contract: Option<String>,
 }
+
+impl From<&MutateParams> for MutatorConf {
+    fn from(mutate_params: &MutateParams) -> Self {
+        MutatorConf {
+            mutation_operators: MutationType::default_mutation_operators(),
+            funcs_to_mutate: mutate_params.fns_to_mutate.clone(),
+            contract: mutate_params.contract_to_mutate.clone(),
+        }
+    }
+}
+
 /// The mutator performs the actual logic of mutating a program, writes
 #[derive(Debug)]
 pub struct Mutator {
@@ -97,16 +108,6 @@ impl Mutator {
     /// Check if a node in the AST is an assert.
     pub fn is_assert_call(node: &SolAST) -> bool {
         node.name().map_or_else(|| false, |n| n == "assert")
-    }
-}
-
-impl From<&MutateParams> for MutatorConf {
-    fn from(mutate_params: &MutateParams) -> Self {
-        MutatorConf {
-            mutation_operators: MutationType::default_mutation_operators(),
-            funcs_to_mutate: None,
-            contract: None,
-        }
     }
 }
 
