@@ -1,4 +1,4 @@
-use crate::{Mutant, Source};
+use crate::Mutant;
 use std::error;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -46,7 +46,6 @@ impl MutantWriter {
                 fs::create_dir_all(this_mutant_dir)?;
                 let filename = mutant.source.filename().file_name().unwrap();
                 let filename = this_mutant_dir.join(filename);
-                println!("{:?}", filename);
 
                 let mutant_contents = mutant.as_source_file()?;
                 fs::write(filename, mutant_contents)?;
