@@ -74,7 +74,6 @@ impl Source {
             .rev()
             .find(|(_, nlpos)| nlpos < &&pos)
         {
-            println!("pos: {}, lineno: {}, nlpos: {}", pos, lineno, nlpos);
             let columnno = pos - nlpos + 1;
             Ok((lineno + 2, columnno))
         } else if &pos < newlines.get(0).unwrap() {
