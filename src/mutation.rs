@@ -1,29 +1,81 @@
-use crate::SolAST;
+use crate::{SolAST, Source};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
+use std::{fmt::Display, rc::Rc, string::FromUtf8Error};
+
+/// This struct describes a mutant.
+#[derive(Debug, Clone)]
+pub struct Mutant {
+    /// The original program's source
+    pub source: Rc<Source>,
+
+    /// The mutation operator that was applied to generate this mutant
+    pub op: MutationType,
+
+    /// The index into the program source marking the beginning (inclusive) of
+    /// the source to be replaced
+    pub start: usize,
+
+    /// The index into the program source marking the end (inclusive) of the
+    /// source to be replaced
+    pub end: usize,
+
+    /// The string replacement
+    pub repl: String,
+}
+
+impl Mutant {
+    pub fn new(
+        source: Rc<Source>,
+        op: MutationType,
+        start: usize,
+        end: usize,
+        repl: String,
+    ) -> Mutant {
+        Mutant {
+            source,
+            op,
+            start,
+            end,
+            repl,
+        }
+    }
+
+    pub fn as_source_file(&self) -> Result<String, FromUtf8Error> {
+        let contents = self.source.contents();
+        let prelude = &contents[0..self.start];
+        let postlude = &contents[self.end..contents.len()];
+
+        let res = [prelude, &self.repl.as_bytes(), postlude].concat();
+        String::from_utf8(res)
+    }
+}
+
+impl Display for Mutant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let contents = self.source.contents();
+        let (start, end) = (self.start, self.end);
+        let orig = &contents[start..end];
+        let repl = &self.repl;
+        write!(
+            f,
+            "{}: {} |==> {}",
+            self.op.to_string(),
+            String::from_utf8_lossy(orig),
+            repl
+        )
+    }
+}
 
 /// Every kind of mutation implements this trait.
 ///
-/// `is_mutation_point` determines whether a node in the AST
-/// is a valid node for performing a certain `MutationType`.
-///
-/// `mutate_randomly` mutates such nodes by randomly selecting
-/// one of many possible ways to perform `MutationType`.
-///
-/// For example, consider the `BinaryOpMutation` `MutationType`.
-/// The method `is_mutation_point` for this mutation checks where the
-/// node under question has the `node_type` `BinaryOperation`.
-///
-/// `mutate_randomly` for this mutation will randomly pick one
-/// of many binary operators supported in Solidity (e.g., +, -, *, /, **, ...])
-/// and apply it at the source location of the original binary operator.
-///
+/// TODO: Document
 pub trait Mutation {
     /// Check if this mutation applies to this AST node
-    fn is_mutation_point(&self, node: &SolAST) -> bool;
+    fn applies_to(&self, node: &SolAST) -> bool;
 
     /// Generate all mutants of a given node by this agent
-    fn mutate(&self, node: &SolAST, source: &[u8]) -> Vec<String>;
+    fn mutate(&self, node: &SolAST, source: Rc<Source>) -> Vec<Mutant>;
 }
 
 /// Kinds of mutations.
@@ -60,33 +112,6 @@ pub enum MutationType {
     UnaryOperatorMutation,
 }
 
-/// Apply a set of replacements to a node. This is a helper function used for
-/// the `MutationType.mutate`: it iterates through all provided replacements and
-/// replaces the occurence of the given AST node in source with each
-/// replacement, returning a vec of mutants
-fn apply_replacements(source: &[u8], node: &SolAST, replacements: &[&str]) -> Vec<String> {
-    return replacements
-        .iter()
-        .map(|r| node.replace_in_source(source, r.to_string()))
-        .collect();
-}
-
-/// Apply a set of replacements to a node with explicit bounds. This is a helper
-/// function used for the `MutationType.mutate` for, e.g., operators where we
-/// don't want to replace the entire node.
-fn apply_replacements_to_bounds(
-    source: &[u8],
-    node: &SolAST,
-    replacements: &[&str],
-    start: usize,
-    end: usize,
-) -> Vec<String> {
-    return replacements
-        .iter()
-        .map(|r| node.replace_part(source, r.to_string(), start, end))
-        .collect();
-}
-
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
@@ -106,7 +131,7 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
-    fn is_mutation_point(&self, node: &SolAST) -> bool {
+    fn applies_to(&self, node: &SolAST) -> bool {
         match self {
             MutationType::AssignmentMutation => {
                 if let Some(n) = node.node_type() {
@@ -196,8 +221,8 @@ impl Mutation for MutationType {
     /// * `node` - The Solidity AST node to mutate
     /// * `source` - The original source file: we use this to generate a new
     ///   source file
-    fn mutate(&self, node: &SolAST, source: &[u8]) -> Vec<String> {
-        if !self.is_mutation_point(node) {
+    fn mutate(&self, node: &SolAST, source: Rc<Source>) -> Vec<Mutant> {
+        if !self.applies_to(node) {
             return vec![];
         }
         match self {
@@ -206,23 +231,38 @@ impl Mutation for MutationType {
                 // TODO: filter replacements by mutation type
 
                 let rhs = node.right_hand_side();
-                apply_replacements(source, &rhs, &replacements)
+                let (s, e) = rhs.get_bounds();
+                replacements
+                    .iter()
+                    .map(|r| Mutant::new(source.clone(), self.clone(), s, e, r.to_string()))
+                    .collect()
             }
             MutationType::BinaryOpMutation => {
                 let ops = vec!["+", "-", "*", "/", "%", "**"];
                 // TODO: Check for types?
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
-                apply_replacements_to_bounds(source, node, &ops, endl, startr)
+                ops.iter()
+                    .map(|op| {
+                        Mutant::new(source.clone(), self.clone(), endl, startr, op.to_string())
+                    })
+                    .collect()
             }
 
             // TODO: Delete expression or delete a statement?
-            MutationType::DeleteExpressionMutation => vec![node.comment_out(source)],
+            MutationType::DeleteExpressionMutation => vec![], // panic!(), // vec![node.comment_out(source)],
 
             MutationType::ElimDelegateMutation => {
                 let (_, endl) = node.expression().expression().get_bounds();
                 let (_, endr) = node.expression().get_bounds();
-                vec![node.replace_part(source, "call".to_string(), endl + 1, endr)]
+
+                vec![Mutant::new(
+                    source,
+                    self.clone(),
+                    endl + 1,
+                    endr,
+                    "call".to_string(),
+                )]
             }
 
             // TODO: Should we enable this? I'm not sure if this is the best mutation operator
@@ -239,13 +279,23 @@ impl Mutation for MutationType {
             MutationType::IfStatementMutation => {
                 let cond = node.condition();
                 let bs = vec!["true", "false"];
+                let (start, end) = cond.get_bounds();
 
-                apply_replacements(source, &cond, &bs)
+                bs.iter()
+                    .map(|r| Mutant::new(source.clone(), self.clone(), start, end, r.to_string()))
+                    .collect()
             }
 
             MutationType::RequireMutation => {
                 let arg = &node.arguments()[0];
-                vec![arg.replace_in_source(source, "!(".to_string() + &arg.get_text(source) + ")")]
+                let (start, end) = arg.get_bounds();
+                vec![Mutant::new(
+                    source.clone(),
+                    self.clone(),
+                    start,
+                    end,
+                    "!(".to_string() + &arg.get_text(source.contents()) + ")",
+                )]
             }
 
             MutationType::SwapArgumentsFunctionMutation => {
@@ -272,15 +322,8 @@ impl Mutation for MutationType {
             }
 
             MutationType::SwapArgumentsOperatorMutation => {
-                let left = node.left_expression();
-                let right = node.right_expression();
-                vec![node.replace_multiple(
-                    source,
-                    vec![
-                        (left.clone(), right.get_text(source)),
-                        (right, left.get_text(source)),
-                    ],
-                )]
+                // TODO: I've removed this for now since I think this is highly likely to be equivalent
+                vec![]
             }
 
             MutationType::UnaryOperatorMutation => {
@@ -290,13 +333,37 @@ impl Mutation for MutationType {
                 let op = node
                     .operator()
                     .expect("Unary operation must have an operator!");
-                let is_prefix = source[0] == op.as_bytes()[0];
-                if is_prefix {
-                    apply_replacements_to_bounds(source, node, &prefix_ops, start, start + op.len())
+                let is_prefix = source.contents()[start] == op.as_bytes()[0];
+
+                let replacements = if is_prefix { prefix_ops } else { suffix_ops };
+                let (start, end) = if is_prefix {
+                    (start, start + op.len())
                 } else {
-                    apply_replacements_to_bounds(source, node, &suffix_ops, end - op.len(), end)
-                }
+                    (end - op.len(), end)
+                };
+
+                replacements
+                    .iter()
+                    .map(|r| Mutant::new(source.clone(), self.clone(), start, end, r.to_string()))
+                    .collect()
             }
         }
+    }
+}
+
+impl MutationType {
+    pub fn default_mutation_operators() -> Vec<MutationType> {
+        vec![
+            MutationType::AssignmentMutation,
+            MutationType::BinaryOpMutation,
+            MutationType::DeleteExpressionMutation,
+            MutationType::ElimDelegateMutation,
+            MutationType::FunctionCallMutation,
+            MutationType::IfStatementMutation,
+            MutationType::RequireMutation,
+            // MutationType::SwapArgumentsFunctionMutation,
+            MutationType::SwapArgumentsOperatorMutation,
+            MutationType::UnaryOperatorMutation,
+        ]
     }
 }

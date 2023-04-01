@@ -1,25 +1,29 @@
-use crate::{read_source, SolAST};
-use std::error;
+use crate::read_source;
+use std::{
+    error,
+    path::{Path, PathBuf},
+};
 
-/// A source file to be mutated, including all of its different representations.
-/// Each source file has a single `Source` associated with it, and intermediate
-/// results (e.g, the `contents` and the `ast`), are cached here as they are
-/// computed during mutation.
+/// A source file, including its name and its contents, to be mutated
+#[derive(Debug)]
 pub struct Source {
-    filename: String,
-    contents: Option<Vec<u8>>,
-    ast: Option<SolAST>,
+    filename: PathBuf,
+    contents: Vec<u8>,
 }
 
 impl Source {
-    pub fn contents(&mut self) -> Result<&[u8], Box<dyn error::Error>> {
-        match self.contents {
-            None => {
-                let contents = read_source(self.filename)?;
-                self.contents = Some(contents);
-                Ok(&self.contents)
-            }
-            Some(contents) => Ok(&contents),
-        }
+    pub fn new(filename: PathBuf) -> Result<Source, Box<dyn error::Error>> {
+        let contents = read_source(&filename)?;
+        Ok(Source { filename, contents })
+    }
+
+    /// Get the filename of this source
+    pub fn filename(&self) -> &Path {
+        self.filename.as_path()
+    }
+
+    /// Get the contents of this source, computing from `filename` if necessary
+    pub fn contents(&self) -> &[u8] {
+        &self.contents
     }
 }

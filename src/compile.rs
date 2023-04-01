@@ -71,7 +71,6 @@ impl Solc {
         let ast_json: Value = serde_json::from_reader(json_f)?;
         Ok(SolAST {
             element: Some(ast_json),
-            contract: None,
         })
     }
 
@@ -166,7 +165,7 @@ impl Solc {
         let mut flags: Vec<String> = vec![
             "--ast-compact-json".into(),
             "--stop-after".into(),
-            "--parsing".into(),
+            "parsing".into(),
             solidity_file.to_str().unwrap().into(),
             "--output-dir".into(), // TODO: Do we do this by default?
             ast_dir.to_str().unwrap().into(),

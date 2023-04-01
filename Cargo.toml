@@ -18,6 +18,7 @@ env_logger = { version = "0.10.0", default-features = false }
 log = "0.4"
 rand_pcg = "0.3.0"
 rand = { version = "0.8.5", features = ["std"] }
+rand_chacha = "0.3.1"
 itertools = "0.10.5"
 regex = "1"
 scanner-rust = "2.0.16"

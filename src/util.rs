@@ -1,4 +1,9 @@
-use std::{error::Error, io, path::PathBuf};
+use std::{
+    error::Error,
+    fs::File,
+    io::{self, Read},
+    path::{Path, PathBuf},
+};
 
 static EQUAL: &str = "=";
 
@@ -189,4 +194,11 @@ mod tests {
         let res = "@aave=/Test/aave-gho/node_modules/@aave";
         assert_eq!(repair_remapping(aave, base), res)
     }
+}
+
+pub fn read_source(orig_path: &Path) -> Result<Vec<u8>, Box<dyn Error>> {
+    let mut source = Vec::new();
+    let mut f = File::open(orig_path)?;
+    f.read_to_end(&mut source)?;
+    Ok(source)
 }

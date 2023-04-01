@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use regex::Regex;
 use serde::Deserialize;
 use serde_json::Value;
@@ -25,12 +24,6 @@ impl TypeDescriptions {
     }
 }
 
-struct Replacement {
-    start: usize,
-    end: usize,
-    new: String,
-}
-
 /// Solidity AST representation.
 ///
 /// There are two fields, `element` which is the underlying json object
@@ -40,22 +33,15 @@ struct Replacement {
 #[serde(default)]
 pub struct SolAST {
     pub(crate) element: Option<Value>,
-    pub(crate) contract: Option<String>,
 }
 
 impl SolAST {
     /// Create a new AST node.
-    pub fn new(v: Value, c: Option<String>) -> Self {
+    pub fn new(v: Value) -> Self {
         if v.is_null() {
-            Self {
-                element: None,
-                contract: None,
-            }
+            Self { element: None }
         } else {
-            Self {
-                element: Some(v),
-                contract: c,
-            }
+            Self { element: Some(v) }
         }
     }
 
@@ -64,22 +50,13 @@ impl SolAST {
         self.element.clone()
     }
 
-    /// Return the `contract` field of a `SolAST` struct.
-    pub fn get_contract(&self) -> Option<String> {
-        self.contract.clone()
-    }
-
     /// Return some node of this AST that has the field name `fnm` in the json
     /// representation.
     pub fn get_node(&self, fnm: &str) -> SolAST {
         let node: SolAST = self.get_object().map_or_else(
-            || SolAST {
-                element: None,
-                contract: self.get_contract(),
-            },
+            || SolAST { element: None },
             |v| SolAST {
                 element: Some(v[fnm].clone()),
-                contract: self.get_contract(),
             },
         );
         node
@@ -151,10 +128,7 @@ impl SolAST {
             Some(v) => {
                 let arg = &v["arguments"].as_array();
                 match arg {
-                    Some(lst) => lst
-                        .iter()
-                        .map(|e| Self::new(e.clone(), self.contract.clone()))
-                        .collect(),
+                    Some(lst) => lst.iter().map(|e| Self::new(e.clone())).collect(),
                     None => vec![],
                 }
             }
@@ -169,10 +143,7 @@ impl SolAST {
             Some(v) => {
                 let arg = &v["statements"].as_array();
                 match arg {
-                    Some(lst) => lst
-                        .iter()
-                        .map(|e| Self::new(e.clone(), self.contract.clone()))
-                        .collect(),
+                    Some(lst) => lst.iter().map(|e| Self::new(e.clone())).collect(),
                     None => vec![],
                 }
             }
@@ -211,17 +182,9 @@ impl SolAST {
     /// * `visitor` - see [`run::RunMutations::mk_closures()`]
     /// * `skip` - see [`run::RunMutations::mk_closures()`]
     /// * `accept` - see [`run::RunMutations::mk_closures()`]
-    pub fn traverse<T, F>(
-        self,
-        mut visitor: F,
-        mut skip: impl Fn(&SolAST) -> bool,
-        mut accept: impl Fn(&SolAST) -> bool,
-    ) -> Vec<T>
-    where
-        F: FnMut(&SolAST) -> Option<T>,
-    {
+    pub fn traverse<A, T>(self, visitor: &dyn SolASTVisitor<A, T>, arg: A) -> Vec<T> {
         let mut result: Vec<T> = vec![];
-        self.traverse_internal(&mut visitor, &mut skip, &mut accept, false, &mut result);
+        self.traverse_internal(visitor, &arg, &mut result);
         result
     }
 
@@ -236,32 +199,18 @@ impl SolAST {
     ///   value is monotonic as we descend an AST: it begins as false but once
     ///   set to true will be true for all recursive calls
     /// * `acc` - TODO: ?
-    fn traverse_internal<T>(
-        mut self,
-        visitor: &mut impl FnMut(&SolAST) -> Option<T>,
-        skip: &mut impl FnMut(&SolAST) -> bool,
-        accept: &mut impl FnMut(&SolAST) -> bool,
-        accepted: bool,
+    fn traverse_internal<A, T>(
+        &self,
+        visitor: &dyn SolASTVisitor<A, T>,
+        arg: &A,
         acc: &mut Vec<T>,
     ) {
-        if skip(&self) {
+        if visitor.skip_node(self, &arg) {
             return;
         }
 
-        // NOTE: So I think I understand what's happening here. We are
-        // traversing the AST until we see a node that matches a function we
-        // want to mutate. We then recursively mutate all nodes inside of that.
-        //
-        // A possible optimization is to abort early if we see a function we are
-        // _not_ mutating?
-        let accepted = accepted || accept(&self);
-
-        // If we have been accepted, mutate this node with all applicable
-        // mutation operators
-        if accepted {
-            if let Some(r) = visitor(&self) {
-                acc.push(r)
-            }
+        if let Some(result) = visitor.visit_node(self, &arg) {
+            acc.push(result);
         }
 
         if self.element.is_none() {
@@ -271,18 +220,17 @@ impl SolAST {
         let e = self.element.as_ref().unwrap();
         if e.is_object() {
             let e_obj = e.as_object().unwrap();
-            if e_obj.contains_key("contractKind") {
-                self.contract = e["name"].as_str().map(|nm| nm.to_string());
-            }
+
+            // TODO: We are _cloning_ entire ASTs! This is no bueno!
             for v in e_obj.values() {
-                let child: SolAST = SolAST::new(v.clone(), self.contract.clone());
-                child.traverse_internal(visitor, skip, accept, accepted, acc);
+                let child: SolAST = SolAST::new(v.clone());
+                child.traverse_internal(visitor, arg, acc);
             }
         } else if e.is_array() {
             let e_arr = e.as_array().unwrap();
             for a in e_arr {
-                let child: SolAST = SolAST::new(a.clone(), self.contract.clone());
-                child.traverse_internal(visitor, skip, accept, accepted, acc);
+                let child: SolAST = SolAST::new(a.clone());
+                child.traverse_internal(visitor, arg, acc);
             }
         }
     }
@@ -324,36 +272,6 @@ impl SolAST {
         String::from_utf8(res).expect("Slice is not u8.")
     }
 
-    /// This method is used for "swap" mutations to swap lines of code,
-    /// arguments to functions, or arguments to binary operators.
-    /// See `MutationType` for more details on which mutantion types use this.
-    pub fn replace_multiple(&self, source: &[u8], reps: Vec<(SolAST, String)>) -> String {
-        let sorted = reps
-            .iter()
-            .map(|(node, n)| {
-                let (s, e) = node.get_bounds();
-                Replacement {
-                    start: s,
-                    end: e,
-                    new: n.into(),
-                }
-            })
-            .sorted_by_key(|x| x.start);
-        let mut new_src = source.to_vec();
-        let mut curr_offset = 0;
-        for r in sorted {
-            let actual_start = r.start.wrapping_add(curr_offset);
-            let actual_end = r.end.wrapping_add(curr_offset);
-            let replace_bytes = r.new.as_bytes();
-            let new_start = &new_src[0..actual_start];
-            let new_end = &new_src[actual_end..new_src.len()];
-            new_src = [new_start, replace_bytes, new_end].concat();
-            let new_offset = replace_bytes.len().wrapping_sub(r.end - r.start);
-            curr_offset = curr_offset.wrapping_add(new_offset);
-        }
-        String::from_utf8(new_src.to_vec()).expect("Slice new_src is not u8.")
-    }
-
     /// This method is used for mutations that comment out
     /// some piece of code using block comments.
     pub fn comment_out(&self, source: &[u8]) -> String {
@@ -375,5 +293,17 @@ impl SolAST {
             start,
             end,
         )
+    }
+}
+
+/// Implement this to traverse an AST
+pub trait SolASTVisitor<A, R> {
+    /// Performs logic on a given node
+    fn visit_node(&self, node: &SolAST, arg: &A) -> Option<R>;
+
+    /// Determines if this node should not be recursively visited. If `true`,
+    /// this will not be visited, nor will its children
+    fn skip_node(&self, _node: &SolAST, _arg: &A) -> bool {
+        false
     }
 }
