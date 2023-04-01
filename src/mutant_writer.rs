@@ -15,9 +15,15 @@ pub struct OutputDirectoryStructure {
     mutants: Vec<PathBuf>,
 }
 
+/// This struct is responsible for logging and exporting mutants
 pub struct MutantWriter {
+    /// The output directory to write mutants to
     outdir: PathBuf,
+
+    /// Should mutants be logged to outdir/mutants.log?
     log_mutants: bool,
+
+    /// Should mutant sources be written to disk?
     export_mutants: bool,
 }
 
