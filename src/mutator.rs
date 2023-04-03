@@ -6,8 +6,7 @@ use crate::{
 };
 use std::{error, path::PathBuf, rc::Rc};
 
-/// The configuration for a mutator, this details how a given mutation run
-/// should operate
+/// The configuration for a mutator, this specifies the details of mutation
 #[derive(Debug, Clone)]
 pub struct MutatorConf {
     /// Mutation operators to apply during mutation
