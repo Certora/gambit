@@ -62,6 +62,10 @@ impl SolAST {
         node
     }
 
+    pub fn is_literal(&self) -> bool {
+        self.node_kind() == Some("Literal".into())
+    }
+
     /// A helper that is used in various places to get the value of some
     /// field name (`fnm`) in the AST's `element`.
     pub fn get_string(&self, fnm: &str) -> Option<String> {
@@ -88,6 +92,10 @@ impl SolAST {
     /// Returns the `node_type` field.
     pub fn node_type(&self) -> Option<String> {
         self.get_string("nodeType")
+    }
+
+    pub fn node_kind(&self) -> Option<String> {
+        self.get_string("kind")
     }
 
     /// Returns the `expression` field.
