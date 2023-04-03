@@ -236,10 +236,25 @@ impl Mutation for MutationType {
         }
         match self {
             MutationType::AssignmentMutation => {
-                let replacements = vec!["true", "false", "0", "1"];
-                // TODO: filter replacements by mutation type
-
                 let rhs = node.right_hand_side();
+                let node_kind = rhs.node_kind();
+                let orig = rhs.get_text(source.contents());
+                let replacements: Vec<&str> = if let Some(kind) = node_kind {
+                    if &kind == "bool" {
+                        vec!["true", "false"]
+                    } else if &kind == "number" {
+                        vec!["-1", "0", "1"]
+                    } else {
+                        vec!["0"]
+                    }
+                } else {
+                    vec!["0"]
+                }
+                .iter()
+                .filter(|v| *v != &orig)
+                .map(|v| *v)
+                .collect();
+
                 let (s, e) = rhs.get_bounds();
                 replacements
                     .iter()
@@ -247,8 +262,13 @@ impl Mutation for MutationType {
                     .collect()
             }
             MutationType::BinaryOpMutation => {
-                let ops = vec!["+", "-", "*", "/", "%", "**"];
-                // TODO: Check for types?
+                let orig = node.get_text(source.contents());
+                let ops: Vec<&str> = vec!["+", "-", "*", "/", "%", "**"]
+                    .iter()
+                    .filter(|v| *v != &orig)
+                    .map(|v| *v)
+                    .collect();
+
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 ops.iter()
@@ -259,8 +279,16 @@ impl Mutation for MutationType {
             }
 
             // TODO: Delete expression or delete a statement?
-            MutationType::DeleteExpressionMutation => vec![], // panic!(), // vec![node.comment_out(source)],
-
+            MutationType::DeleteExpressionMutation => {
+                let (start, end) = node.get_bounds();
+                vec![Mutant::new(
+                    source.clone(),
+                    self.clone(),
+                    start,
+                    end,
+                    ";".into(),
+                )]
+            }
             MutationType::ElimDelegateMutation => {
                 let (_, endl) = node.expression().expression().get_bounds();
                 let (_, endr) = node.expression().get_bounds();
@@ -287,7 +315,13 @@ impl Mutation for MutationType {
 
             MutationType::IfStatementMutation => {
                 let cond = node.condition();
-                let bs = vec!["true", "false"];
+                let orig = node.get_text(source.contents());
+                let bs: Vec<&str> = vec!["true", "false"]
+                    .iter()
+                    .filter(|v| *v != &orig)
+                    .map(|v| *v)
+                    .collect();
+
                 let (start, end) = cond.get_bounds();
 
                 bs.iter()
@@ -344,7 +378,11 @@ impl Mutation for MutationType {
                     .expect("Unary operation must have an operator!");
                 let is_prefix = source.contents()[start] == op.as_bytes()[0];
 
-                let replacements = if is_prefix { prefix_ops } else { suffix_ops };
+                let replacements: Vec<&str> = if is_prefix { prefix_ops } else { suffix_ops }
+                    .iter()
+                    .filter(|v| *v != &op)
+                    .map(|v| *v)
+                    .collect();
                 let (start, end) = if is_prefix {
                     (start, start + op.len())
                 } else {
