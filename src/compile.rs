@@ -96,16 +96,21 @@ impl Solc {
             pretty_flags,
         );
 
-        let (code, _, _) = invoke_command(&self.solc, flags)?;
+        let (code, stdout, stderr) = invoke_command(&self.solc, flags)?;
 
         match code {
             None => {
-                log::error!("Solc termianted with a signal");
+                eprintln!("Solc terminated with a singal");
+                eprintln!("  stderr: {}", String::from_utf8_lossy(&stderr));
+                eprintln!("  stdout: {}", String::from_utf8_lossy(&stdout));
+                log::error!("Solc terminated with a signal");
                 return Err("Solc terminated with a signal".into());
             }
             Some(code) => {
                 if code != 0 {
                     log::error!("Solidity compiler failed unexpectedly.");
+                    eprintln!("  stderr: {}", String::from_utf8_lossy(&stderr));
+                    eprintln!("  stdout: {}", String::from_utf8_lossy(&stdout));
                     eprintln!("Solidity compiler failed unexpectedly. For more details, try running the following command from your terminal:");
                     eprintln!("`{} {}`", &self.solc, pretty_flags);
                     std::process::exit(1)
