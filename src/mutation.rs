@@ -90,34 +90,15 @@ pub trait Mutation {
 /// Kinds of mutations.
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
-    /// TODO: document this mutation operator
     AssignmentMutation,
-
-    /// TODO: document this mutation operator
     BinOpMutation,
-
-    /// TODO: document this mutation operator
     DeleteExpressionMutation,
-
-    /// TODO: document this mutation operator
     ElimDelegateMutation,
-
-    /// TODO: document this mutation operator
     FunctionCallMutation,
-
-    /// TODO: document this mutation operator
     IfCondMutation,
-
-    /// TODO: document this mutation operator
     RequireMutation,
-
-    /// TODO: document this mutation operator
     SwapArgumentsFunctionMutation,
-
-    /// TODO: document this mutation operator
     SwapArgumentsOperatorMutation,
-
-    /// TODO: document this mutation operator
     UnOpMutation,
 }
 
