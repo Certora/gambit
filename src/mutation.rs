@@ -317,10 +317,10 @@ impl Mutation for MutationType {
 
             MutationType::IfStatementMutation => {
                 let cond = node.condition();
-                let orig = node.get_text(source.contents());
+                let orig = cond.get_text(source.contents());
                 let bs: Vec<&str> = vec!["true", "false"]
                     .iter()
-                    .filter(|v| *v != &orig)
+                    .filter(|v| !orig.eq(*v))
                     .map(|v| *v)
                     .collect();
 
@@ -333,14 +333,16 @@ impl Mutation for MutationType {
 
             MutationType::RequireMutation => {
                 let arg = &node.arguments()[0];
+                let orig = arg.get_text(source.contents());
+                let bs: Vec<&str> = vec!["true", "false"]
+                    .iter()
+                    .filter(|v| !orig.eq(*v))
+                    .map(|v| *v)
+                    .collect();
                 let (start, end) = arg.get_bounds();
-                vec![Mutant::new(
-                    source.clone(),
-                    self.clone(),
-                    start,
-                    end,
-                    "!(".to_string() + &arg.get_text(source.contents()) + ")",
-                )]
+                bs.iter()
+                    .map(|r| Mutant::new(source.clone(), self.clone(), start, end, r.to_string()))
+                    .collect()
             }
 
             MutationType::SwapArgumentsFunctionMutation => {
@@ -374,15 +376,16 @@ impl Mutation for MutationType {
             MutationType::UnaryOperatorMutation => {
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
-                let (start, end) = node.get_bounds();
+
                 let op = node
                     .operator()
                     .expect("Unary operation must have an operator!");
-                let is_prefix = source.contents()[start] == op.as_bytes()[0];
 
+                let (start, end) = node.get_bounds();
+                let is_prefix = source.contents()[start] == op.as_bytes()[0];
                 let replacements: Vec<&str> = if is_prefix { prefix_ops } else { suffix_ops }
                     .iter()
-                    .filter(|v| *v != &op)
+                    .filter(|v| !op.eq(*v))
                     .map(|v| *v)
                     .collect();
                 let (start, end) = if is_prefix {
@@ -464,6 +467,76 @@ mod test {
         assert_exact_mutants(&vec!["uint256 x = 1 / 2;"], &ops, &without("/"));
         assert_exact_mutants(&vec!["uint256 x = 1 % 2;"], &ops, &without("%"));
         assert_exact_mutants(&vec!["uint256 x = 1 ** 2;"], &ops, &without("**"));
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![DeleteExpressionMutation];
+        assert_exact_mutants(&vec!["foo();"], &ops, &vec![";"]);
+        assert_exact_mutants(&vec!["x = 3;"], &ops, &vec![";"]);
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_elim_delegate_mutation() -> Result<(), Box<dyn error::Error>> {
+        let _ops = vec![ElimDelegateMutation];
+        // TODO: how should I test this?
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_function_call_mutation() -> Result<(), Box<dyn error::Error>> {
+        let _ops = vec![FunctionCallMutation];
+        // TODO: how should I test this?
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![IfStatementMutation];
+        assert_num_mutants(&vec!["if (true) { x = 1; } else { x = 2 ;}"], &ops, 1);
+        assert_num_mutants(&vec!["if (true) {}"], &ops, 1);
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_require_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![RequireMutation];
+        assert_num_mutants(&vec!["require(c);"], &ops, 2);
+        assert_num_mutants(&vec!["require(true);"], &ops, 1);
+        assert_num_mutants(&vec!["require(a && b);"], &ops, 2);
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_unary_op_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![UnaryOperatorMutation];
+        let prefix = vec!["++", "--", "~"];
+        let suffix = vec!["++", "--"];
+
+        // Closure to drop the given operator for he set of replacements
+        let without_prefix = |s: &str| {
+            let r: Vec<&str> = prefix
+                .iter()
+                .filter(|r| !s.eq(**r))
+                .map(|s| s.clone())
+                .collect();
+            r
+        };
+        let without_suffix = |s: &str| {
+            let r: Vec<&str> = suffix
+                .iter()
+                .filter(|r| !s.eq(**r))
+                .map(|s| s.clone())
+                .collect();
+            r
+        };
+        assert_exact_mutants(&vec!["uint256 x = ++a;"], &ops, &without_prefix("++"));
+        assert_exact_mutants(&vec!["uint256 x = --a;"], &ops, &without_prefix("--"));
+        assert_exact_mutants(&vec!["uint256 x = ~a;"], &ops, &without_prefix("~"));
+        assert_exact_mutants(&vec!["uint256 x = a--;"], &ops, &without_suffix("--"));
+        assert_exact_mutants(&vec!["uint256 x = a++;"], &ops, &without_suffix("++"));
         Ok(())
     }
 
