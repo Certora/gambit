@@ -106,7 +106,7 @@ pub enum MutationType {
     FunctionCallMutation,
 
     /// TODO: document this mutation operator
-    IfStatementMutation,
+    IfCondMutation,
 
     /// TODO: document this mutation operator
     RequireMutation,
@@ -129,7 +129,7 @@ impl ToString for MutationType {
             MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
-            MutationType::IfStatementMutation => "IfStatementMutation",
+            MutationType::IfCondMutation => "IfStatementMutation",
             MutationType::RequireMutation => "RequireMutation",
             MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
@@ -178,7 +178,7 @@ impl Mutation for MutationType {
                     return n == "FunctionCall" && !node.arguments().is_empty();
                 }
             }
-            MutationType::IfStatementMutation => {
+            MutationType::IfCondMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "IfStatement";
                 }
@@ -315,7 +315,7 @@ impl Mutation for MutationType {
                 vec![] // For now I'm removing this operator: not sure what it does!
             }
 
-            MutationType::IfStatementMutation => {
+            MutationType::IfCondMutation => {
                 let cond = node.condition();
                 let orig = cond.get_text(source.contents());
                 let bs: Vec<&str> = vec!["true", "false"]
@@ -411,7 +411,7 @@ impl MutationType {
             MutationType::DeleteExpressionMutation,
             MutationType::ElimDelegateMutation,
             MutationType::FunctionCallMutation,
-            MutationType::IfStatementMutation,
+            MutationType::IfCondMutation,
             MutationType::RequireMutation,
             // MutationType::SwapArgumentsFunctionMutation,
             MutationType::SwapArgumentsOperatorMutation,
@@ -494,7 +494,7 @@ mod test {
 
     #[test]
     pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![IfStatementMutation];
+        let ops = vec![IfCondMutation];
         assert_num_mutants(&vec!["if (true) { x = 1; } else { x = 2 ;}"], &ops, 1);
         assert_num_mutants(&vec!["if (true) {}"], &ops, 1);
         Ok(())
