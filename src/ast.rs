@@ -63,7 +63,29 @@ impl SolAST {
     }
 
     pub fn is_literal(&self) -> bool {
-        self.node_kind() == Some("Literal".into())
+        self.node_type() == Some("Literal".into())
+    }
+
+    /// Check if this node has kind `"number"` or if it is a unary operator `"-"`
+    /// on a kind "number".
+    ///
+    /// This function is necessary because solc doesn't parse negative integer
+    /// literals as literals, but rather as a negative unary operator applied to
+    /// a literal.  For instance, solc parses `-1` as
+    ///
+    /// `(unop '-' (number 1))`
+    pub fn is_literal_number(&self) -> bool {
+        let k = self.node_kind();
+        if Some("number".into()) == k {
+            true
+        } else if self.node_type() == Some("UnaryOperator".into())
+            && self.operator() == Some("-".into())
+        {
+            let operand = self.get_node("subExpression");
+            operand.node_kind() == Some("number".into())
+        } else {
+            false
+        }
     }
 
     /// A helper that is used in various places to get the value of some

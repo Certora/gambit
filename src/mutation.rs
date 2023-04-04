@@ -242,8 +242,8 @@ impl Mutation for MutationType {
                 let replacements: Vec<&str> = if let Some(kind) = node_kind {
                     if &kind == "bool" {
                         vec!["true", "false"]
-                    } else if &kind == "number" {
-                        vec!["-1", "0", "1"]
+                    } else if rhs.is_literal_number() {
+                        vec!["(-1)", "0", "1"]
                     } else {
                         vec!["0"]
                     }
@@ -251,7 +251,7 @@ impl Mutation for MutationType {
                     vec!["0"]
                 }
                 .iter()
-                .filter(|v| *v != &orig)
+                .filter(|v| !orig.eq(*v))
                 .map(|v| *v)
                 .collect();
 
@@ -262,10 +262,12 @@ impl Mutation for MutationType {
                     .collect()
             }
             MutationType::BinaryOpMutation => {
-                let orig = node.get_text(source.contents());
+                let orig = node.operator().unwrap();
+                let orig = String::from(orig.trim());
+
                 let ops: Vec<&str> = vec!["+", "-", "*", "/", "%", "**"]
                     .iter()
-                    .filter(|v| *v != &orig)
+                    .filter(|v| !orig.eq(*v))
                     .map(|v| *v)
                     .collect();
 
@@ -412,5 +414,123 @@ impl MutationType {
             MutationType::SwapArgumentsOperatorMutation,
             MutationType::UnaryOperatorMutation,
         ]
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::test_util::*;
+    use crate::{MutationType, MutationType::*, Mutator, MutatorConf, Solc, Source};
+    use std::collections::HashSet;
+    use std::path::PathBuf;
+    use std::rc::Rc;
+    use std::{error, path::Path};
+    use tempfile::Builder;
+
+    #[test]
+    pub fn test_assignment_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![AssignmentMutation];
+        assert_exact_mutants(&vec!["uint256 x;", "x = 3;"], &ops, &vec!["(-1)", "0", "1"]);
+        assert_exact_mutants(&vec!["int256 x;", "x = 1;"], &ops, &vec!["(-1)", "0"]);
+        assert_exact_mutants(&vec!["int256 x;", "x = 0;"], &ops, &vec!["(-1)", "1"]);
+        // FIXME: The following three test cases are BROKEN!! Currently these
+        // all get mutated to '0' because they are not 'number's
+        assert_num_mutants(&vec!["int256 x;", "x = -2;"], &vec![AssignmentMutation], 1);
+        assert_num_mutants(&vec!["int256 x;", "x = -1;"], &vec![AssignmentMutation], 1);
+        assert_num_mutants(&vec!["int256 x;", "x = -0;"], &vec![AssignmentMutation], 1);
+
+        assert_exact_mutants(&vec!["bool b;", "b = true;"], &ops, &vec!["false"]);
+        assert_exact_mutants(&vec!["bool b;", "b = false;"], &ops, &vec!["true"]);
+
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_binary_op_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![BinaryOpMutation];
+        let repls = vec!["+", "-", "*", "/", "%", "**"];
+        // Closure to drop the given operator for he set of replacements
+        let without = |s: &str| {
+            let r: Vec<&str> = repls
+                .iter()
+                .filter(|r| !s.eq(**r))
+                .map(|s| s.clone())
+                .collect();
+            r
+        };
+        assert_exact_mutants(&vec!["uint256 x = 1 + 2;"], &ops, &without("+"));
+        assert_exact_mutants(&vec!["uint256 x = 1 - 2;"], &ops, &without("-"));
+        assert_exact_mutants(&vec!["uint256 x = 1 * 2;"], &ops, &without("*"));
+        assert_exact_mutants(&vec!["uint256 x = 1 / 2;"], &ops, &without("/"));
+        assert_exact_mutants(&vec!["uint256 x = 1 % 2;"], &ops, &without("%"));
+        assert_exact_mutants(&vec!["uint256 x = 1 ** 2;"], &ops, &without("**"));
+        Ok(())
+    }
+
+    fn assert_exact_mutants(statements: &Vec<&str>, ops: &Vec<MutationType>, expected: &Vec<&str>) {
+        let mutator = apply_mutation(statements, None, ops).unwrap();
+        assert_eq!(
+            expected.len(),
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+            ops,
+            statements.join("   "),
+            mutator
+                .sources
+                .iter()
+                .map(|s| s.filename())
+                .collect::<Vec<&Path>>()
+        );
+
+        let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
+        let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
+        assert_eq!(actuals, expected);
+    }
+
+    fn assert_num_mutants(statements: &Vec<&str>, ops: &Vec<MutationType>, expected: usize) {
+        let mutator = apply_mutation(statements, None, ops).unwrap();
+        assert_eq!(
+            expected,
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+            ops,
+            statements.join("   "),
+            mutator
+                .sources
+                .iter()
+                .map(|s| s.filename())
+                .collect::<Vec<&Path>>()
+        );
+    }
+
+    fn apply_mutation(
+        statements: &Vec<&str>,
+        returns: Option<&str>,
+        ops: &Vec<MutationType>,
+    ) -> Result<Mutator, Box<dyn error::Error>> {
+        let source = wrap_and_write_solidity_to_temp_file(statements, returns).unwrap();
+        let outdir = Builder::new()
+            .prefix("gambit-compile-dir")
+            .rand_bytes(5)
+            .tempdir()?;
+        let mut mutator = make_mutator(ops, source, outdir.into_path());
+        mutator.mutate()?;
+
+        Ok(mutator)
+    }
+
+    /// Create a mutator for a single file, creating required components (e.g.,
+    /// Solc, creating Sources and rapping them in a Vec<Rc<Source>>, etc)
+    fn make_mutator(ops: &Vec<MutationType>, filename: PathBuf, outdir: PathBuf) -> Mutator {
+        let conf = MutatorConf {
+            mutation_operators: ops.clone(),
+            funcs_to_mutate: None,
+            contract: None,
+        };
+
+        let source = Source::new(filename).unwrap();
+        let sources = vec![Rc::new(source)];
+        let solc = Solc::new("solc".into(), PathBuf::from(outdir));
+        Mutator::new(conf, sources, solc)
     }
 }

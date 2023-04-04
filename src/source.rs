@@ -21,11 +21,20 @@ impl fmt::Display for SourceError {
 impl error::Error for SourceError {}
 
 /// A source file, including its name and its contents, to be mutated
-#[derive(Debug)]
 pub struct Source {
     filename: PathBuf,
     contents: Vec<u8>,
     newlines: Vec<usize>,
+}
+
+impl std::fmt::Debug for Source {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.debug_struct("Source")
+            .field("filename", &self.filename)
+            .field("contents", &String::from("[...]"))
+            .field("newlines", &String::from("[...]"))
+            .finish()
+    }
 }
 
 impl Source {

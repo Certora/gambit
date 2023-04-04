@@ -10,7 +10,7 @@ use std::{error, path::PathBuf, rc::Rc};
 #[derive(Debug, Clone)]
 pub struct MutatorConf {
     /// Mutation operators to apply during mutation
-    mutation_operators: Vec<MutationType>,
+    pub mutation_operators: Vec<MutationType>,
 
     /// If this is `Some(fnames)` then only mutate functions with names in
     /// `fnames`. If this is `None` then mutate all function names
@@ -62,17 +62,21 @@ impl From<&MutateParams> for Mutator {
                 ))
             });
         }
+        Mutator::new(conf, sources, solc)
+    }
+}
+
+impl Mutator {
+    pub fn new(conf: MutatorConf, sources: Vec<Rc<Source>>, solc: Solc) -> Mutator {
         Mutator {
             conf,
-            sources: sources,
+            sources,
             mutants: vec![],
             solc,
             _tmp: "".into(),
         }
     }
-}
 
-impl Mutator {
     /// Run all mutations! This is the main external entry point into mutation. This
     /// 1. TODO: Mutates each file
     /// 2. TODO: Optionally downsamples (default: no) the mutants if a Filter is provided
@@ -107,6 +111,19 @@ impl Mutator {
     /// Check if a node in the AST is an assert.
     pub fn is_assert_call(node: &SolAST) -> bool {
         node.name().map_or_else(|| false, |n| n == "assert")
+    }
+
+    /// Get a slice of the mutants produced by this mutator
+    pub fn mutants(&self) -> &[Mutant] {
+        &self.mutants
+    }
+
+    pub fn sources(&self) -> &Vec<Rc<Source>> {
+        &self.sources
+    }
+
+    pub fn solc(&self) -> &Solc {
+        &self.solc
     }
 }
 

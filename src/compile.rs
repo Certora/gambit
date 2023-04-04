@@ -139,14 +139,12 @@ impl Solc {
         solidity_file: &Path,
         output_directory: &Path,
     ) -> Result<(PathBuf, PathBuf, PathBuf), Box<dyn error::Error>> {
-        let sol_path = Path::new(solidity_file);
-        let extension = sol_path.extension();
+        let extension = solidity_file.extension();
         if extension.is_none() || !extension.unwrap().eq("sol") {
             panic!("Invalid Extension: {}", solidity_file.display());
         }
-        let sol_ast_dir = output_directory
-            .join(INPUT_JSON.to_owned())
-            .join(solidity_file);
+        let filename = PathBuf::from(solidity_file.file_name().unwrap());
+        let sol_ast_dir = output_directory.join(INPUT_JSON.to_owned()).join(filename);
 
         std::fs::create_dir_all(sol_ast_dir.parent().unwrap())?;
 
@@ -172,7 +170,7 @@ impl Solc {
             "--stop-after".into(),
             "parsing".into(),
             solidity_file.to_str().unwrap().into(),
-            "--output-dir".into(), // TODO: Do we do this by default?
+            "--output-dir".into(),
             ast_dir.to_str().unwrap().into(),
             "--overwrite".into(),
         ];
