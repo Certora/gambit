@@ -94,7 +94,7 @@ pub enum MutationType {
     AssignmentMutation,
 
     /// TODO: document this mutation operator
-    BinaryOpMutation,
+    BinOpMutation,
 
     /// TODO: document this mutation operator
     DeleteExpressionMutation,
@@ -118,14 +118,14 @@ pub enum MutationType {
     SwapArgumentsOperatorMutation,
 
     /// TODO: document this mutation operator
-    UnaryOperatorMutation,
+    UnOpMutation,
 }
 
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
             MutationType::AssignmentMutation => "AssignmentMutation",
-            MutationType::BinaryOpMutation => "BinaryOpMutation",
+            MutationType::BinOpMutation => "BinaryOpMutation",
             MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
@@ -133,7 +133,7 @@ impl ToString for MutationType {
             MutationType::RequireMutation => "RequireMutation",
             MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
-            MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
+            MutationType::UnOpMutation => "UnaryOperatorMutation",
         };
         str.into()
     }
@@ -147,7 +147,7 @@ impl Mutation for MutationType {
                     return n == "Assignment";
                 }
             }
-            MutationType::BinaryOpMutation => {
+            MutationType::BinOpMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation";
                 }
@@ -214,7 +214,7 @@ impl Mutation for MutationType {
                         );
                 }
             }
-            MutationType::UnaryOperatorMutation => {
+            MutationType::UnOpMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "UnaryOperation";
                 }
@@ -261,7 +261,7 @@ impl Mutation for MutationType {
                     .map(|r| Mutant::new(source.clone(), self.clone(), s, e, r.to_string()))
                     .collect()
             }
-            MutationType::BinaryOpMutation => {
+            MutationType::BinOpMutation => {
                 let orig = node.operator().unwrap();
                 let orig = String::from(orig.trim());
 
@@ -373,7 +373,7 @@ impl Mutation for MutationType {
                 vec![]
             }
 
-            MutationType::UnaryOperatorMutation => {
+            MutationType::UnOpMutation => {
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
 
@@ -407,7 +407,7 @@ impl MutationType {
     pub fn default_mutation_operators() -> Vec<MutationType> {
         vec![
             MutationType::AssignmentMutation,
-            MutationType::BinaryOpMutation,
+            MutationType::BinOpMutation,
             MutationType::DeleteExpressionMutation,
             MutationType::ElimDelegateMutation,
             MutationType::FunctionCallMutation,
@@ -415,7 +415,7 @@ impl MutationType {
             MutationType::RequireMutation,
             // MutationType::SwapArgumentsFunctionMutation,
             MutationType::SwapArgumentsOperatorMutation,
-            MutationType::UnaryOperatorMutation,
+            MutationType::UnOpMutation,
         ]
     }
 }
@@ -450,7 +450,7 @@ mod test {
 
     #[test]
     pub fn test_binary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![BinaryOpMutation];
+        let ops = vec![BinOpMutation];
         let repls = vec!["+", "-", "*", "/", "%", "**"];
         // Closure to drop the given operator for he set of replacements
         let without = |s: &str| {
@@ -511,7 +511,7 @@ mod test {
 
     #[test]
     pub fn test_unary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![UnaryOperatorMutation];
+        let ops = vec![UnOpMutation];
         let prefix = vec!["++", "--", "~"];
         let suffix = vec!["++", "--"];
 
