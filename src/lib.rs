@@ -27,9 +27,3 @@ pub use test_util::*;
 
 mod util;
 pub use util::*;
-
-#[derive(Debug, Clone)]
-pub struct MutantGenerator {
-    /// Params for controlling the mutants.
-    pub params: MutateParams,
-}
