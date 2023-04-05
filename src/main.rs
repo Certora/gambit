@@ -18,14 +18,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn mutate(params: MutateParams) -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
     let mut mutator = Mutator::from(&params);
-    let mutants = mutator.mutate()?;
+    let mutants = mutator.mutate()?.clone();
 
     let mutants = if let Some(num_mutants) = params.num_mutants {
         // TODO: make num_mutants an Option
         let filter = RandomDownSampleFilter::new(params.seed, true);
-        filter.filter_mutants(mutants, num_mutants)?
+        filter.filter_mutants(&mutator, num_mutants)?
     } else {
-        mutants.to_vec()
+        if params.skip_validate {
+            println!("Not Validating!");
+            mutants
+        } else {
+            println!("Validating!");
+            mutator.get_valid_mutants(&mutants)
+        }
     };
 
     MutantWriter::new(params.outdir, params.log_mutants, params.export_mutants)

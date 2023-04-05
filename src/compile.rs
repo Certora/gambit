@@ -60,10 +60,10 @@ impl Solc {
     /// 2. Invokes solc with flags derived from `self.conf`
     /// 3. Copies the AST file to a JSON file in the same directory
     /// 4. Reads the JSON into a SolAST struct and returns it
-    pub fn compile(&self, solidity_file: &Path) -> Result<SolAST, Box<dyn error::Error>> {
+    pub fn compile_ast(&self, solidity_file: &Path) -> Result<SolAST, Box<dyn error::Error>> {
         let outdir = &self.output_directory;
         let (ast_dir, ast_path, json_path) = Self::make_ast_dir(solidity_file, outdir.as_path())?;
-        self.invoke_compiler(solidity_file, &ast_dir)?;
+        self.invoke_compiler(solidity_file, &ast_dir, true)?;
 
         std::fs::copy(ast_path, &json_path)?;
 
@@ -74,14 +74,25 @@ impl Solc {
         })
     }
 
+    /// Invoke the full solidity compiler and return the exit code
+    ///
+    pub fn compile_full(
+        &self,
+        solidity_file: &Path,
+        outdir: &Path,
+    ) -> Result<i32, Box<dyn error::Error>> {
+        self.invoke_compiler(solidity_file, outdir, false)
+    }
+
     /// Perform the actual compilation by invoking a process. This is a wrapper
     /// around `util::invoke_command`.
     fn invoke_compiler(
         &self,
         solidity_file: &Path,
         ast_dir: &Path,
-    ) -> Result<(), Box<dyn error::Error>> {
-        let flags = self.make_compilation_flags(solidity_file, ast_dir);
+        stop_after_parse: bool,
+    ) -> Result<i32, Box<dyn error::Error>> {
+        let flags = self.make_compilation_flags(solidity_file, ast_dir, stop_after_parse);
         let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
             .iter()
@@ -104,7 +115,7 @@ impl Solc {
                 eprintln!("  stderr: {}", String::from_utf8_lossy(&stderr));
                 eprintln!("  stdout: {}", String::from_utf8_lossy(&stdout));
                 log::error!("Solc terminated with a signal");
-                return Err("Solc terminated with a signal".into());
+                Err("Solc terminated with a signal".into())
             }
             Some(code) => {
                 if code != 0 {
@@ -113,11 +124,10 @@ impl Solc {
                     eprintln!("  stdout: {}", String::from_utf8_lossy(&stdout));
                     eprintln!("Solidity compiler failed unexpectedly. For more details, try running the following command from your terminal:");
                     eprintln!("`{} {}`", &self.solc, pretty_flags);
-                    std::process::exit(1)
                 }
+                Ok(code)
             }
-        };
-        Ok(())
+        }
     }
 
     /// A helper function to create the directory where the AST (.ast) and it's
@@ -164,16 +174,23 @@ impl Solc {
     ///
     /// TODO: I'm currently cloning `String`s because of lifetime issues, but I'd
     /// like to convert this back to `&str`s.
-    fn make_compilation_flags(&self, solidity_file: &Path, ast_dir: &Path) -> Vec<String> {
+    fn make_compilation_flags(
+        &self,
+        solidity_file: &Path,
+        ast_dir: &Path,
+        stop_after_parse: bool,
+    ) -> Vec<String> {
         let mut flags: Vec<String> = vec![
             "--ast-compact-json".into(),
-            "--stop-after".into(),
-            "parsing".into(),
             solidity_file.to_str().unwrap().into(),
             "--output-dir".into(),
             ast_dir.to_str().unwrap().into(),
             "--overwrite".into(),
         ];
+        if stop_after_parse {
+            flags.push("--stop-after".into());
+            flags.push("parsing".into());
+        }
 
         if let Some(basepath) = &self.basepath {
             flags.push("--base-path".into());

@@ -65,7 +65,7 @@ pub fn parse_expr(expr: &str) -> Result<SolAST, Box<dyn error::Error>> {
         .rand_bytes(5)
         .tempdir()?;
     let solc = Solc::new("solc".into(), PathBuf::from(outdir.into_path()));
-    let ast = solc.compile(&solfile)?;
+    let ast = solc.compile_ast(&solfile)?;
     let v = ExprParserHelper::default();
     let exprs = ast.traverse(&v, ());
     let expr = exprs.get(0).unwrap().clone();

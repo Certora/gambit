@@ -4,12 +4,12 @@ use rand_chacha::ChaCha8Rng;
 /// This module downsamples mutants.
 use std::error;
 
-use crate::Mutant;
+use crate::{Mutant, Mutator};
 
 pub trait MutantFilter {
     fn filter_mutants(
         &self,
-        mutants: &Vec<Mutant>,
+        mutator: &Mutator,
         num_mutants: usize,
     ) -> Result<Vec<Mutant>, Box<dyn error::Error>>;
 }
@@ -31,10 +31,11 @@ impl RandomDownSampleFilter {
 impl MutantFilter for RandomDownSampleFilter {
     fn filter_mutants(
         &self,
-        mutants: &Vec<Mutant>,
+        mutator: &Mutator,
         num_mutants: usize,
     ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
         // Make a copy that we can mutate
+        let mutants = mutator.mutants();
         let mut mutants: Vec<(usize, Mutant)> =
             mutants.iter().map(|m| m.clone()).enumerate().collect();
 
@@ -51,9 +52,13 @@ impl MutantFilter for RandomDownSampleFilter {
             let idx = r.gen_range(0..mutants.len());
             let mutant = mutants.remove(idx);
             if self.validate {
-                // TODO: validate mutant
+                match mutator.validate_mutant(&mutant.1) {
+                    Ok(true) => sampled.push(mutant),
+                    _ => (),
+                }
+            } else {
+                sampled.push(mutant);
             }
-            sampled.push(mutant);
         }
 
         sampled.sort_by(|m1, m2| m1.0.partial_cmp(&m2.0).unwrap());

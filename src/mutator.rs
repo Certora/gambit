@@ -1,10 +1,12 @@
+use tempfile::tempdir;
+
 /// This module is responsible for high level logic of running mutation over
 /// Solidity programs.
 use crate::{
-    mutation::MutationType, source::Source, Mutant, MutateParams, Mutation, SolAST, SolASTVisitor,
-    Solc,
+    mutation::MutationType, source::Source, Mutant, MutantWriter, MutateParams, Mutation, SolAST,
+    SolASTVisitor, Solc,
 };
-use std::{error, path::PathBuf, rc::Rc};
+use std::{error, fs, path::PathBuf, rc::Rc};
 
 /// The configuration for a mutator, this specifies the details of mutation
 #[derive(Debug, Clone)]
@@ -77,14 +79,14 @@ impl Mutator {
         }
     }
 
-    /// Run all mutations! This is the main external entry point into mutation. This
-    /// 1. TODO: Mutates each file
-    /// 2. TODO: Optionally downsamples (default: no) the mutants if a Filter is provided
-    /// 3. TODO: Optionally validates (default: yes) all generated/filtered mutants
-    /// 4. TODO: Writes mutants to disk
-    ///    1. TODO: Writes the mutant log
-    ///    2. TODO: Writes each mutant's diff
-    ///    3. TODO: Optionally writes each mutant's source (default: false)
+    /// Run all mutations! This is the main external entry point into mutation.
+    /// This function:
+    ///
+    /// 1. Mutates each file
+    /// 2. TODO: Optionally validates (default: yes) all generated/filtered mutants
+    ///
+    /// and returns a Vec of mutants. These are not yet written to disk, and can
+    /// be further validated, suppressed, and downsampled as desired.
     pub fn mutate(&mut self) -> Result<&Vec<Mutant>, Box<dyn error::Error>> {
         let mut mutants: Vec<Mutant> = vec![];
 
@@ -104,7 +106,7 @@ impl Mutator {
         source: Rc<Source>,
         solc: &Solc,
     ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-        let ast = solc.compile(source.filename())?;
+        let ast = solc.compile_ast(source.filename())?;
         Ok(ast.traverse(self, source).into_iter().flatten().collect())
     }
 
@@ -124,6 +126,30 @@ impl Mutator {
 
     pub fn solc(&self) -> &Solc {
         &self.solc
+    }
+
+    /// validate a mutant by writing it to disk and compiling it. If compilation
+    /// fails then this is an invalid mutant.
+    pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
+        let dir = tempdir()?;
+        let sol_file = MutantWriter::write_mutant_to_disk(dir.path(), &mutant)?;
+        let code = match self.solc().compile_full(sol_file.as_path(), dir.path()) {
+            Ok(code) => code == 0,
+            Err(_) => false,
+        };
+        fs::remove_dir_all(dir.path())?;
+        Ok(code)
+    }
+
+    pub fn get_valid_mutants(&self, mutants: &Vec<Mutant>) -> Vec<Mutant> {
+        let mut valid_mutants = vec![];
+        for m in mutants.iter() {
+            match self.validate_mutant(m) {
+                Ok(true) => valid_mutants.push(m.clone()),
+                _ => (),
+            }
+        }
+        valid_mutants
     }
 }
 

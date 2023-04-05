@@ -68,8 +68,8 @@ pub struct MutateParams {
     pub solc_remapping: Option<Vec<String>>,
 
     /// Specify this
-    #[arg(long, default_value = "true")]
-    pub validate: bool,
+    #[arg(long, default_value = "false")]
+    pub skip_validate: bool,
 }
 
 #[derive(Parser)]

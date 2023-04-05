@@ -51,12 +51,7 @@ impl MutantWriter {
             for (i, mutant) in mutants.iter().enumerate() {
                 let mid = i + 1;
                 let this_mutant_dir = &mutants_dir.join(Path::new(&mid.to_string()));
-                fs::create_dir_all(this_mutant_dir)?;
-                let filename = mutant.source.filename().file_name().unwrap();
-                let filename = this_mutant_dir.join(filename);
-
-                let mutant_contents = mutant.as_source_file()?;
-                fs::write(filename, mutant_contents)?;
+                Self::write_mutant_to_disk(this_mutant_dir, mutant)?;
             }
         }
 
@@ -87,6 +82,21 @@ impl MutantWriter {
             }
         }
         Ok(())
+    }
+
+    /// A helper function to write a mutant to disk in the specified directory.
+    /// Return the path to the mutant
+    pub fn write_mutant_to_disk(
+        dir: &Path,
+        mutant: &Mutant,
+    ) -> Result<PathBuf, Box<dyn error::Error>> {
+        fs::create_dir_all(dir)?;
+        let filename = mutant.source.filename().file_name().unwrap();
+        let filename = dir.join(filename);
+
+        let mutant_contents = mutant.as_source_file()?;
+        fs::write(filename.as_path(), mutant_contents)?;
+        Ok(filename)
     }
 }
 

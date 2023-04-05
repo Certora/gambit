@@ -46,6 +46,7 @@ impl Mutant {
         }
     }
 
+    /// Render this mutant as String with the full source file contents
     pub fn as_source_file(&self) -> Result<String, FromUtf8Error> {
         let contents = self.source.contents();
         let prelude = &contents[0..self.start];
