@@ -1,7 +1,7 @@
 use std::{
     error::Error,
     fs::File,
-    io::{self, Read},
+    io::Read,
     path::{Path, PathBuf},
 };
 
@@ -27,13 +27,6 @@ pub fn resolve_against_parent(against: PathBuf, target: PathBuf) -> PathBuf {
     } else {
         target
     }
-}
-
-/// Simply calls `fs::canonicalize()` but first converts `path` to a PathBuf.
-pub fn canon_path_from_str(path: &str) -> io::Result<PathBuf> {
-    let path = PathBuf::from(path);
-    let canon = path.canonicalize()?;
-    Ok(canon)
 }
 
 /// Given a `line`, get the indentation in terms of
