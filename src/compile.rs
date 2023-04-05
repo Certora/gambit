@@ -7,6 +7,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+/// This module provides a wrapper around the solc compiler, as well as several
+/// helper functions. The main object of interest in this module is `Solc`.
+
 /// compilation constants
 static INPUT_JSON: &str = "input_json";
 static ALLOWPATH: &str = "--allow-paths";
@@ -75,7 +78,6 @@ impl Solc {
     }
 
     /// Invoke the full solidity compiler and return the exit code
-    ///
     pub fn compile_full(
         &self,
         solidity_file: &Path,

@@ -22,7 +22,7 @@ fn mutate(params: MutateParams) -> Result<(), Box<dyn std::error::Error>> {
 
     let mutants = if let Some(num_mutants) = params.num_mutants {
         // TODO: make num_mutants an Option
-        let filter = RandomDownSampleFilter::new(params.seed, true);
+        let filter = RandomDownSampleFilter::new(params.seed, !params.skip_validate);
         filter.filter_mutants(&mutator, num_mutants)?
     } else {
         if params.skip_validate {

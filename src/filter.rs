@@ -1,25 +1,31 @@
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
-
-/// This module downsamples mutants.
 use std::error;
 
 use crate::{Mutant, Mutator};
 
+/// This module downsamples mutants.
+
+/// Implement this trait to filter mutants after they have been created.
 pub trait MutantFilter {
+    /// Filter the mutants of a mutator, validating them via compilation if
+    /// `self.validate()` returns `true`.
     fn filter_mutants(
         &self,
         mutator: &Mutator,
         num_mutants: usize,
     ) -> Result<Vec<Mutant>, Box<dyn error::Error>>;
+
+    fn validate(&self) -> bool;
 }
 
+/// This struct randomly downsamples mutants.
 pub struct RandomDownSampleFilter {
     pub(crate) seed: Option<u64>,
 
     /// Should filtered mutants be validated with an external compiler run? This
     /// is more expensive but disabling this option may produce invalid mutants.
-    pub(crate) validate: bool,
+    validate: bool,
 }
 
 impl RandomDownSampleFilter {
@@ -51,7 +57,7 @@ impl MutantFilter for RandomDownSampleFilter {
             // Get a random index into the current list of remaning mutants
             let idx = r.gen_range(0..mutants.len());
             let mutant = mutants.remove(idx);
-            if self.validate {
+            if self.validate() {
                 match mutator.validate_mutant(&mutant.1) {
                     Ok(true) => sampled.push(mutant),
                     _ => (),
@@ -64,5 +70,9 @@ impl MutantFilter for RandomDownSampleFilter {
         sampled.sort_by(|m1, m2| m1.0.partial_cmp(&m2.0).unwrap());
 
         Ok(sampled.iter().map(|m| m.1.clone()).collect())
+    }
+
+    fn validate(&self) -> bool {
+        return self.validate;
     }
 }

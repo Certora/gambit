@@ -1,12 +1,12 @@
-use tempfile::tempdir;
-
-/// This module is responsible for high level logic of running mutation over
-/// Solidity programs.
 use crate::{
     mutation::MutationType, source::Source, Mutant, MutantWriter, MutateParams, Mutation, SolAST,
     SolASTVisitor, Solc,
 };
 use std::{error, fs, path::PathBuf, rc::Rc};
+use tempfile::tempdir;
+
+/// This module is responsible for high level logic of running mutation over
+/// Solidity programs.
 
 /// The configuration for a mutator, this specifies the details of mutation
 #[derive(Debug, Clone)]
