@@ -4,18 +4,6 @@ use std::error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[allow(dead_code)]
-pub struct OutputDirectoryStructure {
-    /// Root of the output directory structure
-    root: PathBuf,
-    /// Path to mutants_log
-    mutants_log: PathBuf,
-    /// Path to the mutants/ directory
-    mutants_dir: PathBuf,
-    /// Path to each mutant directory (root/mutants/1/, root/mutants/2/, etc)
-    mutants: Vec<PathBuf>,
-}
-
 /// This struct is responsible for logging and exporting mutants
 pub struct MutantWriter {
     /// The output directory to write mutants to
