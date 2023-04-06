@@ -64,14 +64,21 @@ impl Solc {
     /// 3. Copies the AST file to a JSON file in the same directory
     /// 4. Reads the JSON into a SolAST struct and returns it
     pub fn compile_ast(&self, solidity_file: &Path) -> Result<SolAST, Box<dyn error::Error>> {
+        log::debug!(
+            "Invoking AST compilation (--stop-after parse) on {}",
+            solidity_file.display()
+        );
         let outdir = &self.output_directory;
         let (ast_dir, ast_path, json_path) = Self::make_ast_dir(solidity_file, outdir.as_path())?;
         self.invoke_compiler(solidity_file, &ast_dir, true)?;
 
-        std::fs::copy(ast_path, &json_path)?;
+        std::fs::copy(&ast_path, &json_path)?;
+        log::debug!("Wrote AST to {}", &ast_path.display());
+        log::debug!("Wrote AST as JSON to {}", &json_path.display());
 
         let json_f = File::open(&json_path)?;
         let ast_json: Value = serde_json::from_reader(json_f)?;
+        log::debug!("Deserialized JSON AST from {}", &json_path.display());
         Ok(SolAST {
             element: Some(ast_json),
         })
@@ -83,6 +90,7 @@ impl Solc {
         solidity_file: &Path,
         outdir: &Path,
     ) -> Result<i32, Box<dyn error::Error>> {
+        log::debug!("Invoking full compilation on {}", solidity_file.display());
         self.invoke_compiler(solidity_file, outdir, false)
     }
 
@@ -102,7 +110,7 @@ impl Solc {
             .collect::<Vec<_>>()
             .join(" ");
 
-        log::info!(
+        log::debug!(
             "Invoking solc on {}: `{} {}`",
             solidity_file.display(),
             self.solc,
@@ -113,19 +121,24 @@ impl Solc {
 
         match code {
             None => {
-                eprintln!("Solc terminated with a singal");
-                eprintln!("  stderr: {}", String::from_utf8_lossy(&stderr));
-                eprintln!("  stdout: {}", String::from_utf8_lossy(&stdout));
+                // We report this as an error because something bad happened!
                 log::error!("Solc terminated with a signal");
+                log::error!("  stderr: {}", String::from_utf8_lossy(&stderr));
+                log::error!("  stdout: {}", String::from_utf8_lossy(&stdout));
                 Err("Solc terminated with a signal".into())
             }
             Some(code) => {
+                // We report this as a info/debug because non-zero exit codes
+                // are expected during validation.
                 if code != 0 {
-                    log::error!("Solidity compiler failed unexpectedly.");
-                    eprintln!("  stderr: {}", String::from_utf8_lossy(&stderr));
-                    eprintln!("  stdout: {}", String::from_utf8_lossy(&stdout));
-                    eprintln!("Solidity compiler failed unexpectedly. For more details, try running the following command from your terminal:");
-                    eprintln!("`{} {}`", &self.solc, pretty_flags);
+                    log::info!(
+                        "Running solc on {} finished with non-zero exit code {}",
+                        solidity_file.display(),
+                        code
+                    );
+                    log::debug!("Ran `{} {}`", &self.solc, pretty_flags);
+                    log::debug!("  stderr: {}", String::from_utf8_lossy(&stderr));
+                    log::debug!("  stdout: {}", String::from_utf8_lossy(&stdout));
                 }
                 Ok(code)
             }
