@@ -60,7 +60,7 @@ impl From<&MutateParams> for Mutator {
         if let Some(fns) = &value.filename {
             fns.iter().for_each(|f| {
                 sources.push(Rc::new(
-                    Source::new(f.into()).expect("Couldn't read source"),
+                    Source::new(f.into()).expect(format!("Couldn't read source {}", f).as_str()),
                 ))
             });
         }

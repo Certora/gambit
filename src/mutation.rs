@@ -1,7 +1,7 @@
-use crate::{SolAST, Source};
+use crate::{get_indent, SolAST, Source};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
-use std::{error, fmt::Display, rc::Rc, string::FromUtf8Error};
+use std::{error, fmt::Display, rc::Rc};
 
 /// This struct describes a mutant.
 #[derive(Debug, Clone)]
@@ -47,13 +47,44 @@ impl Mutant {
     }
 
     /// Render this mutant as String with the full source file contents
-    pub fn as_source_file(&self) -> Result<String, FromUtf8Error> {
+    ///
+    /// TODO: Cache these contents
+    pub fn as_source_file(&self) -> Result<String, Box<dyn error::Error>> {
         let contents = self.source.contents();
         let prelude = &contents[0..self.start];
         let postlude = &contents[self.end..contents.len()];
 
         let res = [prelude, &self.repl.as_bytes(), postlude].concat();
-        String::from_utf8(res)
+        let mut_string = String::from_utf8(res)?;
+        let mut lines = mut_string.lines();
+
+        let (line, _) = self.source.get_line_column(self.start)?;
+        let mut lines2 = vec![];
+        for _ in 1..line {
+            lines2.push(lines.next().unwrap());
+        }
+
+        let mut_line = lines.next().unwrap();
+        let orig_string = String::from_utf8(contents.to_vec())?;
+        let orig_line = orig_string.lines().nth(line - 1).unwrap();
+
+        let indent = get_indent(mut_line);
+        let comment = format!(
+            "{}/// {}(`{}` |==> `{}`) of: `{}`",
+            indent,
+            self.op.to_string(),
+            self.orig.trim(),
+            self.repl,
+            orig_line.trim()
+        );
+        lines2.push(&comment);
+        lines2.push(mut_line);
+
+        for line in lines {
+            lines2.push(line);
+        }
+
+        Ok(lines2.join("\n"))
     }
 
     pub fn get_line_column(&self) -> Result<(usize, usize), Box<dyn error::Error>> {

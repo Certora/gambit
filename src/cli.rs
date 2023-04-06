@@ -43,6 +43,10 @@ pub struct MutateParams {
     #[arg(long, default_value = "false")]
     pub export_mutants: bool,
 
+    /// Overwrite output directory (by default, a warning will print and this will exit)
+    #[arg(long, default_value = "false")]
+    pub overwrite: bool,
+
     /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
     #[arg(long, default_value = "solc")]
     pub solc: String,

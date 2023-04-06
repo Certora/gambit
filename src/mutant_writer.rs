@@ -1,8 +1,11 @@
 use crate::Mutant;
 use csv::Writer;
+use serde_json::Value::Array;
+use similar::TextDiff;
 use std::error;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::exit;
 
 /// This struct is responsible for logging and exporting mutants
 pub struct MutantWriter {
@@ -14,19 +17,51 @@ pub struct MutantWriter {
 
     /// Should mutant sources be written to disk?
     export_mutants: bool,
+
+    /// Overwrite with no warnings
+    overwrite: bool,
 }
 
 impl MutantWriter {
-    pub fn new(outdir: String, log_mutants: bool, export_mutants: bool) -> MutantWriter {
+    pub fn new(
+        outdir: String,
+        log_mutants: bool,
+        export_mutants: bool,
+        overwrite: bool,
+    ) -> MutantWriter {
         MutantWriter {
             outdir: PathBuf::from(outdir),
             log_mutants,
             export_mutants,
+            overwrite,
         }
     }
 
     /// Write and log mutants based on `self`'s parameters
     pub fn write_mutants(&self, mutants: &[Mutant]) -> Result<(), Box<dyn error::Error>> {
+        if self.outdir.exists() {
+            if self.overwrite {
+                if self.outdir.is_file() {
+                    fs::remove_file(&self.outdir)?;
+                } else if self.outdir.is_dir() {
+                    fs::remove_dir_all(&self.outdir)?;
+                }
+            } else {
+                eprintln!("");
+                eprintln!(
+                    "[!] Output directory {} exists! You can:",
+                    self.outdir.display()
+                );
+                eprintln!("  (1) Manually remove {}", self.outdir.display());
+                eprintln!(
+                    "  (2) Use the `--overwrite` flag to skip this message and overwrite {}",
+                    self.outdir.display()
+                );
+                eprintln!("  (3) Specify another output directory with `--outdir OUTPUT_LOCATION`");
+                exit(1);
+            }
+        }
+
         let mutants_dir = self.outdir.join("mutants");
 
         if mutants_dir.is_file() {
@@ -38,8 +73,7 @@ impl MutantWriter {
         if self.export_mutants {
             for (i, mutant) in mutants.iter().enumerate() {
                 let mid = i + 1;
-                let this_mutant_dir = &mutants_dir.join(Path::new(&mid.to_string()));
-                Self::write_mutant_to_disk(this_mutant_dir, mutant)?;
+                Self::write_mutant_with_id_to_disk(&mutants_dir, mid, mutant)?;
             }
         }
 
@@ -69,22 +103,115 @@ impl MutantWriter {
                 ])?;
             }
         }
+
+        let mut diffs: Vec<String> = vec![];
+        for mutant in mutants {
+            diffs.push(Self::diff_mutant(mutant)?);
+        }
+
+        let gambit_results_json = PathBuf::from(self.outdir.join("gambit_results.json"));
+        log::info!(
+            "Writing gambit_results.json to {}",
+            &gambit_results_json.display()
+        );
+        let mut json: Vec<serde_json::Value> = Vec::new();
+        for (i, (mutant, diff)) in mutants.iter().zip(diffs).enumerate() {
+            let mid = i + 1;
+            json.push(serde_json::json!({
+                "name": Self::get_mutant_filename(&mutants_dir, mid, mutant),
+                "description": mutant.op.to_string(),
+                "id": mid,
+                "diff": diff,
+            }));
+        }
+
+        let json_string = serde_json::to_string_pretty(&Array(json)).unwrap();
+        fs::write(gambit_results_json, json_string)?;
         Ok(())
     }
 
-    /// A helper function to write a mutant to disk in the specified directory.
-    /// Return the path to the mutant
+    /// A helper function to write a mutant to disk in a subdirectory.
+    ///
+    /// # Arguments
+    ///
+    /// * `mutants_dir` - the directory where mutants should be written to
+    /// * `mutant` - the mutant to write to disk
+    ///
+    /// This will compute the contents of `mutant` via `Mutant.as_source_file()`
+    /// and write it to file in the `mutants_dir/` directory, creating it if
+    /// needed.
+    ///
+    /// This is used for, e.g., validation (before a mutant id is known), or for
+    /// other non-export tasks.
+    ///
+    /// Return the path to the exported mutant file
     pub fn write_mutant_to_disk(
-        dir: &Path,
+        mutants_dir: &Path,
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
-        fs::create_dir_all(dir)?;
-        let filename = mutant.source.filename().file_name().unwrap();
-        let filename = dir.join(filename);
-
+        let filename = mutants_dir.join(mutant.source.filename().file_name().unwrap());
         let mutant_contents = mutant.as_source_file()?;
+
+        log::info!("Writing mutant {:?} to {}", mutant, &filename.display());
+
+        fs::create_dir_all(mutants_dir)?;
         fs::write(filename.as_path(), mutant_contents)?;
+
         Ok(filename)
+    }
+    /// A helper function to write a mutant to disk in a subdirectory specified
+    /// by the provided mutant id.
+    ///
+    /// # Arguments
+    ///
+    /// * `mutants_dir` - the directory where mutants should be written to
+    /// * `mid` - the mutant id of this mutant
+    /// * `mutant` - the mutant to write to disk
+    ///
+    /// This will compute the contents of `mutant` via `Mutant.as_source_file()`
+    /// and write it to file in the `mutants_dir/mid/` directory, creating it if
+    /// needed.
+    ///
+    /// Return the path to the exported mutant file
+    pub fn write_mutant_with_id_to_disk(
+        mutants_dir: &Path,
+        mid: usize,
+        mutant: &Mutant,
+    ) -> Result<PathBuf, Box<dyn error::Error>> {
+        let filename = Self::get_mutant_filename(mutants_dir, mid, mutant);
+        let mutant_contents = mutant.as_source_file()?;
+
+        log::info!(
+            "Writing mutant (mid={}) {:?} to {}",
+            mid,
+            mutant,
+            &filename.display()
+        );
+
+        fs::create_dir_all(filename.parent().unwrap())?;
+        fs::write(filename.as_path(), mutant_contents)?;
+
+        Ok(filename)
+    }
+
+    /// Get the filename where a Mutant will be exported to. This depends
+    fn get_mutant_filename(mutants_dir: &Path, mid: usize, mutant: &Mutant) -> PathBuf {
+        mutants_dir
+            .join(Path::new(&mid.to_string()))
+            .join(mutant.source.filename())
+    }
+
+    fn diff_mutant(mutant: &Mutant) -> Result<String, Box<dyn error::Error>> {
+        let orig_contents: String = String::from_utf8_lossy(mutant.source.contents()).into();
+        let mutant_contents = mutant.as_source_file().unwrap();
+
+        let diff = TextDiff::from_lines(&orig_contents, &mutant_contents)
+            .unified_diff()
+            .header("original", "mutant")
+            .to_string();
+        // Do writing here.
+
+        Ok(diff)
     }
 }
 

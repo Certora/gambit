@@ -26,16 +26,19 @@ fn mutate(params: MutateParams) -> Result<(), Box<dyn std::error::Error>> {
         filter.filter_mutants(&mutator, num_mutants)?
     } else {
         if params.skip_validate {
-            println!("Not Validating!");
             mutants
         } else {
-            println!("Validating!");
             mutator.get_valid_mutants(&mutants)
         }
     };
 
-    MutantWriter::new(params.outdir, params.log_mutants, params.export_mutants)
-        .write_mutants(&mutants)?;
+    MutantWriter::new(
+        params.outdir,
+        params.log_mutants,
+        params.export_mutants,
+        params.overwrite,
+    )
+    .write_mutants(&mutants)?;
 
     let t = start.elapsed().as_secs_f64();
     println!("Generated {} mutants in {:.2} seconds", &mutants.len(), t);
