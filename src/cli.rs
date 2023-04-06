@@ -32,7 +32,7 @@ pub struct MutateParams {
     pub seed: Option<u64>,
 
     /// Output directory to place results of mutation
-    #[arg(long, short, default_value = "gambit-out")]
+    #[arg(long, short, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]
     pub outdir: String,
 
     /// Log mutants
@@ -99,6 +99,6 @@ pub struct SummaryParams {
     pub all: bool,
 
     /// Gambit results directory
-    #[arg(long, default_value = "gambit-out")]
+    #[arg(long, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]
     pub mutation_directory: String,
 }

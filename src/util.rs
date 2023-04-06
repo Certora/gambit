@@ -6,6 +6,7 @@ use std::{
 };
 
 static EQUAL: &str = "=";
+pub static DEFAULT_GAMBIT_OUTPUT_DIRECTORY: &str = "gambit_out";
 
 /// Given two strings, resolve the second one (`target`) w.r.t. the first (`against`).
 pub fn resolve_path_from_str(against: &str, target: &str) -> String {

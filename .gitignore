@@ -1,5 +1,5 @@
 # outputs
-out/
+gambit_out/
 
 # Added by cargo
 Cargo.lock
