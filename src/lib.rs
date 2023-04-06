@@ -22,6 +22,9 @@ pub use mutator::*;
 mod source;
 pub use source::*;
 
+mod summary;
+pub use summary::*;
+
 mod test_util;
 pub use test_util::*;
 

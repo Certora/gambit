@@ -80,4 +80,25 @@ pub struct MutateParams {
 #[clap(rename_all = "kebab-case")]
 pub enum Command {
     Mutate(MutateParams), // Maybe we want to do other things in the future like support checking mutants?
+    Summary(SummaryParams),
+}
+
+/// Summarize mutants
+
+#[derive(Debug, Clone, Parser, Deserialize, Serialize)]
+#[command(rename_all = "kebab-case")]
+pub struct SummaryParams {
+    /// Print summaries of the specified mutant IDs (these IDs correspond to the
+    /// "id" field in `gambit_results.json`). Multiple MIDs can be specified.
+    /// If `--all` is specified, this is ignored.
+    #[arg(long, default_value = None, num_args(0..), conflicts_with = "all")]
+    pub mids: Option<Vec<String>>,
+
+    /// Report all mutants
+    #[arg(long, default_value = "false", conflicts_with = "mids")]
+    pub all: bool,
+
+    /// Gambit results directory
+    #[arg(long, default_value = "gambit-out")]
+    pub mutation_directory: String,
 }

@@ -68,6 +68,8 @@ impl Source {
         &self.contents
     }
 
+    /// Get a (line, column) pair that represents which line and column this
+    /// mutant occurs at. Lines and columns are both 1-indexed.
     pub fn get_line_column(&self, pos: usize) -> Result<(usize, usize), Box<dyn error::Error>> {
         if pos >= self.contents.len() {
             return Err(Box::new(SourceError::PositionOutOfBoundsError(

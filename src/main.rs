@@ -1,7 +1,10 @@
 use std::time::Instant;
 
 use clap::Parser;
-use gambit::{Command, MutantFilter, MutantWriter, MutateParams, Mutator, RandomDownSampleFilter};
+use gambit::{
+    summarize, Command, MutantFilter, MutantWriter, MutateParams, Mutator, RandomDownSampleFilter,
+    SummaryParams,
+};
 
 /// Entry point
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -10,13 +13,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Command::Mutate(params) => {
             mutate(params)?;
         }
+        Command::Summary(params) => {
+            run_summary(params)?;
+        }
     }
     Ok(())
 }
 
 /// Execute the `mutate` command
 fn mutate(params: MutateParams) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Running Gambit Mutate");
+    log::debug!("Mutate parameters: {:?}", params);
+
     let start = Instant::now();
+
     let mut mutator = Mutator::from(&params);
     let mutants = mutator.mutate()?.clone();
 
@@ -44,4 +54,10 @@ fn mutate(params: MutateParams) -> Result<(), Box<dyn std::error::Error>> {
     println!("Generated {} mutants in {:.2} seconds", &mutants.len(), t);
     log::info!("Generated {} mutants in {}", &mutants.len(), t);
     Ok(())
+}
+
+fn run_summary(params: SummaryParams) -> Result<(), Box<dyn std::error::Error>> {
+    log::info!("Running Gambit Summary");
+    log::debug!("Summary parameters: {:?}", params);
+    summarize(params)
 }
