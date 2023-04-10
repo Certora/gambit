@@ -1,7 +1,27 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-///
+static DEFAULT_EXPORT_MUTANTS: bool = true;
+static DEFAULT_OVERWRITE: bool = true;
+static DEFAULT_SKIP_VALIDATE: bool = false;
+static DEFAULT_SOLC: &str = "solc";
+
+fn default_export_mutants() -> bool {
+    DEFAULT_EXPORT_MUTANTS
+}
+
+fn default_overwrite() -> bool {
+    DEFAULT_OVERWRITE
+}
+
+fn default_skip_validate() -> bool {
+    DEFAULT_SKIP_VALIDATE
+}
+
+fn default_solc() -> String {
+    DEFAULT_SOLC.to_string()
+}
+
 /// Command line arguments for running Gambit.
 /// Following are the main ways to run it.
 ///
@@ -21,7 +41,7 @@ pub struct MutateParams {
 
     /// Files to mutate
     #[arg(long, short, conflicts_with = "json")]
-    pub filename: Option<Vec<String>>,
+    pub filename: Option<String>,
 
     /// If specified, randomly downsamples the number of mutants
     #[arg(long, short, default_value = None)]
@@ -33,31 +53,35 @@ pub struct MutateParams {
 
     /// Output directory to place results of mutation
     #[arg(long, short, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]
+    #[serde(default = "crate::default_gambit_output_directory")]
     pub outdir: String,
 
-    /// Log mutants
-    #[arg(long, default_value = "true")]
-    pub log_mutants: bool,
+    /// Specify the mutation operators
+    #[arg(long, num_args(1..))]
+    pub mutations: Option<Vec<String>>,
 
     /// Export full mutant sources
     #[arg(long, default_value = "false")]
+    #[serde(default = "default_export_mutants")]
     pub export_mutants: bool,
 
     /// Overwrite output directory (by default, a warning will print and this will exit)
     #[arg(long, default_value = "false")]
+    #[serde(default = "default_overwrite")]
     pub overwrite: bool,
 
     /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
     #[arg(long, default_value = "solc")]
+    #[serde(default = "default_solc")]
     pub solc: String,
 
     /// Specify function names to mutate
     #[arg(long)]
-    pub fns_to_mutate: Option<Vec<String>>,
+    pub functions: Option<Vec<String>>,
 
     /// Specify a contract to mutate
     #[arg(long)]
-    pub contract_to_mutate: Option<String>,
+    pub contract: Option<String>,
 
     /// Basepath argument to solc
     #[arg(long)]
@@ -73,7 +97,13 @@ pub struct MutateParams {
 
     /// Specify this
     #[arg(long, default_value = "false")]
+    #[serde(default = "default_skip_validate")]
     pub skip_validate: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GambitConfigFile {
+    pub configurations: Vec<MutateParams>,
 }
 
 #[derive(Parser)]

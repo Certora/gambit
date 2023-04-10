@@ -27,8 +27,8 @@ impl From<&MutateParams> for MutatorConf {
     fn from(mutate_params: &MutateParams) -> Self {
         MutatorConf {
             mutation_operators: MutationType::default_mutation_operators(),
-            funcs_to_mutate: mutate_params.fns_to_mutate.clone(),
-            contract: mutate_params.contract_to_mutate.clone(),
+            funcs_to_mutate: mutate_params.functions.clone(),
+            contract: mutate_params.contract.clone(),
         }
     }
 }
@@ -57,12 +57,11 @@ impl From<&MutateParams> for Mutator {
         let conf = MutatorConf::from(value);
         let solc = Solc::new(value.solc.clone(), value.outdir.clone().into());
         let mut sources: Vec<Rc<Source>> = vec![];
-        if let Some(fns) = &value.filename {
-            fns.iter().for_each(|f| {
-                sources.push(Rc::new(
-                    Source::new(f.into()).expect(format!("Couldn't read source {}", f).as_str()),
-                ))
-            });
+        if let Some(filename) = &value.filename {
+            sources
+                .push(Rc::new(Source::new(filename.into()).expect(
+                    format!("Couldn't read source {}", filename).as_str(),
+                )))
         }
         Mutator::new(conf, sources, solc)
     }
@@ -90,10 +89,20 @@ impl Mutator {
     pub fn mutate(&mut self) -> Result<&Vec<Mutant>, Box<dyn error::Error>> {
         let mut mutants: Vec<Mutant> = vec![];
 
+        let solc = &self.solc;
         for source in self.sources.iter() {
-            let solc = &self.solc;
-            let mut file_mutants = self.mutate_file(source.clone(), solc)?;
-            mutants.append(&mut file_mutants);
+            log::info!("Mutating source {}", source.filename().display());
+
+            match self.mutate_file(source.clone(), solc) {
+                Ok(mut file_mutants) => {
+                    log::info!("    Generated {} mutants from source", file_mutants.len());
+                    mutants.append(&mut file_mutants);
+                }
+                Err(e) => {
+                    log::warn!("Couldn't mutate source {}", source.filename().display());
+                    log::warn!("Encountered error: {}", e);
+                }
+            }
         }
 
         self.mutants.append(&mut mutants);
@@ -134,7 +143,7 @@ impl Mutator {
         let dir = tempdir()?;
         let sol_file = MutantWriter::write_mutant_to_disk(dir.path(), &mutant)?;
         let code = match self.solc().compile_full(sol_file.as_path(), dir.path()) {
-            Ok(code) => code == 0,
+            Ok((code, _, _)) => code == 0,
             Err(_) => false,
         };
         fs::remove_dir_all(dir.path())?;

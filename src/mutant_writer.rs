@@ -12,33 +12,20 @@ pub struct MutantWriter {
     /// The output directory to write mutants to
     outdir: PathBuf,
 
-    /// Should mutants be logged to outdir/mutants.log?
-    log_mutants: bool,
-
-    /// Should mutant sources be written to disk?
-    export_mutants: bool,
-
     /// Overwrite with no warnings
     overwrite: bool,
 }
 
 impl MutantWriter {
-    pub fn new(
-        outdir: String,
-        log_mutants: bool,
-        export_mutants: bool,
-        overwrite: bool,
-    ) -> MutantWriter {
+    pub fn new(outdir: String, overwrite: bool) -> MutantWriter {
         MutantWriter {
             outdir: PathBuf::from(outdir),
-            log_mutants,
-            export_mutants,
             overwrite,
         }
     }
 
     /// Write and log mutants based on `self`'s parameters
-    pub fn write_mutants(&self, mutants: &[Mutant]) -> Result<(), Box<dyn error::Error>> {
+    pub fn write_mutants(&self, mutants: &[(Mutant, bool)]) -> Result<(), Box<dyn error::Error>> {
         if self.outdir.exists() {
             if self.overwrite {
                 if self.outdir.is_file() {
@@ -70,8 +57,8 @@ impl MutantWriter {
             fs::remove_dir_all(mutants_dir.clone())?;
         }
 
-        if self.export_mutants {
-            for (i, mutant) in mutants.iter().enumerate() {
+        for (i, (mutant, export)) in mutants.iter().enumerate() {
+            if *export {
                 let mid = i + 1;
                 Self::write_mutant_with_id_to_disk(&mutants_dir, mid, mutant)?;
             }
@@ -85,27 +72,26 @@ impl MutantWriter {
         // 5. Initial
         // 6. To
 
-        if self.log_mutants {
-            let mutants_log = self.outdir.join("mutants.log");
-            let mut w = Writer::from_path(mutants_log)?;
+        // LOG MUTANTS
+        let mutants_log = self.outdir.join("mutants.log");
+        let mut w = Writer::from_path(mutants_log)?;
 
-            for (i, mutant) in mutants.iter().enumerate() {
-                let mid = i + 1;
-                let (lineno, colno) = mutant.get_line_column()?;
-                let line_col = format!("{}:{}", lineno, colno);
-                w.write_record(&[
-                    mid.to_string().as_str(),
-                    mutant.op.to_string().as_str(),
-                    mutant.source.filename().to_str().unwrap(),
-                    line_col.as_str(),
-                    mutant.orig.as_str(),
-                    mutant.repl.as_str(),
-                ])?;
-            }
+        for (i, (mutant, _)) in mutants.iter().enumerate() {
+            let mid = i + 1;
+            let (lineno, colno) = mutant.get_line_column()?;
+            let line_col = format!("{}:{}", lineno, colno);
+            w.write_record(&[
+                mid.to_string().as_str(),
+                mutant.op.to_string().as_str(),
+                mutant.source.filename().to_str().unwrap(),
+                line_col.as_str(),
+                mutant.orig.as_str(),
+                mutant.repl.as_str(),
+            ])?;
         }
 
         let mut diffs: Vec<String> = vec![];
-        for mutant in mutants {
+        for (mutant, _) in mutants {
             diffs.push(Self::diff_mutant(mutant)?);
         }
 
@@ -115,7 +101,7 @@ impl MutantWriter {
             &gambit_results_json.display()
         );
         let mut json: Vec<serde_json::Value> = Vec::new();
-        for (i, (mutant, diff)) in mutants.iter().zip(diffs).enumerate() {
+        for (i, ((mutant, _), diff)) in mutants.iter().zip(diffs).enumerate() {
             let mid = i + 1;
             json.push(serde_json::json!({
                 "name": Self::get_mutant_filename(&mutants_dir, mid, mutant),
@@ -152,7 +138,7 @@ impl MutantWriter {
         let filename = mutants_dir.join(mutant.source.filename().file_name().unwrap());
         let mutant_contents = mutant.as_source_file()?;
 
-        log::info!("Writing mutant {:?} to {}", mutant, &filename.display());
+        log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
 
         fs::create_dir_all(mutants_dir)?;
         fs::write(filename.as_path(), mutant_contents)?;

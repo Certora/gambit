@@ -69,9 +69,43 @@ impl Solc {
             solidity_file.display()
         );
         let outdir = &self.output_directory;
-        let (ast_dir, ast_path, json_path) = Self::make_ast_dir(solidity_file, outdir.as_path())?;
-        self.invoke_compiler(solidity_file, &ast_dir, true)?;
+        let mk_dir_result = Self::make_ast_dir(solidity_file, outdir.as_path());
+        let (ast_dir, ast_path, json_path) = match mk_dir_result {
+            Ok(x) => x,
+            Err(e) => {
+                log::error!(
+                    "Error: Failed to run make_ast_dir({}, {})\nEncountered error {}",
+                    solidity_file.display(),
+                    outdir.as_path().display(),
+                    e
+                );
+                return Err(e);
+            }
+        };
 
+        match self.invoke_compiler(solidity_file, &ast_dir, true) {
+            Ok((code, stdout, stderr)) => {
+                if code != 0 {
+                    log::error!(
+                        "Solidity compiler returned exit code {} on file `{}`",
+                        code,
+                        solidity_file.display()
+                    );
+                    log::error!("stdout: {}", String::from_utf8(stdout).unwrap());
+                    log::error!("stderr: {}", String::from_utf8(stderr).unwrap());
+                }
+            }
+            Err(e) => {
+                log::error!(
+                "Failed to compile source with invoke_compiler({}, {}, {}) \nEncountered error {}",
+                solidity_file.display(),
+                ast_dir.display(),
+                true,
+                e
+            );
+                return Err(e);
+            }
+        }
         std::fs::copy(&ast_path, &json_path)?;
         log::debug!("Wrote AST to {}", &ast_path.display());
         log::debug!("Wrote AST as JSON to {}", &json_path.display());
@@ -84,24 +118,33 @@ impl Solc {
         })
     }
 
-    /// Invoke the full solidity compiler and return the exit code
+    /// Invoke the full solidity compiler and return the exit code, stdout, and stderr
     pub fn compile_full(
         &self,
         solidity_file: &Path,
         outdir: &Path,
-    ) -> Result<i32, Box<dyn error::Error>> {
+    ) -> Result<(i32, Vec<u8>, Vec<u8>), Box<dyn error::Error>> {
         log::debug!("Invoking full compilation on {}", solidity_file.display());
         self.invoke_compiler(solidity_file, outdir, false)
     }
 
     /// Perform the actual compilation by invoking a process. This is a wrapper
     /// around `util::invoke_command`.
+    ///
+    /// # Return
+    ///
+    /// Returns the exit code, stdout, and stderr. By default we don't report
+    /// errors in compilation as these can be expected (e.g., during
+    /// validation). However, it is possible that compilation _should not fail_
+    /// (e.g., when doing an initial compilation of an original unmutated
+    /// solidity file), and getting detailed information on why such a
+    /// compilation failed is important!
     fn invoke_compiler(
         &self,
         solidity_file: &Path,
         ast_dir: &Path,
         stop_after_parse: bool,
-    ) -> Result<i32, Box<dyn error::Error>> {
+    ) -> Result<(i32, Vec<u8>, Vec<u8>), Box<dyn error::Error>> {
         let flags = self.make_compilation_flags(solidity_file, ast_dir, stop_after_parse);
         let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
@@ -129,10 +172,12 @@ impl Solc {
             }
             Some(code) => {
                 // We report this as a info/debug because non-zero exit codes
-                // are expected during validation.
+                // are expected during validation. We are returning stdout and
+                // stderr in case they are needed by the caller to explain an
+                // unexpected compilation failure
                 if code != 0 {
                     log::info!(
-                        "Running solc on {} finished with non-zero exit code {}",
+                        "Running solc on {} finished with non-zero code {}",
                         solidity_file.display(),
                         code
                     );
@@ -140,7 +185,7 @@ impl Solc {
                     log::debug!("  stderr: {}", String::from_utf8_lossy(&stderr));
                     log::debug!("  stdout: {}", String::from_utf8_lossy(&stdout));
                 }
-                Ok(code)
+                Ok((code, stdout, stderr))
             }
         }
     }
