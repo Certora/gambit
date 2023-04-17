@@ -48,7 +48,9 @@ impl Mutant {
 
     /// Render this mutant as String with the full source file contents
     ///
-    /// TODO: Cache these contents
+    /// TODO: Cache these contents: this data might be needed multiple times,
+    /// and if so this should be cached as it currently involves file IO (though
+    /// Source::contents() should also be cached)
     pub fn as_source_file(&self) -> Result<String, Box<dyn error::Error>> {
         let contents = self.source.contents();
         let prelude = &contents[0..self.start];
@@ -108,9 +110,8 @@ impl Display for Mutant {
     }
 }
 
-/// Every kind of mutation implements this trait.
-///
-/// TODO: Document
+/// Every kind of mutation implements this trait. A mutation can check if it
+/// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
     /// Check if this mutation applies to this AST node
     fn applies_to(&self, node: &SolAST) -> bool;
@@ -124,7 +125,7 @@ pub trait Mutation {
 pub enum MutationType {
     AssignmentMutation,
     BinOpMutation,
-    DeleteExpressionMutation,
+    DelExprStatementMutation,
     ElimDelegateMutation,
     FunctionCallMutation,
     IfCondMutation,
@@ -139,7 +140,7 @@ impl ToString for MutationType {
         let str = match self {
             MutationType::AssignmentMutation => "AssignmentMutation",
             MutationType::BinOpMutation => "BinaryOpMutation",
-            MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
+            MutationType::DelExprStatementMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
             MutationType::IfCondMutation => "IfStatementMutation",
@@ -165,7 +166,7 @@ impl Mutation for MutationType {
                     return n == "BinaryOperation";
                 }
             }
-            MutationType::DeleteExpressionMutation => {
+            MutationType::DelExprStatementMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "ExpressionStatement";
                 }
@@ -215,7 +216,6 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsOperatorMutation => {
-                // TODO: should we include "/" and "%"? This might create a trivial mutant (e.g., a / 0), which is not useful!
                 let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation"
@@ -293,8 +293,7 @@ impl Mutation for MutationType {
                     .collect()
             }
 
-            // TODO: Delete expression or delete a statement?
-            MutationType::DeleteExpressionMutation => {
+            MutationType::DelExprStatementMutation => {
                 let (start, end) = node.get_bounds();
                 vec![Mutant::new(
                     source.clone(),
@@ -421,7 +420,7 @@ impl MutationType {
         vec![
             MutationType::AssignmentMutation,
             MutationType::BinOpMutation,
-            MutationType::DeleteExpressionMutation,
+            MutationType::DelExprStatementMutation,
             MutationType::ElimDelegateMutation,
             MutationType::FunctionCallMutation,
             MutationType::IfCondMutation,
@@ -485,7 +484,7 @@ mod test {
 
     #[test]
     pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![DeleteExpressionMutation];
+        let ops = vec![DelExprStatementMutation];
         assert_exact_mutants(&vec!["gasleft();"], &ops, &vec![";"]);
         assert_exact_mutants(&vec!["uint256 x = 0;", "x = 3;"], &ops, &vec![";"]);
         Ok(())

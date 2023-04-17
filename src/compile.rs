@@ -255,9 +255,6 @@ impl Solc {
     }
 
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`
-    ///
-    /// TODO: I'm currently cloning `String`s because of lifetime issues, but I'd
-    /// like to convert this back to `&str`s.
     fn make_compilation_flags(
         &self,
         solidity_file: &Path,
