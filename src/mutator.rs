@@ -116,7 +116,20 @@ impl Mutator {
         solc: &Solc,
     ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
         let ast = solc.compile_ast(source.filename())?;
-        Ok(ast.traverse(self, source).into_iter().flatten().collect())
+        if !solc.output_directory().exists() {
+            log::debug!(
+                "[Pre traverse] Output directory {} doesn't exist!",
+                solc.output_directory().display()
+            );
+        }
+        let result = ast.traverse(self, source).into_iter().flatten().collect();
+        if !solc.output_directory().exists() {
+            log::debug!(
+                "[Post traverse] Output directory {} doesn't exist!",
+                solc.output_directory().display()
+            );
+        }
+        Ok(result)
     }
 
     /// Check if a node in the AST is an assert.
@@ -165,11 +178,25 @@ impl Mutator {
 impl SolASTVisitor<Rc<Source>, Vec<Mutant>> for Mutator {
     fn skip_node(&self, node: &SolAST, _source: &Rc<Source>) -> bool {
         if let Some(e) = &node.element {
-            if let Some(e) = e.as_object() {
-                if e.contains_key("contractKind") {
-                    let contract_name = e.get("name".into()).unwrap();
+            if let Some(e_obj) = e.as_object() {
+                if e_obj.contains_key("contractKind") {
+                    let contract_name = e_obj.get("name".into()).unwrap();
                     if let Some(contract) = &self.conf.contract {
-                        return contract != &contract_name.to_string();
+                        return contract != &contract_name.as_str().unwrap();
+                    } else {
+                        return false;
+                    }
+                } else if node.node_kind() == Some("function".to_string()) {
+                    match &self.conf.funcs_to_mutate {
+                        Some(fns) => {
+                            if let Some(name) = node.name() {
+                                return !fns.contains(&name);
+                            }
+                            return true;
+                        }
+                        None => {
+                            return false;
+                        }
                     }
                 }
             }

@@ -5,50 +5,22 @@ use similar::TextDiff;
 use std::error;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::exit;
 
 /// This struct is responsible for logging and exporting mutants
 pub struct MutantWriter {
     /// The output directory to write mutants to
     outdir: PathBuf,
-
-    /// Overwrite with no warnings
-    overwrite: bool,
 }
 
 impl MutantWriter {
-    pub fn new(outdir: String, overwrite: bool) -> MutantWriter {
+    pub fn new(outdir: String) -> MutantWriter {
         MutantWriter {
             outdir: PathBuf::from(outdir),
-            overwrite,
         }
     }
 
     /// Write and log mutants based on `self`'s parameters
     pub fn write_mutants(&self, mutants: &[(Mutant, bool)]) -> Result<(), Box<dyn error::Error>> {
-        if self.outdir.exists() {
-            if self.overwrite {
-                if self.outdir.is_file() {
-                    fs::remove_file(&self.outdir)?;
-                } else if self.outdir.is_dir() {
-                    fs::remove_dir_all(&self.outdir)?;
-                }
-            } else {
-                eprintln!("");
-                eprintln!(
-                    "[!] Output directory {} exists! You can:",
-                    self.outdir.display()
-                );
-                eprintln!("  (1) Manually remove {}", self.outdir.display());
-                eprintln!(
-                    "  (2) Use the `--overwrite` flag to skip this message and overwrite {}",
-                    self.outdir.display()
-                );
-                eprintln!("  (3) Specify another output directory with `--outdir OUTPUT_LOCATION`");
-                exit(1);
-            }
-        }
-
         let mutants_dir = self.outdir.join("mutants");
 
         if mutants_dir.is_file() {

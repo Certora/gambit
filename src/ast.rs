@@ -235,12 +235,21 @@ impl SolAST {
         arg: &A,
         acc: &mut Vec<T>,
     ) {
+        log::debug!(
+            "Traversing Node: kind: {:?}, type: {:?}",
+            self.node_kind(),
+            self.node_type(),
+        );
         if visitor.skip_node(self, &arg) {
+            log::debug!("    Skipping");
             return;
         }
 
         if let Some(result) = visitor.visit_node(self, &arg) {
+            log::debug!("    Visit successful");
             acc.push(result);
+        } else {
+            log::debug!("    Visit failed")
         }
 
         if self.element.is_none() {
@@ -252,6 +261,7 @@ impl SolAST {
             let e_obj = e.as_object().unwrap();
 
             // TODO: We are _cloning_ entire ASTs! This is no bueno!
+            log::debug!("    Recursively traversing children");
             for v in e_obj.values() {
                 let child: SolAST = SolAST::new(v.clone());
                 child.traverse_internal(visitor, arg, acc);

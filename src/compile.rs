@@ -38,6 +38,17 @@ impl Solc {
         }
     }
 
+    pub fn output_directory(&self) -> &Path {
+        &self.output_directory
+    }
+
+    pub fn basepath(&self) -> Option<&String> {
+        match &self.basepath {
+            Some(bp) => Some(bp),
+            None => None,
+        }
+    }
+
     pub fn with_basepath(&mut self, basepath: String) -> &Self {
         self.basepath = Some(basepath);
         self
@@ -83,7 +94,7 @@ impl Solc {
             }
         };
 
-        match self.invoke_compiler(solidity_file, &ast_dir, true) {
+        match self.invoke_compiler(solidity_file, &ast_dir, false) {
             Ok((code, stdout, stderr)) => {
                 if code != 0 {
                     log::error!(
@@ -213,10 +224,23 @@ impl Solc {
         if extension.is_none() || !extension.unwrap().eq("sol") {
             panic!("Invalid Extension: {}", solidity_file.display());
         }
-        let filename = PathBuf::from(solidity_file.file_name().unwrap());
-        let sol_ast_dir = output_directory.join(INPUT_JSON.to_owned()).join(filename);
 
-        std::fs::create_dir_all(sol_ast_dir.parent().unwrap())?;
+        let input_json_dir = output_directory.join(INPUT_JSON.to_owned());
+        if input_json_dir.exists() {
+            log::debug!("{} already exists", input_json_dir.display());
+        } else {
+            log::debug!("{} doesn't exist", input_json_dir.display());
+        }
+
+        let filename = PathBuf::from(solidity_file.file_name().unwrap());
+        let sol_ast_dir = input_json_dir
+            .join(filename)
+            .parent()
+            .unwrap()
+            .to_path_buf();
+
+        std::fs::create_dir_all(&sol_ast_dir)?;
+        log::debug!("Created AST directory {}", input_json_dir.display());
 
         let ast_fnm = Path::new(solidity_file)
             .file_name()
@@ -227,7 +251,7 @@ impl Solc {
             + "_json.ast";
         let ast_path = sol_ast_dir.join(&ast_fnm);
         let json_path = sol_ast_dir.join(ast_fnm + DOT_JSON);
-        Ok((sol_ast_dir, ast_path, json_path))
+        Ok((sol_ast_dir.to_path_buf(), ast_path, json_path))
     }
 
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`
