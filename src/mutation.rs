@@ -475,9 +475,9 @@ mod test {
             r
         };
         assert_exact_mutants(&vec!["uint256 x = 1 + 2;"], &ops, &without("+"));
-        assert_exact_mutants(&vec!["uint256 x = 1 - 2;"], &ops, &without("-"));
+        assert_exact_mutants(&vec!["uint256 x = 2 - 1;"], &ops, &without("-"));
         assert_exact_mutants(&vec!["uint256 x = 1 * 2;"], &ops, &without("*"));
-        assert_exact_mutants(&vec!["uint256 x = 1 / 2;"], &ops, &without("/"));
+        assert_exact_mutants(&vec!["uint256 x = 2 / 1;"], &ops, &without("/"));
         assert_exact_mutants(&vec!["uint256 x = 1 % 2;"], &ops, &without("%"));
         assert_exact_mutants(&vec!["uint256 x = 1 ** 2;"], &ops, &without("**"));
         Ok(())
@@ -486,8 +486,8 @@ mod test {
     #[test]
     pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
         let ops = vec![DeleteExpressionMutation];
-        assert_exact_mutants(&vec!["foo();"], &ops, &vec![";"]);
-        assert_exact_mutants(&vec!["x = 3;"], &ops, &vec![";"]);
+        assert_exact_mutants(&vec!["gasleft();"], &ops, &vec![";"]);
+        assert_exact_mutants(&vec!["uint256 x = 0;", "x = 3;"], &ops, &vec![";"]);
         Ok(())
     }
 
@@ -508,7 +508,11 @@ mod test {
     #[test]
     pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
         let ops = vec![IfCondMutation];
-        assert_num_mutants(&vec!["if (true) { x = 1; } else { x = 2 ;}"], &ops, 1);
+        assert_num_mutants(
+            &vec!["uint256 x;", "if (true) { x = 1; } else { x = 2 ;}"],
+            &ops,
+            1,
+        );
         assert_num_mutants(&vec!["if (true) {}"], &ops, 1);
         Ok(())
     }
@@ -516,9 +520,13 @@ mod test {
     #[test]
     pub fn test_require_mutation() -> Result<(), Box<dyn error::Error>> {
         let ops = vec![RequireMutation];
-        assert_num_mutants(&vec!["require(c);"], &ops, 2);
+        assert_num_mutants(&vec!["bool c = true;", "require(c);"], &ops, 2);
         assert_num_mutants(&vec!["require(true);"], &ops, 1);
-        assert_num_mutants(&vec!["require(a && b);"], &ops, 2);
+        assert_num_mutants(
+            &vec!["bool a = true;", "bool b = false;", "require(a && b);"],
+            &ops,
+            2,
+        );
         Ok(())
     }
 
@@ -545,11 +553,31 @@ mod test {
                 .collect();
             r
         };
-        assert_exact_mutants(&vec!["uint256 x = ++a;"], &ops, &without_prefix("++"));
-        assert_exact_mutants(&vec!["uint256 x = --a;"], &ops, &without_prefix("--"));
-        assert_exact_mutants(&vec!["uint256 x = ~a;"], &ops, &without_prefix("~"));
-        assert_exact_mutants(&vec!["uint256 x = a--;"], &ops, &without_suffix("--"));
-        assert_exact_mutants(&vec!["uint256 x = a++;"], &ops, &without_suffix("++"));
+        assert_exact_mutants(
+            &vec!["uint256 a = 10;", "uint256 x = ++a;"],
+            &ops,
+            &without_prefix("++"),
+        );
+        assert_exact_mutants(
+            &vec!["uint256 a = 10;", "uint256 x = --a;"],
+            &ops,
+            &without_prefix("--"),
+        );
+        assert_exact_mutants(
+            &vec!["uint256 a = 10;", "uint256 x = ~a;"],
+            &ops,
+            &without_prefix("~"),
+        );
+        assert_exact_mutants(
+            &vec!["uint256 a = 10;", "uint256 x = a--;"],
+            &ops,
+            &without_suffix("--"),
+        );
+        assert_exact_mutants(
+            &vec!["uint256 a = 10;", "uint256 x = a++;"],
+            &ops,
+            &without_suffix("++"),
+        );
         Ok(())
     }
 
