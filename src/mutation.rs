@@ -125,7 +125,7 @@ pub trait Mutation {
 pub enum MutationType {
     AssignmentMutation,
     BinOpMutation,
-    DelExprStatementMutation,
+    DeleteExpressionMutation,
     ElimDelegateMutation,
     FunctionCallMutation,
     IfCondMutation,
@@ -140,7 +140,7 @@ impl ToString for MutationType {
         let str = match self {
             MutationType::AssignmentMutation => "AssignmentMutation",
             MutationType::BinOpMutation => "BinaryOpMutation",
-            MutationType::DelExprStatementMutation => "DeleteExpressionMutation",
+            MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
             MutationType::IfCondMutation => "IfStatementMutation",
@@ -166,7 +166,7 @@ impl Mutation for MutationType {
                     return n == "BinaryOperation";
                 }
             }
-            MutationType::DelExprStatementMutation => {
+            MutationType::DeleteExpressionMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "ExpressionStatement";
                 }
@@ -293,7 +293,7 @@ impl Mutation for MutationType {
                     .collect()
             }
 
-            MutationType::DelExprStatementMutation => {
+            MutationType::DeleteExpressionMutation => {
                 let (start, end) = node.get_bounds();
                 vec![Mutant::new(
                     source.clone(),
@@ -420,7 +420,7 @@ impl MutationType {
         vec![
             MutationType::AssignmentMutation,
             MutationType::BinOpMutation,
-            MutationType::DelExprStatementMutation,
+            MutationType::DeleteExpressionMutation,
             MutationType::ElimDelegateMutation,
             MutationType::FunctionCallMutation,
             MutationType::IfCondMutation,
@@ -484,7 +484,7 @@ mod test {
 
     #[test]
     pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![DelExprStatementMutation];
+        let ops = vec![DeleteExpressionMutation];
         assert_exact_mutants(&vec!["gasleft();"], &ops, &vec![";"]);
         assert_exact_mutants(&vec!["uint256 x = 0;", "x = 3;"], &ops, &vec![";"]);
         Ok(())
