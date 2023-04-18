@@ -1,4 +1,4 @@
-use crate::read_source;
+use crate::{read_source, simplify_path};
 use std::{
     error, fmt,
     path::{Path, PathBuf},
@@ -39,6 +39,7 @@ impl std::fmt::Debug for Source {
 
 impl Source {
     pub fn new(filename: PathBuf) -> Result<Source, Box<dyn error::Error>> {
+        let filename = simplify_path(&filename)?;
         let contents = read_source(&filename)?;
         let newlines: Vec<usize> = contents
             .iter()

@@ -220,3 +220,37 @@ pub fn print_colorized_unified_diff(diff: String) {
         println!("{}", line);
     }
 }
+
+pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
+    let can_path = path.canonicalize()?;
+    let rel_path = can_path.strip_prefix(PathBuf::from(".").canonicalize()?)?;
+    Ok(rel_path.to_path_buf())
+}
+
+#[cfg(test)]
+mod test {
+    use crate::simplify_path;
+    use std::path::PathBuf;
+
+    #[test]
+    pub fn test_simplify_path() {
+        assert_simplifed_path("benchmarks/10Power", "benchmarks/10Power");
+        assert_simplifed_path("benchmarks/10Power", "benchmarks/../benchmarks/10Power");
+        assert_simplifed_path("benchmarks", "benchmarks/../benchmarks/10Power/..");
+        assert_simplifed_path("", "benchmarks/../benchmarks/10Power/../..");
+    }
+
+    /// Helper function to assert simplified paths
+    fn assert_simplifed_path(expected: &str, path: &str) {
+        let path = PathBuf::from(path);
+        let expected = PathBuf::from(expected);
+        let simplified = simplify_path(&path);
+        assert!(
+            simplified.is_ok(),
+            "Expected Ok(...) but found {:?}",
+            simplified
+        );
+        let simplified = simplified.unwrap();
+        assert_eq!(expected, simplified);
+    }
+}
