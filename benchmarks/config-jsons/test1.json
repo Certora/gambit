@@ -1,14 +1,19 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
-        "contract": "C",
-        "functions": ["getarray", "get10PowerDecimals"],
+        "contract": "Utils",
+        "functions": [
+            "getarray"
+        ],
         "solc": "solc5.12"
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "contract": "Utils",
-        "functions": ["getarray"],
+        "contract": "C",
+        "functions": [
+            "getarray",
+            "get10PowerDecimals"
+        ],
         "solc": "solc5.12"
     }
 ]
