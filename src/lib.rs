@@ -33,8 +33,11 @@ pub use test_util::*;
 mod util;
 pub use util::*;
 
-/// Execute the `mutate` command
-pub fn run_mutate(mutate_params: Vec<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
+/// Execute the `mutate` command. This returns a mapping from output directories
+/// to generated mutants.
+pub fn run_mutate(
+    mutate_params: Vec<MutateParams>,
+) -> Result<HashMap<String, Vec<Mutant>>, Box<dyn std::error::Error>> {
     log::info!("Running Gambit Mutate command");
     log::debug!("Mutate parameters: {:?}", mutate_params);
 
@@ -136,8 +139,14 @@ pub fn run_mutate(mutate_params: Vec<MutateParams>) -> Result<(), Box<dyn std::e
         }
     }
 
+    let mut results: HashMap<String, Vec<Mutant>> = HashMap::default();
+
     for (outdir, mutants) in mutants_by_out_dir {
         log::info!("Writing mutants for output directory {}", &outdir);
+        results.insert(
+            outdir.clone(),
+            mutants.iter().map(|(m, _)| m).cloned().collect(),
+        );
         MutantWriter::new(outdir).write_mutants(&mutants)?;
     }
 
@@ -147,7 +156,7 @@ pub fn run_mutate(mutate_params: Vec<MutateParams>) -> Result<(), Box<dyn std::e
         total_num_mutants, t
     );
     log::info!("Generated {} mutants in {}", total_num_mutants, t);
-    Ok(())
+    Ok(results)
 }
 
 pub fn run_summary(params: SummaryParams) -> Result<(), Box<dyn std::error::Error>> {
