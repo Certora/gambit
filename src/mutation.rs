@@ -258,10 +258,10 @@ impl Mutation for MutationType {
                     } else if rhs.is_literal_number() {
                         vec!["(-1)", "0", "1"]
                     } else {
-                        vec!["0"]
+                        vec!["0", "(-1)", "1", "true", "false"]
                     }
                 } else {
-                    vec!["0"]
+                    vec!["0", "(-1)", "1", "true", "false"]
                 }
                 .iter()
                 .filter(|v| !orig.eq(*v))
@@ -295,12 +295,13 @@ impl Mutation for MutationType {
 
             MutationType::DeleteExpressionMutation => {
                 let (start, end) = node.get_bounds();
+                let commented = format!("/* {} */", node.expression().get_text(source.contents()));
                 vec![Mutant::new(
                     source.clone(),
                     self.clone(),
                     start,
                     end,
-                    ";".into(),
+                    commented,
                 )]
             }
             MutationType::ElimDelegateMutation => {
@@ -381,8 +382,25 @@ impl Mutation for MutationType {
             }
 
             MutationType::SwapArgumentsOperatorMutation => {
-                // TODO: I've removed this for now since I think this is highly likely to be equivalent
-                vec![]
+                let left = node.left_expression();
+                let right = node.right_expression();
+                let (left_start, left_end) = left.get_bounds();
+                let (right_start, right_end) = right.get_bounds();
+                let start = left_start;
+                let end = right_end;
+                let op = node.operator().unwrap();
+                let op = format!(" {} ", op.trim());
+                let contents = source.contents();
+                let left_contents =
+                    String::from_utf8(contents[left_start..left_end].to_vec()).unwrap();
+                let right_contents =
+                    String::from_utf8(contents[right_start..right_end].to_vec()).unwrap();
+
+                let mut repl: String = right_contents.to_owned();
+                repl.push_str(&op);
+                repl.push_str(&left_contents);
+
+                vec![Mutant::new(source.clone(), self.clone(), start, end, repl)]
             }
 
             MutationType::UnOpMutation => {
@@ -485,8 +503,12 @@ mod test {
     #[test]
     pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
         let ops = vec![DeleteExpressionMutation];
-        assert_exact_mutants(&vec!["gasleft();"], &ops, &vec![";"]);
-        assert_exact_mutants(&vec!["uint256 x = 0;", "x = 3;"], &ops, &vec![";"]);
+        assert_exact_mutants(&vec!["gasleft();"], &ops, &vec!["/* gasleft() */"]);
+        assert_exact_mutants(
+            &vec!["uint256 x = 0;", "x = 3;"],
+            &ops,
+            &vec!["/* x = 3 */"],
+        );
         Ok(())
     }
 
@@ -641,7 +663,8 @@ mod test {
             contract: None,
         };
 
-        let source = Source::new(filename).unwrap();
+        let source = Source::new(filename.clone())
+            .expect(format!("Could not build source from {}", filename.display()).as_str());
         let sources = vec![Rc::new(source)];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
         Mutator::new(conf, sources, solc)

@@ -223,8 +223,11 @@ pub fn print_colorized_unified_diff(diff: String) {
 
 pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
     let can_path = path.canonicalize()?;
-    let rel_path = can_path.strip_prefix(PathBuf::from(".").canonicalize()?)?;
-    Ok(rel_path.to_path_buf())
+    let rel_path = match can_path.strip_prefix(PathBuf::from(".").canonicalize()?) {
+        Ok(p) => p.to_path_buf(),
+        Err(_) => can_path,
+    };
+    Ok(rel_path)
 }
 
 #[cfg(test)]

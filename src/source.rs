@@ -86,7 +86,7 @@ impl Source {
             .rev()
             .find(|(_, nlpos)| nlpos < &&pos)
         {
-            let columnno = pos - nlpos + 1;
+            let columnno = pos - nlpos + 2;
             Ok((lineno + 2, columnno))
         } else if &pos < newlines.get(0).unwrap() {
             Ok((1, pos + 1))
