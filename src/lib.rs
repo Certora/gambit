@@ -61,10 +61,9 @@ pub fn run_mutate(
         // Iterate through the params for this outdir to discover if we are
         // overwriting
         let no_overwrite = outdir_params.iter().any(|p| p.no_overwrite);
-        let overwrite = !no_overwrite;
         let outdir_path = PathBuf::from(outdir);
         if outdir_path.exists() {
-            if overwrite {
+            if !no_overwrite {
                 if fs::metadata(outdir_path.as_path()).is_ok() {
                     match fs::remove_dir_all(&outdir_path) {
                         Ok(_) => log::info!("Removed outdir {}", outdir_path.display()),
