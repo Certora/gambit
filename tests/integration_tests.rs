@@ -243,6 +243,7 @@ fn get_config_json(config_json: &str) -> Result<Vec<MutateParams>, Box<dyn error
     let base_outdir = base_outdir.join(format!("test_{}", config_json));
 
     for params in mutate_params.iter_mut() {
+        // Update outdir
         let outdir = base_outdir.join(&params.outdir);
         params.outdir = outdir.to_str().unwrap().to_string();
         params.filename = params.filename.clone().map(|fnm| {
@@ -252,6 +253,9 @@ fn get_config_json(config_json: &str) -> Result<Vec<MutateParams>, Box<dyn error
                 .unwrap()
                 .to_string()
         });
+        // Update overwrite
+        params.overwrite = true;
     }
+
     Ok(mutate_params)
 }
