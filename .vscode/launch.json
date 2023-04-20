@@ -1,0 +1,49 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'gambit'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=gambit",
+                    "--package=gambit"
+                ],
+                "filter": {
+                    "name": "gambit",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "mutate",
+                "--filename",
+                "benchmarks/AssignmentMutation/AssignmentMutation.sol"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'gambit'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=gambit",
+                    "--package=gambit"
+                ],
+                "filter": {
+                    "name": "gambit",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

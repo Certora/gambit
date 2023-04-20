@@ -13,6 +13,7 @@ use std::{
 /// compilation constants
 static INPUT_JSON: &str = "input_json";
 static ALLOWPATH: &str = "--allow-paths";
+static OPTIMIZE: &str = "--optimize";
 static DOT_JSON: &str = ".json";
 
 /// Compilation configurations. This exists across compilations of individual
@@ -25,6 +26,7 @@ pub struct Solc {
     basepath: Option<String>,
     allow_paths: Option<Vec<String>>,
     remappings: Option<Vec<String>>,
+    optimize: bool,
 }
 
 impl Solc {
@@ -35,6 +37,7 @@ impl Solc {
             basepath: None,
             allow_paths: None,
             remappings: None,
+            optimize: false,
         }
     }
 
@@ -61,6 +64,11 @@ impl Solc {
 
     pub fn with_remappings(&mut self, remappings: Vec<String>) -> &Self {
         self.remappings = Some(remappings);
+        self
+    }
+
+    pub fn with_optimize(&mut self, optimize: bool) -> &Self {
+        self.optimize = optimize;
         self
     }
 }
@@ -289,6 +297,10 @@ impl Solc {
             for r in remaps {
                 flags.push(r.clone());
             }
+        }
+
+        if self.optimize {
+            flags.push(OPTIMIZE.into());
         }
 
         flags

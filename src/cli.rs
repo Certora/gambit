@@ -6,6 +6,7 @@ static DEFAULT_NO_OVERWRITE: bool = false;
 static DEFAULT_RANDOM_SEED: bool = false;
 static DEFAULT_SEED: u64 = 0;
 static DEFAULT_SKIP_VALIDATE: bool = false;
+static DEFAULT_SOLC_OPTIMIZE: bool = false;
 static DEFAULT_SOLC: &str = "solc";
 
 fn default_no_export_mutants() -> bool {
@@ -26,6 +27,10 @@ fn default_seed() -> u64 {
 
 fn default_skip_validate() -> bool {
     DEFAULT_SKIP_VALIDATE
+}
+
+fn default_solc_optimize() -> bool {
+    DEFAULT_SOLC_OPTIMIZE
 }
 
 fn default_solc() -> String {
@@ -93,6 +98,11 @@ pub struct MutateParams {
     #[arg(long, default_value = "solc")]
     #[serde(default = "default_solc")]
     pub solc: String,
+
+    /// Run solc with the `--optimize` flag
+    #[arg(long, default_value = "false")]
+    #[serde(default = "default_solc_optimize")]
+    pub solc_optimize: bool,
 
     /// Specify function names to mutate
     #[arg(long)]

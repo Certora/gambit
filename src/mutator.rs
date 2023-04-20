@@ -55,7 +55,18 @@ pub struct Mutator {
 impl From<&MutateParams> for Mutator {
     fn from(value: &MutateParams) -> Self {
         let conf = MutatorConf::from(value);
-        let solc = Solc::new(value.solc.clone(), value.outdir.clone().into());
+        let mut solc = Solc::new(value.solc.clone(), value.outdir.clone().into());
+        solc.with_optimize(value.solc_optimize);
+        if let Some(basepath) = value.solc_basepath.clone() {
+            solc.with_basepath(basepath);
+        }
+        if let Some(allowpaths) = value.solc_allowpaths.clone() {
+            solc.with_allow_paths(allowpaths);
+        }
+        if let Some(remappings) = value.solc_remapping.clone() {
+            solc.with_remappings(remappings);
+        }
+
         let mut sources: Vec<Rc<Source>> = vec![];
         if let Some(filename) = &value.filename {
             sources
