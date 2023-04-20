@@ -209,7 +209,7 @@ fn assert_exact_mutants_from_json(json: &str, expected: &Vec<(&str, &str, &str, 
             Style::new().bold().underline().italic().paint(json),
         );
     } else {
-        assert!(false, "Couldn't read test1.json");
+        assert!(false, "Couldn't read {}", json);
     }
 }
 
@@ -254,7 +254,7 @@ fn get_config_json(config_json: &str) -> Result<Vec<MutateParams>, Box<dyn error
                 .to_string()
         });
         // Update overwrite
-        params.overwrite = true;
+        params.no_overwrite = false;
     }
 
     Ok(mutate_params)
