@@ -60,7 +60,8 @@ pub fn run_mutate(
     for (outdir, outdir_params) in outdir_map.iter() {
         // Iterate through the params for this outdir to discover if we are
         // overwriting
-        let overwrite = outdir_params.iter().any(|p| p.overwrite);
+        let no_overwrite = outdir_params.iter().any(|p| p.no_overwrite);
+        let overwrite = !no_overwrite;
         let outdir_path = PathBuf::from(outdir);
         if outdir_path.exists() {
             if overwrite {
@@ -95,7 +96,6 @@ pub fn run_mutate(
         for params in outdir_params.iter() {
             log::info!("Processing params: {:?}", params);
             let export = !params.no_export;
-            println!("Export: {}", export);
 
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);

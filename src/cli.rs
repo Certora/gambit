@@ -2,7 +2,9 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 static DEFAULT_NO_EXPORT_MUTANTS: bool = false;
-static DEFAULT_OVERWRITE: bool = false;
+static DEFAULT_NO_OVERWRITE: bool = false;
+static DEFAULT_RANDOM_SEED: bool = false;
+static DEFAULT_SEED: u64 = 0;
 static DEFAULT_SKIP_VALIDATE: bool = false;
 static DEFAULT_SOLC: &str = "solc";
 
@@ -10,8 +12,16 @@ fn default_no_export_mutants() -> bool {
     DEFAULT_NO_EXPORT_MUTANTS
 }
 
-fn default_overwrite() -> bool {
-    DEFAULT_OVERWRITE
+fn default_no_overwrite() -> bool {
+    DEFAULT_NO_OVERWRITE
+}
+
+fn default_random_seed() -> bool {
+    DEFAULT_RANDOM_SEED
+}
+
+fn default_seed() -> u64 {
+    DEFAULT_SEED
 }
 
 fn default_skip_validate() -> bool {
@@ -50,12 +60,14 @@ pub struct MutateParams {
     /// Use a random seed instead of the specified seed. This will override any
     /// value passed in with the `--seed` flag
     #[arg(long, default_value = "false")]
+    #[serde(default = "default_random_seed")]
     pub random_seed: bool,
 
     /// Specify a seed for randomized down sampling. By default seed=0 is used
     /// and is deterministic, but nondeterminism can be enabled with the
     /// `--random-seed` flag
     #[arg(long, short, default_value = "0")]
+    #[serde(default = "default_seed")]
     pub seed: u64,
 
     /// Output directory to place results of mutation
@@ -74,8 +86,8 @@ pub struct MutateParams {
 
     /// Overwrite output directory (by default, a warning will print and this will exit)
     #[arg(long, default_value = "false")]
-    #[serde(default = "default_overwrite")]
-    pub overwrite: bool,
+    #[serde(default = "default_no_overwrite")]
+    pub no_overwrite: bool,
 
     /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
     #[arg(long, default_value = "solc")]
