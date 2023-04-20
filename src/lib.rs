@@ -112,7 +112,12 @@ pub fn run_mutate(
                 log::info!("Filtering down to {} mutants", num_mutants);
                 log::debug!("  seed: {:?}", params.seed);
                 log::debug!("  validating?: {}", !params.skip_validate);
-                let filter = RandomDownSampleFilter::new(params.seed, !params.skip_validate);
+                let seed = if params.random_seed {
+                    None
+                } else {
+                    Some(params.seed)
+                };
+                let filter = RandomDownSampleFilter::new(seed, !params.skip_validate);
                 let mutants = filter.filter_mutants(&mutator, num_mutants)?;
                 log::info!("Filtering resulted in {} mutants", mutants.len());
                 mutants

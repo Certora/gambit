@@ -47,9 +47,16 @@ pub struct MutateParams {
     #[arg(long, short, default_value = None)]
     pub num_mutants: Option<usize>,
 
-    /// Specify a random seed for down sampling
-    #[arg(long, short, default_value = None)]
-    pub seed: Option<u64>,
+    /// Use a random seed instead of the specified seed. This will override any
+    /// value passed in with the `--seed` flag
+    #[arg(long, default_value = "false")]
+    pub random_seed: bool,
+
+    /// Specify a seed for randomized down sampling. By default seed=0 is used
+    /// and is deterministic, but nondeterminism can be enabled with the
+    /// `--random-seed` flag
+    #[arg(long, short, default_value = "0")]
+    pub seed: u64,
 
     /// Output directory to place results of mutation
     #[arg(long, short, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]
