@@ -1,0 +1,9 @@
+[
+    {
+        "filename": "../DeleteExpressionMutation/DeleteExpressionMutation.sol"
+    },
+    {
+        "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
+        "solc": "solc8.13"
+    }
+]

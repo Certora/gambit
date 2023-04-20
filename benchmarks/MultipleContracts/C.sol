@@ -1,15 +1,17 @@
 pragma solidity ^0.5.12;
 
 library Utils {
-    function getarray(address[] memory c, address e) internal view {
-        assert(c[0] == e);    
-   
+    function getarray(address[] memory c, address e) internal pure {
+        assert(c[0] == e);
     }
 
+    function add(int8 a, int8 b) public pure returns (int8) {
+        return a + b;
+    }
 }
+
 contract C {
-   
-    function foo() external view returns (address[] memory)  {
+    function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
         a[0] = msg.sender;
         return a;
@@ -21,13 +23,16 @@ contract C {
         return res;
     }
 
-     function getarray(address[] memory c, address e) public view {
-        assert(c[0] == e);    
-   
+    function getarray(address[] memory c, address e) public pure {
+        assert(c[0] == e);
     }
-   
-    function callmyself() external {
+
+    function callmyself() external view {
         address[] memory b = this.foo();
-        Utils.getarray(b,address(this));
+        Utils.getarray(b, address(this));
+    }
+
+    function add(int8 c, int8 d) public pure returns (int8) {
+        return c + d;
     }
 }

@@ -1,0 +1,18 @@
+[
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "contract": "Utils",
+        "functions": [
+            "add"
+        ],
+        "solc": "solc5.12"
+    },
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "contract": "C",
+        "functions": [
+            "get10PowerDecimals"
+        ],
+        "solc": "solc5.12"
+    }
+]

@@ -1,0 +1,24 @@
+[
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "contract": "Utils",
+        "functions": [
+            "add"
+        ],
+        "mutations": [
+            "binary-op-mutation"
+        ],
+        "solc": "solc5.12"
+    },
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "contract": "C",
+        "functions": [
+            "add"
+        ],
+        "mutations": [
+            "binary-op-mutation"
+        ],
+        "solc": "solc5.12"
+    }
+]
