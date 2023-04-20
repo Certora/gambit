@@ -467,10 +467,12 @@ mod test {
         assert_exact_mutants(&vec!["int256 x;", "x = 1;"], &ops, &vec!["(-1)", "0"]);
         assert_exact_mutants(&vec!["int256 x;", "x = 0;"], &ops, &vec!["(-1)", "1"]);
         // FIXME: The following three test cases are BROKEN!! Currently these
-        // all get mutated to '0' because they are not 'number's
-        assert_num_mutants(&vec!["int256 x;", "x = -2;"], &vec![AssignmentMutation], 1);
-        assert_num_mutants(&vec!["int256 x;", "x = -1;"], &vec![AssignmentMutation], 1);
-        assert_num_mutants(&vec!["int256 x;", "x = -0;"], &vec![AssignmentMutation], 1);
+        // all get mutated to [-1, 1, 0, false, true] because they are not
+        // 'number's. Validation would strip out the true/false. We would want
+        // constant propagation to strip out the 0 in `x = -0`
+        assert_num_mutants(&vec!["int256 x;", "x = -2;"], &vec![AssignmentMutation], 5);
+        assert_num_mutants(&vec!["int256 x;", "x = -1;"], &vec![AssignmentMutation], 5);
+        assert_num_mutants(&vec!["int256 x;", "x = -0;"], &vec![AssignmentMutation], 5);
 
         assert_exact_mutants(&vec!["bool b;", "b = true;"], &ops, &vec!["false"]);
         assert_exact_mutants(&vec!["bool b;", "b = false;"], &ops, &vec!["true"]);
