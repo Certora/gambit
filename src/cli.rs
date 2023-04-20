@@ -1,13 +1,13 @@
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-static DEFAULT_EXPORT_MUTANTS: bool = true;
-static DEFAULT_OVERWRITE: bool = true;
+static DEFAULT_NO_EXPORT_MUTANTS: bool = false;
+static DEFAULT_OVERWRITE: bool = false;
 static DEFAULT_SKIP_VALIDATE: bool = false;
 static DEFAULT_SOLC: &str = "solc";
 
-fn default_export_mutants() -> bool {
-    DEFAULT_EXPORT_MUTANTS
+fn default_no_export_mutants() -> bool {
+    DEFAULT_NO_EXPORT_MUTANTS
 }
 
 fn default_overwrite() -> bool {
@@ -60,10 +60,10 @@ pub struct MutateParams {
     #[arg(long, num_args(1..))]
     pub mutations: Option<Vec<String>>,
 
-    /// Export full mutant sources
-    #[arg(long, default_value = "false")]
-    #[serde(default = "default_export_mutants")]
-    pub export_mutants: bool,
+    /// Skip mutant export
+    #[arg(long, default_value_t = DEFAULT_NO_EXPORT_MUTANTS)]
+    #[serde(default = "default_no_export_mutants")]
+    pub no_export: bool,
 
     /// Overwrite output directory (by default, a warning will print and this will exit)
     #[arg(long, default_value = "false")]

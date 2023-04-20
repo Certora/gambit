@@ -94,7 +94,8 @@ pub fn run_mutate(
         // Now, iterate through these parameters and generate mutants
         for params in outdir_params.iter() {
             log::info!("Processing params: {:?}", params);
-            let export = params.export_mutants;
+            let export = !params.no_export;
+            println!("Export: {}", export);
 
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);
