@@ -81,6 +81,52 @@ pub fn invoke_command(cmd: &str, args: Vec<&str>) -> Result<CommandOutput, Box<d
     }
 }
 
+pub fn read_source(orig_path: &Path) -> Result<Vec<u8>, Box<dyn Error>> {
+    let mut source = Vec::new();
+    let mut f = File::open(orig_path)?;
+    f.read_to_end(&mut source)?;
+    Ok(source)
+}
+
+pub fn print_colorized_unified_diff(diff: String) {
+    let clines: Vec<ansi_term::ANSIGenericString<str>> = diff
+        .lines()
+        .map(|line| {
+            if line.starts_with('-') {
+                ansi_term::Color::Red.paint(line)
+            } else if line.starts_with('+') {
+                ansi_term::Color::Green.paint(line)
+            } else if line.starts_with('@') {
+                ansi_term::Color::Blue.paint(line)
+            } else {
+                ansi_term::Style::default().paint(line)
+            }
+        })
+        .collect();
+    for line in clines {
+        println!("{}", line);
+    }
+}
+
+pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
+    let can_path = path.canonicalize()?;
+    let rel_path = match can_path.strip_prefix(PathBuf::from(".").canonicalize()?) {
+        Ok(p) => p.to_path_buf(),
+        Err(_) => can_path,
+    };
+    Ok(rel_path)
+}
+
+/// Make a relative path from the base path.
+pub fn rel_path_from_base(path: &Path, base: &Path) -> Result<PathBuf, Box<dyn Error>> {
+    let can_base = base.canonicalize()?;
+    let can_path = path.canonicalize()?;
+    match can_path.strip_prefix(can_base) {
+        Ok(p) => Ok(p.to_path_buf()),
+        Err(e) => Err(Box::new(e)),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,56 +238,7 @@ mod tests {
         let res = "@aave=/Test/aave-gho/node_modules/@aave";
         assert_eq!(repair_remapping(aave, base), res)
     }
-}
 
-pub fn read_source(orig_path: &Path) -> Result<Vec<u8>, Box<dyn Error>> {
-    let mut source = Vec::new();
-    let mut f = File::open(orig_path)?;
-    f.read_to_end(&mut source)?;
-    Ok(source)
-}
-
-pub fn print_colorized_unified_diff(diff: String) {
-    let clines: Vec<ansi_term::ANSIGenericString<str>> = diff
-        .lines()
-        .map(|line| {
-            if line.starts_with('-') {
-                ansi_term::Color::Red.paint(line)
-            } else if line.starts_with('+') {
-                ansi_term::Color::Green.paint(line)
-            } else if line.starts_with('@') {
-                ansi_term::Color::Blue.paint(line)
-            } else {
-                ansi_term::Style::default().paint(line)
-            }
-        })
-        .collect();
-    for line in clines {
-        println!("{}", line);
-    }
-}
-
-pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
-    let can_path = path.canonicalize()?;
-    let rel_path = match can_path.strip_prefix(PathBuf::from(".").canonicalize()?) {
-        Ok(p) => p.to_path_buf(),
-        Err(_) => can_path,
-    };
-    Ok(rel_path)
-}
-
-/// Make a relative path from the base path.
-pub fn rel_path_from_base(path: &Path, base: &Path) -> Result<PathBuf, Box<dyn Error>> {
-    let can_base = base.canonicalize()?;
-    let can_path = path.canonicalize()?;
-    match can_path.strip_prefix(can_base) {
-        Ok(p) => Ok(p.to_path_buf()),
-        Err(e) => Err(Box::new(e)),
-    }
-}
-
-#[cfg(test)]
-mod test {
     use crate::simplify_path;
     use std::path::PathBuf;
 
