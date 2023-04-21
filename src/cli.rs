@@ -37,16 +37,23 @@ fn default_solc() -> String {
     DEFAULT_SOLC.to_string()
 }
 
-/// Command line arguments for running Gambit.
-/// Following are the main ways to run it.
+fn default_source_root() -> Option<String> {
+    None
+}
+
+/// Mutate solidity code.
 ///
-///    1. cargo gambit path/to/file.sol: this will apply all mutations to file.sol.
+/// The `mutate` command requires either a `--filename` or a `--json`
+/// configuration file to be passed, and these are mutually exclusive.
 ///
-///    2. cargo run --release -- mutate -f path/to/file1.sol -f path/to/file2.sol: this will apply all mutations to file1.sol and file2.sol.
+/// # Examples
+/// 1. `gambit mutate --filename path/to/file.sol` this will apply all mutations to file.sol.
 ///
-///    3. cargo gambit-cfg path/to/config.json: this gives the user finer control on what functions in
-///       which files, contracts to mutate using which types of mutations.
+/// 2. `gambit mutate --json path/to/config.json`: this runs mutations specified
+///    in the configuration file
 ///
+/// Only one filename can be specified from command line at a time, but multiple
+/// files can be specified in a configuration.
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[command(rename_all = "kebab-case")]
 pub struct MutateParams {
@@ -54,7 +61,24 @@ pub struct MutateParams {
     #[arg(long, short, conflicts_with = "filename")]
     pub json: Option<String>,
 
-    /// Files to mutate
+    /// The name of the file to mutate. Note that this filename must be a
+    /// descendent of the source root (`.` by default, or specified by the
+    /// `--sourceroot` flag).
+    ///
+    /// # Example
+    ///
+    /// Running:
+    ///
+    /// `gambit mutate --filename /path/to/file.sol --sourceroot /some/other/path`
+    ///
+    /// will cause an error.  This is because `/path/to/file.sol` is not
+    /// (recursively) contained in `/some/other/path`. On the other hand, if
+    /// our working directory is `/path/to`, running:
+    ///
+    /// `gambit mutate --filename /path/to/file.sol`
+    ///
+    /// will work because `--sourceroot` is by default `.` which, in this case,
+    /// expands to `/path/to`, which contains `file.sol`.
     #[arg(long, short, conflicts_with = "json")]
     pub filename: Option<String>,
 
@@ -79,6 +103,14 @@ pub struct MutateParams {
     #[arg(long, short, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]
     #[serde(default = "crate::default_gambit_output_directory")]
     pub outdir: String,
+
+    /// Root of all source files, this determines all path offsets. By default
+    /// it is the current working directory. All filenames (either specified by
+    /// the --filename flag or as a "filename" field in a JSON configuration
+    /// file) must exist inside the sourceroot directory.
+    #[arg(long, default_value = None)]
+    #[serde(default = "default_source_root")]
+    pub sourceroot: Option<String>,
 
     /// Specify the mutation operators
     #[arg(long, num_args(1..))]
