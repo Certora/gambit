@@ -230,6 +230,16 @@ pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
     Ok(rel_path)
 }
 
+/// Make a relative path from the base path.
+pub fn rel_path_from_base(path: &Path, base: &Path) -> Result<PathBuf, Box<dyn Error>> {
+    let can_base = base.canonicalize()?;
+    let can_path = path.canonicalize()?;
+    match can_path.strip_prefix(can_base) {
+        Ok(p) => Ok(p.to_path_buf()),
+        Err(e) => Err(Box::new(e)),
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::simplify_path;
