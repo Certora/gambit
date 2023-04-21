@@ -67,11 +67,30 @@ impl From<&MutateParams> for Mutator {
             solc.with_remappings(remappings);
         }
 
+        let sourceroot = match &value.sourceroot {
+            Some(sourceroot) => PathBuf::from(sourceroot),
+            None => {
+                // Attempt to use CWD as the sourceroot. Ensuer that the
+                // filename belongs to (is prefixed by) the sourceroot
+                let sourceroot = PathBuf::from(".").canonicalize().unwrap();
+                let filename = &value
+                    .filename
+                    .as_ref()
+                    .expect(format!("Found unresolved filename in params: {:?}", value).as_str());
+                let filepath = PathBuf::from(filename).canonicalize().unwrap();
+                if !&filepath.starts_with(&sourceroot) {
+                    panic!("Unresolved sourceroot! Attempted to use the current working directory {} but filename {} was not a descendent.", sourceroot.display(), filepath.display());
+                }
+
+                sourceroot
+            }
+        };
+
         let mut sources: Vec<Rc<Source>> = vec![];
         if let Some(filename) = &value.filename {
             log::info!("Creating Source from filename: {}", filename);
             sources
-                .push(Rc::new(Source::new(filename.into()).expect(
+                .push(Rc::new(Source::new(filename.into(), sourceroot).expect(
                     format!("Couldn't read source {}", filename).as_str(),
                 )))
         }

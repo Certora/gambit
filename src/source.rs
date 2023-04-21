@@ -20,9 +20,10 @@ impl fmt::Display for SourceError {
 
 impl error::Error for SourceError {}
 
-/// A source file, including its name and its contents, to be mutated
+/// A source file, including its name, contents, and source root, to be mutated.
 pub struct Source {
     filename: PathBuf,
+    sourceroot: PathBuf,
     contents: Vec<u8>,
     newlines: Vec<usize>,
 }
@@ -38,7 +39,7 @@ impl std::fmt::Debug for Source {
 }
 
 impl Source {
-    pub fn new(filename: PathBuf) -> Result<Source, Box<dyn error::Error>> {
+    pub fn new(filename: PathBuf, sourceroot: PathBuf) -> Result<Source, Box<dyn error::Error>> {
         let filename = simplify_path(&filename)?;
         let contents = read_source(&filename)?;
         let newlines: Vec<usize> = contents
@@ -50,6 +51,7 @@ impl Source {
 
         Ok(Source {
             filename,
+            sourceroot,
             contents,
             newlines,
         })

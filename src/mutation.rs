@@ -664,8 +664,9 @@ mod test {
             funcs_to_mutate: None,
             contract: None,
         };
+        let sourceroot = filename.parent().unwrap();
 
-        let source = Source::new(filename.clone())
+        let source = Source::new(filename.clone(), sourceroot.to_path_buf())
             .expect(format!("Could not build source from {}", filename.display()).as_str());
         let sources = vec![Rc::new(source)];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
