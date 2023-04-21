@@ -69,6 +69,7 @@ impl From<&MutateParams> for Mutator {
 
         let mut sources: Vec<Rc<Source>> = vec![];
         if let Some(filename) = &value.filename {
+            log::info!("Creating Source from filename: {}", filename);
             sources
                 .push(Rc::new(Source::new(filename.into()).expect(
                     format!("Couldn't read source {}", filename).as_str(),
@@ -80,6 +81,12 @@ impl From<&MutateParams> for Mutator {
 
 impl Mutator {
     pub fn new(conf: MutatorConf, sources: Vec<Rc<Source>>, solc: Solc) -> Mutator {
+        log::info!(
+            "Creating mutator:\n   conf: {:?}\n    sources: {:?}\n    solc: {:?}",
+            conf,
+            sources,
+            solc
+        );
         Mutator {
             conf,
             sources,
