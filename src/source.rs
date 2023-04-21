@@ -1,4 +1,4 @@
-use crate::{read_source, simplify_path};
+use crate::{read_source, simplify_path, util};
 use std::{
     error, fmt,
     path::{Path, PathBuf},
@@ -62,13 +62,23 @@ impl Source {
         self.filename.as_path()
     }
 
+    /// Get the filename of this source as a string
     pub fn filename_as_str(&self) -> String {
         self.filename.to_str().unwrap().into()
+    }
+
+    pub fn relative_filename(&self) -> PathBuf {
+        util::resolve_against_parent(self.sourceroot.as_path(), self.filename.as_path())
     }
 
     /// Get the contents of this source, computing from `filename` if necessary
     pub fn contents(&self) -> &[u8] {
         &self.contents
+    }
+
+    /// Get the sourceroot for this source file
+    pub fn sourceroot(&self) -> &Path {
+        self.sourceroot.as_path()
     }
 
     /// Get a (line, column) pair that represents which line and column this
