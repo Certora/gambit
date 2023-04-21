@@ -16,21 +16,21 @@ pub fn default_gambit_output_directory() -> String {
 pub fn resolve_path_from_str(against: &str, target: &str) -> String {
     let ag = PathBuf::from(&against);
     let tgt = PathBuf::from(&target);
-    return resolve_against_parent(ag, tgt)
+    return resolve_against_parent(&ag, &tgt)
         .to_str()
         .unwrap()
         .to_string();
 }
 
 /// Resolve the path `target` against `against`'s parent.
-pub fn resolve_against_parent(against: PathBuf, target: PathBuf) -> PathBuf {
+pub fn resolve_against_parent(against: &Path, target: &Path) -> PathBuf {
     let par_of_agnst = against.parent();
     if let Some(par) = par_of_agnst {
         let mut against_par = par.to_path_buf();
         against_par.push(target);
         against_par
     } else {
-        target
+        target.to_path_buf()
     }
 }
 
