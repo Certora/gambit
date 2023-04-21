@@ -58,10 +58,25 @@ pub fn run_mutate(
     let mut total_num_mutants = 0;
     // Iterate through each out dir and its associated parameters and generate mutants
     for (outdir, outdir_params) in outdir_map.iter() {
+        /*                                                          *
+         *               SETUP OUTPUT DIRECTORY                     *
+         *               ======================                     */
+
         // Iterate through the params for this outdir to discover if we are
-        // overwriting
+        // not overwriting.
+        //
+        // NOTE: This is a temporary way to handle the fact that overwriting
+        // is a property of an output directory, but is specified as a property
+        // of a particular filename we are mutating. The configuration file
+        // should eventually be updated to reflect this structural difference, but for now we are adopting the convention that:
+        //
+        // Whenever one parameter targetting a given output directory specifies
+        // that an output directory should not be overwritten, all parameters
+        // targetting that directory are marked as no_output
         let no_overwrite = outdir_params.iter().any(|p| p.no_overwrite);
+
         let outdir_path = PathBuf::from(outdir);
+
         if outdir_path.exists() {
             if !no_overwrite {
                 if fs::metadata(outdir_path.as_path()).is_ok() {
@@ -91,11 +106,17 @@ pub fn run_mutate(
         log::info!("Creating outdir {}", outdir_path.display());
         fs::create_dir_all(&outdir_path)?;
 
-        // Now, iterate through these parameters and generate mutants
+        // Now, let's get to the fun stuff! Iterate through the parameters, and for each:
+        // 1. generate mutants
+        // 2. filter the mutants (if num-mutants was specified)
+        // 3. optionally validate the mutants
         for params in outdir_params.iter() {
             log::info!("Processing params: {:?}", params);
             let export = !params.no_export;
 
+            /*                                          *
+             *               MUTATE                     *
+             *               ======                     */
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);
             log::info!("Generating mutants");
@@ -105,6 +126,12 @@ pub fn run_mutate(
                 &mutants.len(),
                 params.filename.as_ref().unwrap()
             );
+
+            /*                                                   *
+             *               FILTER/VALIDATE                     *
+             *               ===============                     */
+
+            // TODO: Separate out Filtering from Validation
 
             // Check if we are filtering
             let mutants = if let Some(num_mutants) = params.num_mutants {
@@ -146,6 +173,9 @@ pub fn run_mutate(
 
     let mut results: HashMap<String, Vec<Mutant>> = HashMap::default();
 
+    /*                                                 *
+     *               WRITE MUTANTS                     *
+     *               =============                     */
     for (outdir, mutants) in mutants_by_out_dir {
         log::info!("Writing mutants for output directory {}", &outdir);
         results.insert(
