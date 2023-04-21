@@ -201,6 +201,7 @@ impl Mutator {
     }
 
     pub fn get_valid_mutants(&self, mutants: &Vec<Mutant>) -> Vec<Mutant> {
+        log::info!("Validating mutants...");
         let mut valid_mutants = vec![];
         for m in mutants.iter() {
             match self.validate_mutant(m) {

@@ -55,7 +55,7 @@ impl MutantWriter {
             w.write_record(&[
                 mid.to_string().as_str(),
                 mutant.op.to_string().as_str(),
-                mutant.source.filename().to_str().unwrap(),
+                mutant.source.relative_filename()?.to_str().unwrap(),
                 line_col.as_str(),
                 mutant.orig.as_str(),
                 mutant.repl.as_str(),
@@ -154,9 +154,16 @@ impl MutantWriter {
 
     /// Get the filename where a Mutant will be exported to. This depends
     fn get_mutant_filename(mutants_dir: &Path, mid: usize, mutant: &Mutant) -> PathBuf {
+        let rel_filename = match mutant.source.relative_filename() {
+            Ok(rel_fn) => rel_fn,
+            Err(e) => panic!(
+                "Error getting relative filename from {:?}\n\nError:{:?}",
+                &mutant.source, e
+            ),
+        };
         mutants_dir
             .join(Path::new(&mid.to_string()))
-            .join(mutant.source.filename())
+            .join(rel_filename)
     }
 
     fn diff_mutant(mutant: &Mutant) -> Result<String, Box<dyn error::Error>> {

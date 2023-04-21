@@ -32,6 +32,7 @@ impl std::fmt::Debug for Source {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         f.debug_struct("Source")
             .field("filename", &self.filename)
+            .field("sourceroot", &self.sourceroot)
             .field("contents", &String::from("[...]"))
             .field("newlines", &String::from("[...]"))
             .finish()
@@ -67,8 +68,8 @@ impl Source {
         self.filename.to_str().unwrap().into()
     }
 
-    pub fn relative_filename(&self) -> PathBuf {
-        util::resolve_against_parent(self.sourceroot.as_path(), self.filename.as_path())
+    pub fn relative_filename(&self) -> Result<PathBuf, Box<dyn error::Error>> {
+        util::rel_path_from_base(self.filename.as_path(), self.sourceroot.as_path())
     }
 
     /// Get the contents of this source, computing from `filename` if necessary
