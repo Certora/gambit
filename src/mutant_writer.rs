@@ -76,7 +76,7 @@ impl MutantWriter {
         for (i, ((mutant, _), diff)) in mutants.iter().zip(diffs).enumerate() {
             let mid = i + 1;
             json.push(serde_json::json!({
-                "name": Self::get_mutant_filename(&mutants_dir, mid, mutant),
+                "name": Self::get_mutant_filename(&PathBuf::from("mutants"), mid, mutant),
                 "description": mutant.op.to_string(),
                 "id": mid,
                 "diff": diff,
