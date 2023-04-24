@@ -75,11 +75,14 @@ impl MutantWriter {
         let mut json: Vec<serde_json::Value> = Vec::new();
         for (i, ((mutant, _), diff)) in mutants.iter().zip(diffs).enumerate() {
             let mid = i + 1;
+            let sourceroot = mutant.source.sourceroot().to_str().unwrap().to_string();
             json.push(serde_json::json!({
                 "name": Self::get_mutant_filename(&PathBuf::from("mutants"), mid, mutant),
                 "description": mutant.op.to_string(),
                 "id": mid,
                 "diff": diff,
+                "sourceroot": sourceroot,
+                "original": mutant.source.relative_filename()?,
             }));
         }
 
