@@ -41,6 +41,10 @@ fn default_source_root() -> Option<String> {
     None
 }
 
+fn default_num_mutants() -> Option<usize> {
+    None
+}
+
 /// Mutate solidity code.
 ///
 /// The `mutate` command requires either a `--filename` or a `--json`
@@ -56,6 +60,7 @@ fn default_source_root() -> Option<String> {
 /// files can be specified in a configuration.
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[command(rename_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 pub struct MutateParams {
     /// Json file with config
     #[arg(long, short, conflicts_with = "filename")]
@@ -84,6 +89,7 @@ pub struct MutateParams {
 
     /// If specified, randomly downsamples the number of mutants
     #[arg(long, short, default_value = None)]
+    #[serde(default = "default_num_mutants")]
     pub num_mutants: Option<usize>,
 
     /// Use a random seed instead of the specified seed. This will override any
