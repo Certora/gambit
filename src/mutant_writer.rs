@@ -79,7 +79,7 @@ impl MutantWriter {
             json.push(serde_json::json!({
                 "name": Self::get_mutant_filename(&PathBuf::from("mutants"), mid, mutant),
                 "description": mutant.op.to_string(),
-                "id": mid,
+                "id": mid.to_string(),
                 "diff": diff,
                 "sourceroot": sourceroot,
                 "original": mutant.source.relative_filename()?,
