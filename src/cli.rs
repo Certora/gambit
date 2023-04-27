@@ -60,7 +60,6 @@ fn default_num_mutants() -> Option<usize> {
 /// files can be specified in a configuration.
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
 #[command(rename_all = "kebab-case")]
-#[serde(rename_all = "kebab-case")]
 pub struct MutateParams {
     /// Json file with config
     #[arg(long, short, conflicts_with = "filename")]
