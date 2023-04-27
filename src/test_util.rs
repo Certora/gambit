@@ -1,5 +1,5 @@
-use crate::{SolAST, SolASTVisitor, Solc};
-use std::{error, io::prelude::*, path::PathBuf};
+use crate::{SolAST, SolASTVisitor};
+use std::{io::prelude::*, path::PathBuf};
 use tempfile::Builder;
 
 /// Wrap a sequence of statements in a function and write to a temp file,
@@ -59,24 +59,6 @@ contract Wrapper {{
     solidity_code
 }
 
-/// Wrap an expression to a parseable solidity program, write it to disk, and
-/// parse it
-pub fn parse_expr(expr: &str) -> Result<SolAST, Box<dyn error::Error>> {
-    let wrapped = format!("wrapped = {};", expr);
-    let solfile = wrap_and_write_solidity_to_temp_file(&vec!["int256 wrapped;", &wrapped], None)?;
-    let outdir = Builder::new()
-        .prefix("gambit-compile-dir")
-        .rand_bytes(5)
-        .tempdir()?;
-    let solc = Solc::new("solc".into(), PathBuf::from(outdir.into_path()));
-    let ast = solc.compile_ast(&solfile)?;
-    let v = ExprParserHelper::default();
-    let exprs = ast.traverse(&v, ());
-    let expr = exprs.get(0).unwrap().clone();
-    println!("Expression: {:?}", expr);
-    Ok(expr)
-}
-
 #[derive(Default)]
 struct ExprParserHelper {}
 
@@ -87,18 +69,5 @@ impl SolASTVisitor<(), SolAST> for ExprParserHelper {
         } else {
             None
         }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use std::error;
-
-    use crate::parse_expr;
-
-    #[test]
-    pub fn test_parse_expr() -> Result<(), Box<dyn error::Error>> {
-        parse_expr("1 + 2")?;
-        Ok(())
     }
 }
