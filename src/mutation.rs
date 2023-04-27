@@ -599,7 +599,8 @@ contract A {
 }
 ";
         let ops = vec![MutationType::ElimDelegateMutation];
-        assert_num_mutants_for_source(code, &ops, 1);
+        let expected = vec!["call"];
+        assert_exact_mutants_for_source(code, &ops, &expected);
         Ok(())
     }
 
