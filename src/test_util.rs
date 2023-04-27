@@ -10,7 +10,11 @@ pub fn wrap_and_write_solidity_to_temp_file(
 ) -> std::io::Result<PathBuf> {
     // Wrap statements in a Solidity function and contract
     let solidity_code = wrap_solidity(statements, returns);
+    write_solidity_to_temp_file(solidity_code)
+}
 
+/// Write solidity code to a temp file
+pub fn write_solidity_to_temp_file(sol: String) -> std::io::Result<PathBuf> {
     // Create a temporary file
     let mut temp_file = Builder::new()
         .prefix("solidity_wrapper_")
@@ -18,7 +22,7 @@ pub fn wrap_and_write_solidity_to_temp_file(
         .tempfile()?;
 
     // Write the Solidity code to the temporary file
-    writeln!(temp_file, "{}", solidity_code)?;
+    writeln!(temp_file, "{}", sol)?;
 
     // Get the temporary file path
     let temp_path = temp_file.into_temp_path();
