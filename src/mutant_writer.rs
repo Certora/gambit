@@ -155,7 +155,10 @@ impl MutantWriter {
         Ok(filename)
     }
 
-    /// Get the filename where a Mutant will be exported to. This depends
+    /// Get the filename where a Mutant will be exported to.
+    ///
+    /// This is computed from the relative path of the original sourcefile, relative to
+    /// the specified `sourceroot`, and is computed with `Source.relative_filename()`
     fn get_mutant_filename(mutants_dir: &Path, mid: usize, mutant: &Mutant) -> PathBuf {
         let rel_filename = match mutant.source.relative_filename() {
             Ok(rel_fn) => rel_fn,
@@ -169,6 +172,7 @@ impl MutantWriter {
             .join(rel_filename)
     }
 
+    /// Get the diff of the mutant and the original file
     fn diff_mutant(mutant: &Mutant) -> Result<String, Box<dyn error::Error>> {
         let orig_contents: String = String::from_utf8_lossy(mutant.source.contents()).into();
         let mutant_contents = mutant.as_source_file().unwrap();
