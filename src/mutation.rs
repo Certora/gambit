@@ -687,6 +687,26 @@ contract A {
         Ok(())
     }
 
+    fn assert_num_mutants_for_statements(
+        statements: &Vec<&str>,
+        ops: &Vec<MutationType>,
+        expected: usize,
+    ) {
+        let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
+        assert_eq!(
+            expected,
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+            ops,
+            statements.join("   "),
+            mutator
+                .sources
+                .iter()
+                .map(|s| s.filename())
+                .collect::<Vec<&Path>>()
+        );
+    }
+
     fn assert_exact_mutants_for_statements(
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
@@ -711,42 +731,6 @@ contract A {
         assert_eq!(actuals, expected);
     }
 
-    fn assert_num_mutants_for_statements(
-        statements: &Vec<&str>,
-        ops: &Vec<MutationType>,
-        expected: usize,
-    ) {
-        let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
-        assert_eq!(
-            expected,
-            mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-            ops,
-            statements.join("   "),
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
-        );
-    }
-
-    fn assert_num_mutants_for_source(source: &str, ops: &Vec<MutationType>, expected: usize) {
-        let mutator = apply_mutation_to_source(source, ops).unwrap();
-        assert_eq!(
-            expected,
-            mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
-            ops,
-            source,
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
-        );
-    }
-
     fn apply_mutation_to_statements(
         statements: &Vec<&str>,
         returns: Option<&str>,
@@ -761,6 +745,22 @@ contract A {
         mutator.mutate()?;
 
         Ok(mutator)
+    }
+
+    fn _assert_num_mutants_for_source(source: &str, ops: &Vec<MutationType>, expected: usize) {
+        let mutator = apply_mutation_to_source(source, ops).unwrap();
+        assert_eq!(
+            expected,
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
+            ops,
+            source,
+            mutator
+                .sources
+                .iter()
+                .map(|s| s.filename())
+                .collect::<Vec<&Path>>()
+        );
     }
 
     fn assert_exact_mutants_for_source(
