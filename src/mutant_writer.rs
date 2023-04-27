@@ -177,7 +177,6 @@ impl MutantWriter {
             .unified_diff()
             .header("original", "mutant")
             .to_string();
-        // Do writing here.
 
         Ok(diff)
     }
