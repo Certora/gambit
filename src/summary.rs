@@ -4,6 +4,10 @@ use serde_json::Value;
 
 use crate::SummaryParams;
 
+/// Summarize an existing mutation run (see the [SummaryParams][SummaryParams]
+/// struct for detailed documentation)
+///
+/// [SummaryParams]:crate::cli::SummaryParams
 pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
     let mutation_dir = PathBuf::from(params.mutation_directory);
     let gambit_results_json_path = mutation_dir.join("gambit_results.json");
@@ -47,12 +51,8 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
                 std::process::exit(1);
             }
             let v = v.as_array().unwrap();
-            if params.all {
-                v.iter().enumerate().for_each(|(i, m)| {
-                    print_mutant_summary(i, m);
-                });
-            } else {
-                if let Some(mids) = params.mids {
+            match params.mids {
+                Some(mids) => {
                     let mids: HashSet<String> = HashSet::from_iter(mids.iter().cloned());
                     for (i, value) in v.iter().enumerate() {
                         let mid = value
@@ -68,6 +68,11 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
                         }
                     }
                 }
+                None => {
+                    v.iter().enumerate().for_each(|(i, m)| {
+                        print_mutant_summary(i, m);
+                    });
+                }
             }
         }
     };
@@ -76,6 +81,17 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
 }
 
 /// Print a mutant summary, or a warning if a value is poorly formed.
+///
+/// # Arguments
+///
+/// * `i` - the index of the mutated JSON in the `gambit_results.json`. This is
+///   used for debug purposes
+/// * `mutant_json` - the JSON object from `gambit_results.json` that we are
+///   going to summarize. This must have the following keys:
+///   - `"id"`: this must map to an integer value
+///   - `"diff"`: this must map to a string value
+///   - `"name"`: this must map to a string value
+///   - `"description"`: this must map to a string value
 fn print_mutant_summary(i: usize, mutant_json: &Value) {
     let missing_field_msg = |field_name: &str, i: usize, json: &Value| {
         format!(
