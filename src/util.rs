@@ -5,6 +5,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use ansi_term::{ANSIGenericString, Color, Style};
+
 static EQUAL: &str = "=";
 pub static DEFAULT_GAMBIT_OUTPUT_DIRECTORY: &str = "gambit_out";
 
@@ -89,17 +91,17 @@ pub fn read_source(orig_path: &Path) -> Result<Vec<u8>, Box<dyn Error>> {
 }
 
 pub fn print_colorized_unified_diff(diff: String) {
-    let clines: Vec<ansi_term::ANSIGenericString<str>> = diff
+    let clines: Vec<ANSIGenericString<str>> = diff
         .lines()
         .map(|line| {
             if line.starts_with('-') {
-                ansi_term::Color::Red.paint(line)
+                Color::Red.paint(line)
             } else if line.starts_with('+') {
-                ansi_term::Color::Green.paint(line)
+                Color::Green.paint(line)
             } else if line.starts_with('@') {
-                ansi_term::Color::Blue.paint(line)
+                Color::Blue.paint(line)
             } else {
-                ansi_term::Style::default().paint(line)
+                Style::default().paint(line)
             }
         })
         .collect();
