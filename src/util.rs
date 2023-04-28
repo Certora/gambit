@@ -90,6 +90,17 @@ pub fn read_source(orig_path: &Path) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(source)
 }
 
+/// Given a unified diff string, print a colorized version of this string to
+/// stdout.
+///
+/// This function colorizes the diff line by line based on the type of the line.
+/// Lines in a unified diff can start with:
+///
+/// * `+`: this indicates an _addition_ of code; we color these lines _green_
+/// * `-`: this indicates a _deletion_ of code; we color these lines _red_
+/// * `@`: this indicates file location data (line number, etc); we color these
+///   lines _cyan_
+/// * Anything else: we do not format other lines
 pub fn print_colorized_unified_diff(diff: String) {
     let clines: Vec<ANSIGenericString<str>> = diff
         .lines()
@@ -99,7 +110,7 @@ pub fn print_colorized_unified_diff(diff: String) {
             } else if line.starts_with('+') {
                 Color::Green.paint(line)
             } else if line.starts_with('@') {
-                Color::Blue.paint(line)
+                Color::Cyan.paint(line)
             } else {
                 Style::default().paint(line)
             }
