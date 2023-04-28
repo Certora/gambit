@@ -108,6 +108,12 @@ pub fn print_colorized_unified_diff(diff: String) {
     }
 }
 
+/// Simplify a path for readability. This first canonicalizes a path, then tries
+/// to transform it into a relative path from the current working directory:
+/// this is successful only when the path is a descendend of the CWD (i.e., when
+/// `PathBuf::from(".").canonicalize()` is a prefix of the canonicalized
+/// `path`). If this is successful, this function returns the relative path.
+/// Otherwise, return the canonical path.
 pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
     let can_path = path.canonicalize()?;
     let rel_path = match can_path.strip_prefix(PathBuf::from(".").canonicalize()?) {
