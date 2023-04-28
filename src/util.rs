@@ -117,7 +117,10 @@ pub fn simplify_path(path: &Path) -> Result<PathBuf, Box<dyn Error>> {
     Ok(rel_path)
 }
 
-/// Make a relative path from the base path.
+/// Make a relative path from the base path. This function takes two paths,
+/// canonicalizes them both, and then strips the `base` path as a prefix from
+/// `path`. If either path doesn't exist, or if the canonicalized `base` is not
+/// a prefix of the canonicalized `path`, return an error.
 pub fn rel_path_from_base(path: &Path, base: &Path) -> Result<PathBuf, Box<dyn Error>> {
     let can_base = base.canonicalize()?;
     let can_path = path.canonicalize()?;
