@@ -9,7 +9,7 @@ fn multiple_contracts_1() {
     assert_exact_mutants_from_json(
         "multiple-contracts-1.json",
         &vec![
-            //C.get10PoerDecimals
+            //C.get10PowerDecimals
             ("BinaryOpMutation", "**", "+", (22, 24)),
             ("BinaryOpMutation", "**", "-", (22, 24)),
             ("BinaryOpMutation", "**", "*", (22, 24)),
@@ -133,16 +133,32 @@ fn test_all() {
     )
 }
 
-/// This performs assertions on a json config. Pass in the config file name
-/// (which must be located in the `benchmarks/config-jsons` directory) and a
-/// vector of the expected mutants in the form `(orig, replaced, (line:column))`
+/// Assert the expected mutations of JSON configuration file located in
+/// `benchmarks/config-jsons`.
 ///
 /// The expected mutants can be order independent: we check that the actual and
 /// expected mutants have the same number and are the same when put into a set
-/// (note: the length check on actuals and expected is maybe a little redundant,
+///
+/// _(note: the length check on actuals and expected is maybe a little redundant,
 /// but this checks against the same mutant being generated multiple times,
 /// which will not show up when the mutants are stored in sets for equality
-/// checking)
+/// checking)_
+///
+/// # Arguments
+///
+/// * `json` - name of the json file located in `Gambit/benchmarks/config-jsons`
+/// * `expected` - a tuple describing the expected mutants. These tuples have
+///   the form `(op, orig, repl, (linenum, colnum))`,
+///   where
+///   - `op` is the name of mutation operator derived from
+///     `MutationType::toString()`
+///   - `orig` is the source text of the node being replaced (corresponding to
+///     `Mutant.orig`)
+///   - `repl` is the source text replacing `orig` during mutation
+///     (corresponding to `Mutant.repl`)
+///   - `(linenum, colnum)` are the line and column numbers where the mutation
+///     took place (corresponding to `Mutant.get_line_column`); we use this
+///     information to disambiguate different mutations of similar nodes
 fn assert_exact_mutants_from_json(json: &str, expected: &Vec<(&str, &str, &str, (usize, usize))>) {
     if let Ok(mutate_params) = get_config_json(json) {
         let results = gambit::run_mutate(mutate_params);
