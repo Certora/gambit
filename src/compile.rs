@@ -138,7 +138,7 @@ impl Solc {
     }
 
     /// Invoke the full solidity compiler and return the exit code, stdout, and stderr
-    pub fn compile_full(
+    pub fn compile(
         &self,
         solidity_file: &Path,
         outdir: &Path,

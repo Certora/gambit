@@ -192,7 +192,7 @@ impl Mutator {
     pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
         let dir = tempdir()?;
         let sol_file = MutantWriter::write_mutant_to_disk(dir.path(), &mutant)?;
-        let code = match self.solc().compile_full(sol_file.as_path(), dir.path()) {
+        let code = match self.solc().compile(sol_file.as_path(), dir.path()) {
             Ok((code, _, _)) => code == 0,
             Err(_) => false,
         };
