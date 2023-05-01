@@ -1,7 +1,7 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::Parser;
-use gambit::{run_mutate, run_summary, Command, MutateParams};
+use gambit::{normalize_path, run_mutate, run_summary, Command, MutateParams};
 
 /// Entry point
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -72,8 +72,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // 2. An **absolute** filename resolves to itself
                 //
                 // After Filename Resolution, Gambit ensures that each
-                // parameter's filename is prefixed by (or belongs to) it's
-                // source root.
+                // parameter's `filename` value is prefixed by (or belongs to)
+                // it's source root.
+                //
+                // NOTE: not all files need to belong to `sourceroot`! Only the
+                // `param.filename`, since this is written to logs. In
+                // particular, compiler arguments (e.g., specified by the
+                // `--solc-allowpaths` flag) will not be checked for inclusion
+                // in `sourceroot`.
                 let pb = PathBuf::from(&json_path);
                 let json_parent_directory = pb.parent().unwrap();
 
@@ -114,24 +120,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let source_root_string = source_root_path.to_str().unwrap().to_string();
 
                     // Filename Resolution
+                    //
+                    // We need to check for the following filenames to resolve
+                    // with respect to the config file's parent directory:
+                    //
+                    // | Parameter       | Resolve WRT Conf? | Sourceroot Inclusion? |
+                    // | --------------- | ----------------- | --------------------- |
+                    // | filename        | Yes               | Yes                   |
+                    // | outdir          | Yes               | No                    |
+                    // | solc_allowpaths | Yes               | No                    |
+                    // | solc_basepath   | Yes               | No                    |
+                    // | solc_remapping  | Yes               | No                    |
                     log::info!("    Performing Filename Resolution");
 
+                    // PARAM: Filename
+                    log::info!("    [.] Resolving params.filename");
                     let filename_path: PathBuf = match params.filename.clone() {
                         Some(filename) => {
-                            let raw_filename_path = PathBuf::from(&filename);
-                            let resolved_filename_path = if raw_filename_path.is_absolute() {
-                                raw_filename_path.canonicalize()?
-                            } else {
-                                json_parent_directory
-                                    .join(raw_filename_path)
-                                    .canonicalize()?
-                            };
-                            log::info!(
-                                "    [->] Resolved filename `{}` to `{}`",
-                                &filename,
-                                resolved_filename_path.display()
-                            );
-                            resolved_filename_path
+                            resolve_config_file_path(&filename, json_parent_directory)?
                         }
                         None => {
                             log::error!("[!!] Found a configuration without a filename!");
@@ -160,6 +166,52 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         &source_root_string
                     );
 
+                    // PARAM: Outdir
+                    // We can't use `resolve_config_file_path` because it might
+                    // not exist yet, so we can't canonicalize
+
+                    log::info!("    [.] Resolving params.outdir");
+                    let outdir_path = PathBuf::from(&params.outdir);
+                    let outdir_path = if outdir_path.is_absolute() {
+                        normalize_path(&outdir_path)
+                    } else {
+                        normalize_path(&json_parent_directory.join(&outdir_path))
+                    };
+                    let outdir = outdir_path.to_str().unwrap().to_string();
+                    log::info!(
+                        "    [->] Resolved path `{}` to `{}`",
+                        &params.outdir,
+                        &outdir,
+                    );
+
+                    // PARAM: solc_allowpaths
+                    log::info!("    [.] Resolving params.allow_paths");
+                    let allow_paths = if let Some(allow_paths) = &params.solc_allowpaths {
+                        Some(resolve_config_file_paths(
+                            allow_paths,
+                            json_parent_directory,
+                        )?)
+                    } else {
+                        None
+                    };
+
+                    // PARAM: solc_basepath
+                    log::info!("    [.] Resolving params.solc_basepath");
+                    let basepath = if let Some(basepaths) = &params.solc_basepath {
+                        Some(resolve_config_file_path(basepaths, json_parent_directory)?)
+                            .map(|bp| bp.to_str().unwrap().to_string())
+                    } else {
+                        None
+                    };
+
+                    // PARAM: solc_remappings
+                    log::info!("    [.] Resolving params.solc_remapping");
+                    let remapping = if let Some(remapping) = &params.solc_remapping {
+                        Some(resolve_config_file_paths(remapping, json_parent_directory)?)
+                    } else {
+                        None
+                    };
+
                     // Finally, update params with resolved source root and filename.
                     // (We don't update earlier to preserve the state of params
                     // for error reporting: reporting the parsed in value of
@@ -167,6 +219,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // reporting the modified value of params).
                     params.sourceroot = Some(source_root_string.clone());
                     params.filename = Some(filename_string.clone());
+                    params.outdir = outdir;
+                    params.solc_allowpaths = allow_paths;
+                    params.solc_basepath = basepath;
+                    params.solc_remapping = remapping;
                 }
                 run_mutate(mutate_params)?;
             } else {
@@ -240,8 +296,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let source_root_string = source_root_path.to_str().unwrap().to_string();
 
                 // Filename Resolution
+                //
+                // We need to canonicalize the following files, possibly
+                // checking for sourceroot inclusion.
+                //
+                // | Parameter       | Sourceroot Inclusion? |
+                // | --------------- | --------------------- |
+                // | filename        | Yes                   |
+                // | outdir          | No                    |
+                // | solc_allowpaths | No                    |
+                // | solc_basepath   | No                    |
+                // | solc_remapping  | No                    |
                 log::info!("    Performing Filename Resolution");
 
+                log::info!("    [.] Resolving params.filename");
                 let filename_path: PathBuf = match params.filename.clone() {
                     Some(filename) => {
                         let raw_filename_path = PathBuf::from(&filename);
@@ -280,6 +348,50 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     &source_root_string
                 );
 
+                log::info!("    [.] Resolving params.outdir {}", &params.outdir);
+                let outdir = normalize_path(&PathBuf::from(&params.outdir))
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+
+                log::info!("    [.] Resolving params.solc_allowpaths");
+                let solc_allowpaths = params.solc_allowpaths.map(|aps| {
+                    aps.iter()
+                        .map(|p| {
+                            PathBuf::from(p)
+                                .canonicalize()
+                                .unwrap()
+                                .to_str()
+                                .unwrap()
+                                .to_string()
+                        })
+                        .collect()
+                });
+
+                log::info!("    [.] Resolving params.solc_basepath");
+                let solc_basepath = params.solc_basepath.map(|bp| {
+                    PathBuf::from(bp)
+                        .canonicalize()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                });
+
+                log::info!("    [.] Resolving params.solc_remapping");
+                let solc_remapping = params.solc_remapping.map(|rms| {
+                    rms.iter()
+                        .map(|rm| {
+                            PathBuf::from(rm)
+                                .canonicalize()
+                                .unwrap()
+                                .to_str()
+                                .unwrap()
+                                .to_string()
+                        })
+                        .collect()
+                });
+
                 // Finally, update params with resolved source root and filename.
                 // (We don't update earlier to preserve the state of params
                 // for error reporting: reporting the parsed in value of
@@ -287,6 +399,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // reporting the modified value of params).
                 params.sourceroot = Some(source_root_string.clone());
                 params.filename = Some(filename_string.clone());
+                params.outdir = outdir;
+                params.solc_allowpaths = solc_allowpaths;
+                params.solc_basepath = solc_basepath;
+                params.solc_remapping = solc_remapping;
 
                 run_mutate(vec![params])?;
             }
@@ -296,4 +412,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     Ok(())
+}
+
+/// Resolve a filename with respect to the directory containing the config file
+fn resolve_config_file_path(
+    path: &String,
+    json_parent_directory: &Path,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let path = PathBuf::from(&path);
+    let result = if path.is_absolute() {
+        path.canonicalize()?
+    } else {
+        json_parent_directory.join(&path).canonicalize()?
+    };
+    log::info!(
+        "    [->] Resolved path `{}` to `{}`",
+        path.display(),
+        result.display()
+    );
+    Ok(result)
+}
+
+fn resolve_config_file_paths(
+    paths: &Vec<String>,
+    json_parent_directory: &Path,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let mut result: Vec<String> = vec![];
+    for path in paths {
+        result.push(
+            resolve_config_file_path(path, json_parent_directory)?
+                .to_str()
+                .unwrap()
+                .to_string(),
+        );
+    }
+    Ok(result)
 }
