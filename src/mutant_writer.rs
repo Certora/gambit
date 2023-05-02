@@ -106,7 +106,7 @@ impl MutantWriter {
     /// other non-export tasks.
     ///
     /// Return the path to the exported mutant file
-    pub fn write_mutant_to_disk(
+    pub fn write_mutant_to_dir(
         mutants_dir: &Path,
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
@@ -120,6 +120,26 @@ impl MutantWriter {
 
         Ok(filename)
     }
+
+    /// Write a mutant's content to a particular file
+    ///
+    /// # Arguments
+    ///
+    /// * `filename` - a path to the file that will be written with the mutant's content
+    /// * `mutant` - the mutant to be written
+    pub fn write_mutant_to_file(
+        filename: &Path,
+        mutant: &Mutant,
+    ) -> Result<(), Box<dyn error::Error>> {
+        let mutant_contents = mutant.as_source_file()?;
+
+        log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
+
+        fs::write(filename, mutant_contents)?;
+
+        Ok(())
+    }
+
     /// A helper function to write a mutant to disk in a subdirectory specified
     /// by the provided mutant id.
     ///

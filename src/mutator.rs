@@ -2,8 +2,8 @@ use crate::{
     mutation::MutationType, source::Source, Mutant, MutantWriter, MutateParams, Mutation, SolAST,
     SolASTVisitor, Solc,
 };
-use std::{error, fs, path::PathBuf, rc::Rc};
-use tempfile::tempdir;
+use std::{error, path::PathBuf, rc::Rc};
+use tempfile::{tempdir, NamedTempFile};
 
 /// This module is responsible for high level logic of running mutation over
 /// Solidity programs.
@@ -101,7 +101,7 @@ impl From<&MutateParams> for Mutator {
 impl Mutator {
     pub fn new(conf: MutatorConf, sources: Vec<Rc<Source>>, solc: Solc) -> Mutator {
         log::info!(
-            "Creating mutator:\n   conf: {:?}\n    sources: {:?}\n    solc: {:?}",
+            "Creating mutator:\n   conf: {:#?}\n    sources: {:?}\n    solc: {:#?}",
             conf,
             sources,
             solc
@@ -190,13 +190,21 @@ impl Mutator {
     /// validate a mutant by writing it to disk and compiling it. If compilation
     /// fails then this is an invalid mutant.
     pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
+        let source_filename = mutant.source.filename();
+        let source_parent_dir = source_filename.parent().unwrap();
+        let mutant_file = NamedTempFile::new_in(source_parent_dir)?;
+        let mutant_file_path = mutant_file.path();
+        log::debug!(
+            "Validating mutant of {}: copying mutated code to {}",
+            source_filename.display(),
+            mutant_file_path.display()
+        );
         let dir = tempdir()?;
-        let sol_file = MutantWriter::write_mutant_to_disk(dir.path(), &mutant)?;
-        let code = match self.solc().compile(sol_file.as_path(), dir.path()) {
+        MutantWriter::write_mutant_to_file(mutant_file_path, &mutant)?;
+        let code = match self.solc().compile(mutant_file_path, dir.path()) {
             Ok((code, _, _)) => code == 0,
             Err(_) => false,
         };
-        fs::remove_dir_all(dir.path())?;
         Ok(code)
     }
 

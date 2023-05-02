@@ -24,6 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Run fron config file
                 let json_contents = std::fs::read_to_string(&json_path)?;
                 let json: serde_json::Value = serde_json::from_reader(json_contents.as_bytes())?;
+                log::info!("Read configuration json: {:#?}", json);
 
                 let mut mutate_params: Vec<MutateParams> = if json.is_array() {
                     serde_json::from_str(&json_contents)?
@@ -33,6 +34,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 } else {
                     panic!("Invalid configuration file: must be an array or an object")
                 };
+
+                log::info!("Deserialized json into MutateParams");
 
                 // # Path Resolutions in Configuration Files
                 //
@@ -80,8 +83,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // particular, compiler arguments (e.g., specified by the
                 // `--solc-allowpaths` flag) will not be checked for inclusion
                 // in `sourceroot`.
-                let pb = PathBuf::from(&json_path);
-                let json_parent_directory = pb.parent().unwrap();
+                let config_pb = PathBuf::from(&json_path);
+                log::info!("config: {}", config_pb.display());
+                let config_pb = config_pb.canonicalize()?;
+                log::info!("canonical config: {}", config_pb.display());
+                let config_parent_pb = config_pb.parent().unwrap();
+                log::info!("config parent: {}", config_parent_pb.display());
+                let json_parent_directory = config_parent_pb.canonicalize()?;
 
                 log::info!("Performing Path Resolution for Configurations");
                 log::info!("Found {} configurations", mutate_params.len());
@@ -137,7 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     log::info!("    [.] Resolving params.filename");
                     let filename_path: PathBuf = match params.filename.clone() {
                         Some(filename) => {
-                            resolve_config_file_path(&filename, json_parent_directory)?
+                            resolve_config_file_path(&filename, &json_parent_directory)?
                         }
                         None => {
                             log::error!("[!!] Found a configuration without a filename!");
@@ -189,7 +197,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let allow_paths = if let Some(allow_paths) = &params.solc_allowpaths {
                         Some(resolve_config_file_paths(
                             allow_paths,
-                            json_parent_directory,
+                            &json_parent_directory,
                         )?)
                     } else {
                         None
@@ -198,7 +206,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // PARAM: solc_basepath
                     log::info!("    [.] Resolving params.solc_basepath");
                     let basepath = if let Some(basepaths) = &params.solc_basepath {
-                        Some(resolve_config_file_path(basepaths, json_parent_directory)?)
+                        Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
                             .map(|bp| bp.to_str().unwrap().to_string())
                     } else {
                         None
@@ -390,11 +398,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 });
 
                 log::info!("    [.] Resolving params.solc_remapping");
-                let solc_remapping = params.solc_remapping.map(|rms| {
+                let solc_remapping = params.solc_remapping.as_ref().map(|rms| {
                     rms.iter()
                         .map(|rm| repair_remapping(rm.as_str(), None))
                         .collect()
                 });
+                log::info!(
+                    "    [->] Resolved solc-remapping:\n    {:#?} to \n    {:#?}",
+                    &params.solc_remapping,
+                    &solc_remapping
+                );
 
                 // Finally, update params with resolved source root and filename.
                 // (We don't update earlier to preserve the state of params
