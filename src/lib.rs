@@ -39,7 +39,7 @@ pub fn run_mutate(
     mutate_params: Vec<MutateParams>,
 ) -> Result<HashMap<String, Vec<Mutant>>, Box<dyn std::error::Error>> {
     log::info!("Running Gambit Mutate command");
-    log::debug!("Mutate parameters: {:?}", mutate_params);
+    log::debug!("Mutate parameters: {:#?}", mutate_params);
 
     let start = Instant::now();
     let mut mutants_by_out_dir: HashMap<String, Vec<(Mutant, bool)>> = HashMap::default();
