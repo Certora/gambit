@@ -53,7 +53,12 @@ pub fn get_indent(line: &str) -> String {
 /// We need to fix solc remappings because they are simple strings that look like:
 /// `@aave=path/to/aave-gho/node_modules/@aave`.
 /// This involves some string manipulation which isn't great.
-pub fn repair_remapping(remap: &str, against_path_str: &str) -> String {
+pub fn repair_remapping(remap: &str, against_path_str: Option<&str>) -> String {
+    let against_path_str = if let Some(p) = against_path_str {
+        p
+    } else {
+        "."
+    };
     let parts: Vec<&str> = remap.split(EQUAL).collect();
     assert_eq!(
         parts.len(),
@@ -250,7 +255,7 @@ mod tests {
         let aave = "@aave=../../../Test/aave-gho/node_modules/@aave";
         let base = ".";
         let res = "@aave=../../../Test/aave-gho/node_modules/@aave";
-        assert_eq!(repair_remapping(aave, base), res)
+        assert_eq!(repair_remapping(aave, Some(base)), res)
     }
 
     #[test]
@@ -258,7 +263,7 @@ mod tests {
         let aave = "@aave=/Test/aave-gho/node_modules/@aave";
         let base = "/foo/bar";
         let res = "@aave=/Test/aave-gho/node_modules/@aave";
-        assert_eq!(repair_remapping(aave, base), res)
+        assert_eq!(repair_remapping(aave, Some(base)), res)
     }
 
     use crate::simplify_path;

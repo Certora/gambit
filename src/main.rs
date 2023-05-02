@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
-use gambit::{normalize_path, run_mutate, run_summary, Command, MutateParams};
+use gambit::{normalize_path, repair_remapping, run_mutate, run_summary, Command, MutateParams};
 
 /// Entry point
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -206,11 +206,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     // PARAM: solc_remappings
                     log::info!("    [.] Resolving params.solc_remapping");
-                    let remapping = if let Some(remapping) = &params.solc_remapping {
-                        Some(resolve_config_file_paths(remapping, json_parent_directory)?)
-                    } else {
-                        None
-                    };
+                    let remapping: Option<Vec<String>> =
+                        if let Some(remapping) = &params.solc_remapping {
+                            Some(
+                                remapping
+                                    .iter()
+                                    .map(|rm| {
+                                        repair_remapping(
+                                            rm.as_str(),
+                                            Some(json_parent_directory.to_str().unwrap()),
+                                        )
+                                    })
+                                    .collect(),
+                            )
+                        } else {
+                            None
+                        };
 
                     // Finally, update params with resolved source root and filename.
                     // (We don't update earlier to preserve the state of params
@@ -381,14 +392,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 log::info!("    [.] Resolving params.solc_remapping");
                 let solc_remapping = params.solc_remapping.map(|rms| {
                     rms.iter()
-                        .map(|rm| {
-                            PathBuf::from(rm)
-                                .canonicalize()
-                                .unwrap()
-                                .to_str()
-                                .unwrap()
-                                .to_string()
-                        })
+                        .map(|rm| repair_remapping(rm.as_str(), None))
                         .collect()
                 });
 
