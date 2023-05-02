@@ -1,9 +1,73 @@
 [
     {
-        "filename": "../DeleteExpressionMutation/DeleteExpressionMutation.sol"
+        "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "binary-op-mutation"
+        ]
+    },
+    {
+        "filename": "../RequireMutation/RequireMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "require-mutation"
+        ]
+    },
+    {
+        "filename": "../AssignmentMutation/AssignmentMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "assignment-mutation"
+        ]
+    },
+    {
+        "filename": "../DeleteExpressionMutation/DeleteExpressionMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "delete-expression-mutation"
+        ]
+    },
+    {
+        "filename": "../FunctionCallMutation/FunctionCallMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "function-call-mutation"
+        ]
+    },
+    {
+        "filename": "../IfStatementMutation/IfStatementMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "if-statement-mutation"
+        ],
+        "solc-optimize": true
+    },
+    {
+        "filename": "../SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "swap-arguments-function-mutation"
+        ]
+    },
+    {
+        "filename": "../SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "swap-arguments-operator-mutation"
+        ]
+    },
+    {
+        "filename": "../UnaryOperatorMutation/UnaryOperatorMutation.sol",
+        "solc": "solc",
+        "mutations": [
+            "unary-operator-mutation"
+        ]
     },
     {
         "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
-        "solc": "solc8.13"
+        "solc": "solc8.13",
+        "mutations": [
+            "elim-delegate-mutation"
+        ]
     }
 ]
