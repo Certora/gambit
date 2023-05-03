@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // `Vec<MutateParams>` based on this.
             if let Some(json_path) = &params.json {
                 log::info!("Running from configuration");
-                // Run fron config file
+                // Run from config file
                 let json_contents = std::fs::read_to_string(&json_path)?;
                 let json: serde_json::Value = serde_json::from_reader(json_contents.as_bytes())?;
                 log::info!("Read configuration json: {:#?}", json);
