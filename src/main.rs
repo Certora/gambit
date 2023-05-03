@@ -46,8 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 } else {
                     panic!("Invalid configuration file: must be an array or an object")
                 };
-
-                log::info!("Deserialized json into MutateParams");
+                log::debug!("Deserialized JSON into MutateParams: {:#?}", &mutate_params);
 
                 // # Path Resolutions in Configuration Files
                 //
@@ -257,6 +256,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 run_mutate(mutate_params)?;
             } else {
+                log::debug!("Running CLI MutateParams: {:#?}", &params);
                 // # Path Resolution for CLI Provided Parameters
                 //
                 // All relative paths specified _from the CLI_ are relative to

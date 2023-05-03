@@ -143,7 +143,7 @@ pub struct MutateParams {
     pub solc_optimize: bool,
 
     /// Specify function names to mutate
-    #[arg(long)]
+    #[arg(long, num_args(1..))]
     pub functions: Option<Vec<String>>,
 
     /// Specify a contract to mutate
