@@ -226,7 +226,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // PARAM: solc_remappings
                     log::info!("    [.] Resolving params.solc_remapping");
                     let remapping: Option<Vec<String>> =
-                        if let Some(remapping) = &params.solc_remapping {
+                        if let Some(remapping) = &params.solc_remappings {
                             Some(
                                 remapping
                                     .iter()
@@ -252,7 +252,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     params.outdir = outdir;
                     params.solc_allowpaths = allow_paths;
                     params.solc_basepath = basepath;
-                    params.solc_remapping = remapping;
+                    params.solc_remappings = remapping;
                 }
                 run_mutate(mutate_params)?;
             } else {
@@ -410,14 +410,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 });
 
                 log::info!("    [.] Resolving params.solc_remapping");
-                let solc_remapping = params.solc_remapping.as_ref().map(|rms| {
+                let solc_remapping = params.solc_remappings.as_ref().map(|rms| {
                     rms.iter()
                         .map(|rm| repair_remapping(rm.as_str(), None))
                         .collect()
                 });
                 log::info!(
                     "    [->] Resolved solc-remapping:\n    {:#?} to \n    {:#?}",
-                    &params.solc_remapping,
+                    &params.solc_remappings,
                     &solc_remapping
                 );
 
@@ -431,7 +431,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.outdir = outdir;
                 params.solc_allowpaths = solc_allowpaths;
                 params.solc_basepath = solc_basepath;
-                params.solc_remapping = solc_remapping;
+                params.solc_remappings = solc_remapping;
 
                 run_mutate(vec![params])?;
             }
