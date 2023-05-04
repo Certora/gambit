@@ -1,40 +1,38 @@
 # Gambit: Mutant Generation for Solidity
 
-Gambit is a state-of-the-art mutation system for Solidity. Gambit performs
-**first-order sourcecode mutation** on Solidity programs.
-
-This means that Gambit alters a Solidity program's sourcecode by applying
-predefined syntax transformations called **mutation operators** (e.g., `a + b`
--> `a - b`) to produce program variants called **mutants**. Mutants can be
-thought of as proxy bugs and are used to evaluate test suites or the specs used
-for verification.
+Gambit is a state-of-the-art mutation system for Solidity that performs
+first-order source code mutation on Solidity programs. By applying predefined
+syntax transformations called mutation operators (for example, `a + b` -> `a -
+b`) to a Solidity program's source code, Gambit generates variants of the
+program called **mutants**. These mutants can be used to evaluate test suites or
+the specs used for verification.
 
 ## Installation
-Gambit is written in Rust, and you can find Rust installation directions
-[here](https://www.rust-lang.org/tools/install). This will install the Rust
-language as well as the Cargo, Rust's package manager and build system.
 
-To install Gambit, clone this repository. From the repository's root, run `cargo
-install --path .` This will create a globally-visible Gambit installation.
+To install Gambit you'll need to [install Rust](https://www.rust-lang.org/tools/install).
 
-Gambit relies on the Solidity compiler, and this will need to be installed; more
-on that in _Usage_.
+To install Gambit, clone this repository and run `cargo install --path .` from
+the repository's root.
 
+Please note that Gambit relies on the Solidity compiler.
 ## Usage
 
-Once Gambit is installed you can invoke it from commandline with the `gambit`
-executable. 
+Once Gambit is installed you can invoke it from commandline with the gambit
+executable.
 
-_Note: We recommend you install Gambit, and the following instructions will
-assume that you have followed the instructions in _Installation_. However, if
-you would prefer not to install Gambit, never fear! You can replace all
-invocations of `gambit ...` with `cargo run -- ...`, just so long as you're
-running this from the root of this repository._
+_**Note:** We recommend you install Gambit, and the following instructions will
+assume that you have followed the instructions in Installation. However, if you
+would prefer not to install Gambit, never fear! You can replace all invocations
+of `gambit ...` with `cargo run -- ...` and the results will be identical (as
+long as you run `cargo run -- ...` from the root of the Gambit repository)._
 
 Gambit has two commands: `mutate` and `summary`. `gambit mutate` is the primary
-way to use Gambit and is respondible for mutating code. `gambit summary`
-is a convenience command for summarizing the generated mutants in a
-human-readable way.
+way to use Gambit and is responsible for mutating code. `gambit summary` is a
+convenience command for summarizing generated mutants in a human-readable way.
+
+Running `gambit mutate` will invoke the solidity compiler via `solc`, so make
+sure it is visible on your path. Alternatively, you can specify where Gambit can
+find the Solidity compiler with `--solc path/to/solc`
 
 ### Running  `gambit mutate` 
 
@@ -46,18 +44,19 @@ mutate:
 gambit mutate --filename file.sol
 ```
 
-Using `--filename` is quick and easy, but when you want to mutate multiple files
-or have a complex set of parameters you want to use for mutation it is better to
-use a configuration file via the `--json` argument:
+However, if you want to mutate multiple files or apply a more complex set of
+parameters, we recommend using a configuration file via the `--json` option
+instead:
 
 ```bash
 gambit mutate --json gambit-conf.json
 ``` 
 
-In this section we will give some examples of running Gambit using both
-`--filename` and `--json`, and then give more complete documentation below.
+In the following section we'll provide examples of how to run Gambit using both
+`--filename` and `--json`. We provide more complete documentation in the
+_Documentation_ section below.
 
-### Examples: Running `gambit mutate` from the CLI
+### Examples: Running `gambit mutate`
 
 All examples use code from `benchmarks` at the root of this repository.
 
