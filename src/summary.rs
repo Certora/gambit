@@ -60,8 +60,8 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
                             .expect("Expected an object")
                             .get("id")
                             .expect("Expected mutant to have `id` field")
-                            .as_i64()
-                            .expect("Expected `id` field to be an int")
+                            .as_str()
+                            .expect("Expected `id` field to be a string")
                             .to_string();
                         if mids.contains(&mid) {
                             print_mutant_summary(i, value);
@@ -103,8 +103,8 @@ fn print_mutant_summary(i: usize, mutant_json: &Value) {
         let mid = m
             .get("id")
             .expect(missing_field_msg("id", i, mutant_json).as_str())
-            .as_i64()
-            .expect("`id` field should be an int");
+            .as_str()
+            .expect("`id` field should be a str");
         let diff = m
             .get("diff")
             .expect(missing_field_msg("diff", i, mutant_json).as_str())
