@@ -60,7 +60,7 @@ impl From<&MutateParams> for Mutator {
         if let Some(basepath) = value.solc_basepath.clone() {
             solc.with_basepath(basepath);
         }
-        if let Some(allowpaths) = value.solc_allowpaths.clone() {
+        if let Some(allowpaths) = value.solc_allow_paths.clone() {
             solc.with_allow_paths(allowpaths);
         }
         if let Some(remappings) = value.solc_remappings.clone() {

@@ -205,7 +205,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     // PARAM: solc_allowpaths
                     log::info!("    [.] Resolving params.allow_paths");
-                    let allow_paths = if let Some(allow_paths) = &params.solc_allowpaths {
+                    let allow_paths = if let Some(allow_paths) = &params.solc_allow_paths {
                         Some(resolve_config_file_paths(
                             allow_paths,
                             &json_parent_directory,
@@ -250,7 +250,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     params.sourceroot = Some(source_root_string.clone());
                     params.filename = Some(filename_string.clone());
                     params.outdir = outdir;
-                    params.solc_allowpaths = allow_paths;
+                    params.solc_allow_paths = allow_paths;
                     params.solc_basepath = basepath;
                     params.solc_remappings = remapping;
                 }
@@ -386,7 +386,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .to_string();
 
                 log::info!("    [.] Resolving params.solc_allowpaths");
-                let solc_allowpaths = params.solc_allowpaths.map(|aps| {
+                let solc_allowpaths = params.solc_allow_paths.map(|aps| {
                     aps.iter()
                         .map(|p| {
                             PathBuf::from(p)
@@ -429,7 +429,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.sourceroot = Some(source_root_string.clone());
                 params.filename = Some(filename_string.clone());
                 params.outdir = outdir;
-                params.solc_allowpaths = solc_allowpaths;
+                params.solc_allow_paths = solc_allowpaths;
                 params.solc_basepath = solc_basepath;
                 params.solc_remappings = solc_remapping;
 

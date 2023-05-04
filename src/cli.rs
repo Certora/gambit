@@ -156,7 +156,7 @@ pub struct MutateParams {
 
     /// Allowpath argument to solc
     #[arg(long)]
-    pub solc_allowpaths: Option<Vec<String>>,
+    pub solc_allow_paths: Option<Vec<String>>,
 
     /// Solidity remappings
     #[arg(long, num_args(1..))]
