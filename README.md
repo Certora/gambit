@@ -52,102 +52,134 @@ instead:
 gambit mutate --json gambit-conf.json
 ``` 
 
+_Note: all relative paths specified in a JSON configuration file are interpreted
+to be relative to the config file's parent directory._
+
 In the following section we'll provide examples of how to run Gambit using both
 `--filename` and `--json`. We provide more complete documentation in the
 _Documentation_ section below.
 
-### Examples: Running `gambit mutate`
+## Examples
 
-All examples use code from `benchmarks` at the root of this repository.
+Unless otherwise noted, examples use code from `benchmarks/` and are run from
+the root of this repository.
 
-#### Example 1: Mutating a Single File and Downsampling
+### Example 1: Mutating a Single File
 
-To mutate a single file and downsample to 3 mutants you can run:
+To mutate a sginle file, use the `--filename` option (or `-f`), followed by the
+file to mutate.
 
 ```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
+$ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol                          
+Generated 34 mutants in 0.69 seconds
 ```
 
-We can inspect the results by looking at `gambit_out/mutants.log`:
+_Note: The mutated file must located within your current working directory or
+one of its subdirectories. If you want to mutate code in an arbitrary directory,
+use the `--sourceroot` option._
 
-```csv
-1,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,**
-2,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,-
-3,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*****
+### Example 2: Mutating and Downsampling
+
+The above command produced 34 mutants which may be more than you need. Gambit
+provides a way to randomly downsample the number of mutants with the
+`--num-mutants` or `-n` option:
+
+```bash
+$ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
+Generated 3 mutants in 0.15 seconds
 ```
 
-or by looking at `gambit_out/gambit_results.json`:
+### Example 3: Viewing Gambit Results
+_Note: this example assumes you've just completed Example 2_
 
-```json
-[
-  {
-    "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -12,7 +12,8 @@\n     }\n \n     function myMultiplication(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x * y;\n+\t/// BinaryOpMutation(`*` |==> `**`) of: `return x * y;`\n+\treturn x**y;\n     }\n \n     function myDivision(uint256 x, uint256 y) public pure returns (uint256) {\n@@ -27,4 +28,4 @@\n \treturn x ** y;\n     }\n \n-}\n+}\n\\ No newline at end of file\n",
-    "id": "1",
-    "name": "mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-    "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-    "sourceroot": "/Users/benku/Gambit"
-  },
-  {
-    "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -20,11 +20,12 @@\n     }\n \n     function myModulo(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x % y;\n+\t/// BinaryOpMutation(`%` |==> `-`) of: `return x % y;`\n+\treturn x-y;\n     }\n \n     function myExponentiation(uint256 x, uint256 y) public pure returns (uint256) {\n \treturn x ** y;\n     }\n \n-}\n+}\n\\ No newline at end of file\n",
-    "id": "2",
-    "name": "mutants/2/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-    "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-    "sourceroot": "/Users/benku/Gambit"
-  },
-  {
-    "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -20,11 +20,12 @@\n     }\n \n     function myModulo(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x % y;\n+\t/// BinaryOpMutation(`%` |==> `*`) of: `return x % y;`\n+\treturn x*y;\n     }\n \n     function myExponentiation(uint256 x, uint256 y) public pure returns (uint256) {\n \treturn x ** y;\n     }\n \n-}\n+}\n\\ No newline at end of file\n",
-    "id": "3",
-    "name": "mutants/3/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-    "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-    "sourceroot": "/Users/benku/Gambit"
-  }
-]
+Gambit outputs all of its results in `gambit_out`:
+
+```bash
+$ ls gambit_out
+gambit_results.json    input_json    mutants    mutants.log
 ```
+
+* **Mutant Sources:** are located in `mutants/`:
+
+  ```bash
+  $ ls gambit_out/mutants
+  1 2 3
+
+  $ find gambit_out/mutants -name "*.sol"
+  gambit_out/mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
+  gambit_out/mutants/3/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
+  gambit_out/mutants/2/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
+  ```
+
+* **Summary Files:**
+  1. A high-level human readable summary `gambit_out/mutants.log`:
+
+     ```csv
+     1,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,**
+     2,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,-
+     3,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
+     ```
+
+  2. A more detailed summary that includes information like the unified diff of
+     the original program and the mutant `gambit_out/gambit_results.json`:
+
+     ```json
+     [
+       {
+         "description": "BinaryOpMutation",
+         "diff": "--- original\n+++ mutant\n@@ -12,7 +12,8 @@\n     }\n \n     function myMultiplication(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x * y;\n+\t/// BinaryOpMutation(`*` |==> `**`) of: `return x * y;`\n+\treturn x**y;\n     }\n \n     function myDivision(uint256 x, uint256 y) public pure returns (uint256) {\n@@ -27,4 +28,4 @@\n \treturn x ** y;\n     }\n \n-}\n+}\n\\ No newline at end of file\n",
+         "id": "1",
+         "name": "mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
+         "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
+         "sourceroot": "/Users/benku/Gambit"
+       },
+       ...
+     ]
+     ```
 
 The `gambit_results.json` file is hard to read, so you can run `gambit summary`
-to view pretty-printed diffs of each mutant.
+to view pretty-printed diffs of each mutant:
+
+![The output of `gambit summary`](doc/gambit-summary.png)
 
 For more information on the `gambit_out` directory, please see the _Results
 Directory_ section below
 
 
-#### Example 2: Specifying solc Pass-through Arguments
+### Example 4: Specifying solc Pass-through Arguments
 Solc may need some extra information to successfully run on a file or a project.
 Gambit enables this with _pass-through arguments_ that, as the name suggests,
 are passed directly through to the solc compiler.
 
-- For projects that have complex dependencies and imports, you will likely need to:
-    * Base paths: To specify the Solidity [--base-path][basepath] argument, use
-      `--solc-base-path`:
+For projects that have complex dependencies and imports, you may need to:
+* **Specify base-paths**: To specify the Solidity [--base-path][basepath]
+  argument, use `--solc-base-path`:
 
-      ```bash
-      cargo gambit path/to/file.sol --solc-base-path base/path/dir/.
-      ```
+  ```bash
+  cargo gambit path/to/file.sol --solc-base-path base/path/dir/.
+  ```
 
-    * To indicate where Solidity should find libraries, use solc's [import
-      remapping][remapping] syntax with `--solc-remappings`:
+* **Specify remappings:** To indicate where Solidity should find libraries,
+  use solc's [import remapping][remapping] syntax with `--solc-remappings`:
 
-      ```bash
-      cargo gambit path/to/file.sol \
-        --solc-remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
-      ```
+  ```bash
+  cargo gambit path/to/file.sol \
+    --solc-remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
+  ```
 
-    * To include additional allowed paths via solc's [--allowed-paths][allowed]
-      argument, use `--solc-allowed-paths`:
+* **Specify allow-paths:** To include additional allowed paths via solc's
+  [--allow-paths][allowed] argument, use `--solc-allow-paths`:
 
-      ```bash
-      cargo gambit path/to/file.sol --solc-allowpaths PATH1 --solc-allowpaths PATH2 ...
-      ```
+  ```bash
+  cargo gambit path/to/file.sol --solc-allowpaths PATH1 --solc-allowpaths PATH2 ...
+  ```
 
-    * To run the solidity compiler with optimizations (solc's `--optimize`
-      argument), use `--solc-optimize`:
+* **Use optimization:** To run the solidity compiler with optimizations (solc's
+  `--optimize` argument), use `--solc-optimize`:
 
-      ```bash
-      cargo gambit path/to/file.sol --solc-optimize
-      ```
+  ```bash
+  cargo gambit path/to/file.sol --solc-optimize
+  ```
 
 [remapping]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#import-remapping
 [basepath]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#base-path-and-include-paths
