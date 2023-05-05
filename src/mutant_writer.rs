@@ -111,7 +111,7 @@ impl MutantWriter {
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
         let filename = mutants_dir.join(mutant.source.filename().file_name().unwrap());
-        let mutant_contents = mutant.as_source_file()?;
+        let mutant_contents = mutant.as_source_string()?;
 
         log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
 
@@ -131,7 +131,7 @@ impl MutantWriter {
         filename: &Path,
         mutant: &Mutant,
     ) -> Result<(), Box<dyn error::Error>> {
-        let mutant_contents = mutant.as_source_file()?;
+        let mutant_contents = mutant.as_source_string()?;
 
         log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
 
@@ -160,7 +160,7 @@ impl MutantWriter {
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
         let filename = Self::get_mutant_filename(mutants_dir, mid, mutant);
-        let mutant_contents = mutant.as_source_file()?;
+        let mutant_contents = mutant.as_source_string()?;
 
         log::info!(
             "Writing mutant (mid={}) {:?} to {}",
@@ -195,7 +195,7 @@ impl MutantWriter {
     /// Get the diff of the mutant and the original file
     fn diff_mutant(mutant: &Mutant) -> Result<String, Box<dyn error::Error>> {
         let orig_contents: String = String::from_utf8_lossy(mutant.source.contents()).into();
-        let mutant_contents = mutant.as_source_file().unwrap();
+        let mutant_contents = mutant.as_source_string().unwrap();
 
         let diff = TextDiff::from_lines(&orig_contents, &mutant_contents)
             .unified_diff()

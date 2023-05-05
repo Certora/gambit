@@ -51,7 +51,7 @@ impl Mutant {
     /// TODO: Cache these contents: this data might be needed multiple times,
     /// and if so this should be cached as it currently involves file IO (though
     /// Source::contents() should also be cached)
-    pub fn as_source_file(&self) -> Result<String, Box<dyn error::Error>> {
+    pub fn as_source_string(&self) -> Result<String, Box<dyn error::Error>> {
         let contents = self.source.contents();
         let prelude = &contents[0..self.start];
         let postlude = &contents[self.end..contents.len()];
@@ -86,6 +86,10 @@ impl Mutant {
             lines2.push(line);
         }
 
+        // XXX: this is a hack to avoid trailing newline diffs
+        if contents.last().unwrap() == &b'\n' {
+            lines2.push("");
+        }
         Ok(lines2.join("\n"))
     }
 
