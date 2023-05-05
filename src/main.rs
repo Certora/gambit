@@ -216,7 +216,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     // PARAM: solc_basepath
                     log::info!("    [.] Resolving params.solc_basepath");
-                    let basepath = if let Some(basepaths) = &params.solc_basepath {
+                    let basepath = if let Some(basepaths) = &params.solc_base_path {
                         Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
                             .map(|bp| bp.to_str().unwrap().to_string())
                     } else {
@@ -251,7 +251,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     params.filename = Some(filename_string.clone());
                     params.outdir = outdir;
                     params.solc_allow_paths = allow_paths;
-                    params.solc_basepath = basepath;
+                    params.solc_base_path = basepath;
                     params.solc_remappings = remapping;
                 }
                 run_mutate(mutate_params)?;
@@ -400,7 +400,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 });
 
                 log::info!("    [.] Resolving params.solc_basepath");
-                let solc_basepath = params.solc_basepath.map(|bp| {
+                let solc_basepath = params.solc_base_path.map(|bp| {
                     PathBuf::from(bp)
                         .canonicalize()
                         .unwrap()
@@ -430,7 +430,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.filename = Some(filename_string.clone());
                 params.outdir = outdir;
                 params.solc_allow_paths = solc_allowpaths;
-                params.solc_basepath = solc_basepath;
+                params.solc_base_path = solc_basepath;
                 params.solc_remappings = solc_remapping;
 
                 run_mutate(vec![params])?;

@@ -152,7 +152,7 @@ pub struct MutateParams {
 
     /// Basepath argument to solc
     #[arg(long)]
-    pub solc_basepath: Option<String>,
+    pub solc_base_path: Option<String>,
 
     /// Allowpath argument to solc
     #[arg(long)]

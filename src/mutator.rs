@@ -57,7 +57,7 @@ impl From<&MutateParams> for Mutator {
         let conf = MutatorConf::from(value);
         let mut solc = Solc::new(value.solc.clone(), value.outdir.clone().into());
         solc.with_optimize(value.solc_optimize);
-        if let Some(basepath) = value.solc_basepath.clone() {
+        if let Some(basepath) = value.solc_base_path.clone() {
             solc.with_basepath(basepath);
         }
         if let Some(allowpaths) = value.solc_allow_paths.clone() {
