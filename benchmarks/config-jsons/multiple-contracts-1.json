@@ -5,7 +5,7 @@
         "functions": [
             "getarray"
         ],
-        "solc": "solc8.13"
+        "solc": "solc"
     },
     {
         "filename": "../MultipleContracts/C.sol",
@@ -14,6 +14,6 @@
             "getarray",
             "get10PowerDecimals"
         ],
-        "solc": "solc8.13"
+        "solc": "solc"
     }
 ]

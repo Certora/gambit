@@ -8,7 +8,7 @@
         "mutations": [
             "binary-op-mutation"
         ],
-        "solc": "solc8.13"
+        "solc": "solc"
     },
     {
         "filename": "../MultipleContracts/C.sol",
@@ -19,6 +19,6 @@
         "mutations": [
             "binary-op-mutation"
         ],
-        "solc": "solc8.13"
+        "solc": "solc"
     }
 ]

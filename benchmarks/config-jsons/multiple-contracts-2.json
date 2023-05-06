@@ -5,7 +5,7 @@
         "functions": [
             "add"
         ],
-        "solc": "solc8.13"
+        "solc": "solc"
     },
     {
         "filename": "../MultipleContracts/C.sol",
@@ -13,6 +13,6 @@
         "functions": [
             "get10PowerDecimals"
         ],
-        "solc": "solc8.13"
+        "solc": "solc"
     }
 ]
