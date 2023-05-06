@@ -102,22 +102,22 @@ fn print_mutant_summary(i: usize, mutant_json: &Value) {
     if let Some(m) = mutant_json.as_object() {
         let mid = m
             .get("id")
-            .expect(missing_field_msg("id", i, mutant_json).as_str())
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("id", i, mutant_json)))
             .as_str()
             .expect("`id` field should be a str");
         let diff = m
             .get("diff")
-            .expect(missing_field_msg("diff", i, mutant_json).as_str())
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("diff", i, mutant_json)))
             .as_str()
             .expect("`diff` field should be a string");
         let name = m
             .get("name")
-            .expect(missing_field_msg("name", i, mutant_json).as_str())
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("name", i, mutant_json)))
             .as_str()
             .expect("`name` field should be a string");
         let desc = m
             .get("description")
-            .expect(missing_field_msg("description", i, mutant_json).as_str())
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("description", i, mutant_json)))
             .as_str()
             .expect("`description` field should be as string");
 

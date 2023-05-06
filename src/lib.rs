@@ -51,7 +51,7 @@ pub fn run_mutate(
         let outdir = &params.outdir;
         outdir_map
             .entry(outdir.to_string())
-            .or_insert(vec![])
+            .or_default()
             .push(params);
     }
 
@@ -89,7 +89,6 @@ pub fn run_mutate(
                     }
                 }
             } else {
-                eprintln!("");
                 eprintln!(
                     "[!] Output directory {} exists! You can:",
                     outdir_path.display()
@@ -147,15 +146,13 @@ pub fn run_mutate(
                 let mutants = filter.filter_mutants(&mutator, num_mutants)?;
                 log::info!("Filtering resulted in {} mutants", mutants.len());
                 mutants
+            } else if params.skip_validate {
+                log::info!("Skipping validation");
+                mutants
             } else {
-                if params.skip_validate {
-                    log::info!("Skipping validation");
-                    mutants
-                } else {
-                    let mutants = mutator.get_valid_mutants(&mutants);
-                    log::info!("Validation resulted in {} mutants", mutants.len());
-                    mutants
-                }
+                let mutants = mutator.get_valid_mutants(&mutants);
+                log::info!("Validation resulted in {} mutants", mutants.len());
+                mutants
             };
             total_num_mutants += mutants.len();
             log::info!("Adding {} mutants to global mutant pool", mutants.len());

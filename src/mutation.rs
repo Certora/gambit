@@ -56,7 +56,7 @@ impl Mutant {
         let prelude = &contents[0..self.start];
         let postlude = &contents[self.end..contents.len()];
 
-        let res = [prelude, &self.repl.as_bytes(), postlude].concat();
+        let res = [prelude, self.repl.as_bytes(), postlude].concat();
         let mut_string = String::from_utf8(res)?;
         let mut lines = mut_string.lines();
 
@@ -269,13 +269,13 @@ impl Mutation for MutationType {
                 }
                 .iter()
                 .filter(|v| !orig.eq(*v))
-                .map(|v| *v)
+                .copied()
                 .collect();
 
                 let (s, e) = rhs.get_bounds();
                 replacements
                     .iter()
-                    .map(|r| Mutant::new(source.clone(), self.clone(), s, e, r.to_string()))
+                    .map(|r| Mutant::new(source.clone(), *self, s, e, r.to_string()))
                     .collect()
             }
             MutationType::BinOpMutation => {
@@ -285,28 +285,20 @@ impl Mutation for MutationType {
                 let ops: Vec<&str> = vec!["+", "-", "*", "/", "%", "**"]
                     .iter()
                     .filter(|v| !orig.eq(*v))
-                    .map(|v| *v)
+                    .copied()
                     .collect();
 
                 let (_, endl) = node.left_expression().get_bounds();
                 let (startr, _) = node.right_expression().get_bounds();
                 ops.iter()
-                    .map(|op| {
-                        Mutant::new(source.clone(), self.clone(), endl, startr, op.to_string())
-                    })
+                    .map(|op| Mutant::new(source.clone(), *self, endl, startr, op.to_string()))
                     .collect()
             }
 
             MutationType::DeleteExpressionMutation => {
                 let (start, end) = node.get_bounds();
                 let commented = format!("/* {} */", node.expression().get_text(source.contents()));
-                vec![Mutant::new(
-                    source.clone(),
-                    self.clone(),
-                    start,
-                    end,
-                    commented,
-                )]
+                vec![Mutant::new(source, *self, start, end, commented)]
             }
             MutationType::ElimDelegateMutation => {
                 let (_, endl) = node.expression().expression().get_bounds();
@@ -314,7 +306,7 @@ impl Mutation for MutationType {
 
                 vec![Mutant::new(
                     source,
-                    self.clone(),
+                    *self,
                     endl + 1,
                     endr,
                     "call".to_string(),
@@ -338,13 +330,13 @@ impl Mutation for MutationType {
                 let bs: Vec<&str> = vec!["true", "false"]
                     .iter()
                     .filter(|v| !orig.eq(*v))
-                    .map(|v| *v)
+                    .copied()
                     .collect();
 
                 let (start, end) = cond.get_bounds();
 
                 bs.iter()
-                    .map(|r| Mutant::new(source.clone(), self.clone(), start, end, r.to_string()))
+                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
                     .collect()
             }
 
@@ -354,11 +346,11 @@ impl Mutation for MutationType {
                 let bs: Vec<&str> = vec!["true", "false"]
                     .iter()
                     .filter(|v| !orig.eq(*v))
-                    .map(|v| *v)
+                    .copied()
                     .collect();
                 let (start, end) = arg.get_bounds();
                 bs.iter()
-                    .map(|r| Mutant::new(source.clone(), self.clone(), start, end, r.to_string()))
+                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
                     .collect()
             }
 
@@ -400,11 +392,11 @@ impl Mutation for MutationType {
                 let right_contents =
                     String::from_utf8(contents[right_start..right_end].to_vec()).unwrap();
 
-                let mut repl: String = right_contents.to_owned();
+                let mut repl: String = right_contents;
                 repl.push_str(&op);
                 repl.push_str(&left_contents);
 
-                vec![Mutant::new(source.clone(), self.clone(), start, end, repl)]
+                vec![Mutant::new(source.clone(), *self, start, end, repl)]
             }
 
             MutationType::UnOpMutation => {
@@ -420,7 +412,7 @@ impl Mutation for MutationType {
                 let replacements: Vec<&str> = if is_prefix { prefix_ops } else { suffix_ops }
                     .iter()
                     .filter(|v| !op.eq(*v))
-                    .map(|v| *v)
+                    .copied()
                     .collect();
                 let (start, end) = if is_prefix {
                     (start, start + op.len())
@@ -430,7 +422,7 @@ impl Mutation for MutationType {
 
                 replacements
                     .iter()
-                    .map(|r| Mutant::new(source.clone(), self.clone(), start, end, r.to_string()))
+                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
                     .collect()
             }
         }

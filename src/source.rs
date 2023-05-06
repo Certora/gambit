@@ -101,7 +101,7 @@ impl Source {
         {
             let columnno = pos - nlpos + 2;
             Ok((lineno + 2, columnno))
-        } else if &pos < newlines.get(0).unwrap() {
+        } else if &pos < newlines.first().unwrap() {
             Ok((1, pos + 1))
         } else {
             Err(Box::new(SourceError::LineColumnLookupError(

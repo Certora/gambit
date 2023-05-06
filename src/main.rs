@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(json_path) = &params.json {
                 log::info!("Running from configuration");
                 // Run from config file
-                let json_contents = std::fs::read_to_string(&json_path)?;
+                let json_contents = std::fs::read_to_string(json_path)?;
                 let json: serde_json::Value = serde_json::from_reader(json_contents.as_bytes())?;
                 log::info!("Read configuration json: {:#?}", json);
 
@@ -226,21 +226,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // PARAM: solc_remappings
                     log::info!("    [.] Resolving params.solc_remapping");
                     let remapping: Option<Vec<String>> =
-                        if let Some(remapping) = &params.solc_remappings {
-                            Some(
-                                remapping
-                                    .iter()
-                                    .map(|rm| {
-                                        repair_remapping(
-                                            rm.as_str(),
-                                            Some(json_parent_directory.to_str().unwrap()),
-                                        )
-                                    })
-                                    .collect(),
-                            )
-                        } else {
-                            None
-                        };
+                        params.solc_remappings.as_ref().map(|remapping| {
+                            remapping
+                                .iter()
+                                .map(|rm| {
+                                    repair_remapping(
+                                        rm.as_str(),
+                                        Some(json_parent_directory.to_str().unwrap()),
+                                    )
+                                })
+                                .collect()
+                        });
 
                     // Finally, update params with resolved source root and filename.
                     // (We don't update earlier to preserve the state of params
@@ -426,14 +422,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // for error reporting: reporting the parsed in value of
                 // `params` will be more helpful to the end user than
                 // reporting the modified value of params).
-                params.sourceroot = Some(source_root_string.clone());
-                params.filename = Some(filename_string.clone());
+                params.sourceroot = Some(source_root_string);
+                params.filename = Some(filename_string);
                 params.outdir = outdir;
                 params.solc_allow_paths = solc_allowpaths;
                 params.solc_base_path = solc_basepath;
                 params.solc_remappings = solc_remapping;
 
-                run_mutate(vec![params])?;
+                run_mutate(vec![*params])?;
             }
         }
         Command::Summary(params) => {

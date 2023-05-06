@@ -7,6 +7,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+type CompilerRet = (i32, Vec<u8>, Vec<u8>);
+
 /// This module provides a wrapper around the solc compiler, as well as several
 /// helper functions. The main object of interest in this module is `Solc`.
 
@@ -32,8 +34,8 @@ pub struct Solc {
 impl Solc {
     pub fn new(solc: String, output_directory: PathBuf) -> Solc {
         Solc {
-            solc: solc,
-            output_directory: output_directory,
+            solc,
+            output_directory,
             basepath: None,
             allow_paths: None,
             remappings: None,
@@ -142,7 +144,7 @@ impl Solc {
         &self,
         solidity_file: &Path,
         outdir: &Path,
-    ) -> Result<(i32, Vec<u8>, Vec<u8>), Box<dyn error::Error>> {
+    ) -> Result<CompilerRet, Box<dyn error::Error>> {
         log::debug!("Invoking full compilation on {}", solidity_file.display());
         self.invoke_compiler(solidity_file, outdir, false)
     }
@@ -163,7 +165,7 @@ impl Solc {
         solidity_file: &Path,
         ast_dir: &Path,
         stop_after_parse: bool,
-    ) -> Result<(i32, Vec<u8>, Vec<u8>), Box<dyn error::Error>> {
+    ) -> Result<CompilerRet, Box<dyn error::Error>> {
         let flags = self.make_compilation_flags(solidity_file, ast_dir, stop_after_parse);
         let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
@@ -233,7 +235,7 @@ impl Solc {
             panic!("Invalid Extension: {}", solidity_file.display());
         }
 
-        let input_json_dir = output_directory.join(INPUT_JSON.to_owned());
+        let input_json_dir = output_directory.join(INPUT_JSON);
         if input_json_dir.exists() {
             log::debug!("{} already exists", input_json_dir.display());
         } else {
@@ -259,7 +261,7 @@ impl Solc {
             + "_json.ast";
         let ast_path = sol_ast_dir.join(&ast_fnm);
         let json_path = sol_ast_dir.join(ast_fnm + DOT_JSON);
-        Ok((sol_ast_dir.to_path_buf(), ast_path, json_path))
+        Ok((sol_ast_dir, ast_path, json_path))
     }
 
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`

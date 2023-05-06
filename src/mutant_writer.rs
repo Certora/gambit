@@ -52,7 +52,7 @@ impl MutantWriter {
             let mid = i + 1;
             let (lineno, colno) = mutant.get_line_column()?;
             let line_col = format!("{}:{}", lineno, colno);
-            w.write_record(&[
+            w.write_record([
                 mid.to_string().as_str(),
                 mutant.op.to_string().as_str(),
                 mutant.source.relative_filename()?.to_str().unwrap(),
@@ -67,7 +67,7 @@ impl MutantWriter {
             diffs.push(Self::diff_mutant(mutant)?);
         }
 
-        let gambit_results_json = PathBuf::from(self.outdir.join("gambit_results.json"));
+        let gambit_results_json = self.outdir.join("gambit_results.json");
         log::info!(
             "Writing gambit_results.json to {}",
             &gambit_results_json.display()

@@ -76,7 +76,7 @@ impl From<&MutateParams> for Mutator {
                 let filename = &value
                     .filename
                     .as_ref()
-                    .expect(format!("Found unresolved filename in params: {:?}", value).as_str());
+                    .unwrap_or_else(|| panic!("Found unresolved filename in params: {:?}", value));
                 let filepath = PathBuf::from(filename).canonicalize().unwrap();
                 if !&filepath.starts_with(&sourceroot) {
                     panic!("Unresolved sourceroot! Attempted to use the current working directory {} but filename {} was not a descendent.", sourceroot.display(), filepath.display());
@@ -89,10 +89,10 @@ impl From<&MutateParams> for Mutator {
         let mut sources: Vec<Rc<Source>> = vec![];
         if let Some(filename) = &value.filename {
             log::info!("Creating Source from filename: {}", filename);
-            sources
-                .push(Rc::new(Source::new(filename.into(), sourceroot).expect(
-                    format!("Couldn't read source {}", filename).as_str(),
-                )))
+            sources.push(Rc::new(
+                Source::new(filename.into(), sourceroot)
+                    .unwrap_or_else(|_| panic!("Couldn't read source {}", filename)),
+            ))
         }
         Mutator::new(conf, sources, solc)
     }
@@ -200,7 +200,7 @@ impl Mutator {
             mutant_file_path.display()
         );
         let dir = tempdir()?;
-        MutantWriter::write_mutant_to_file(mutant_file_path, &mutant)?;
+        MutantWriter::write_mutant_to_file(mutant_file_path, mutant)?;
         let code = match self.solc().compile(mutant_file_path, dir.path()) {
             Ok((code, _, _)) => code == 0,
             Err(_) => false,
@@ -208,13 +208,12 @@ impl Mutator {
         Ok(code)
     }
 
-    pub fn get_valid_mutants(&self, mutants: &Vec<Mutant>) -> Vec<Mutant> {
+    pub fn get_valid_mutants(&self, mutants: &[Mutant]) -> Vec<Mutant> {
         log::info!("Validating mutants...");
         let mut valid_mutants = vec![];
         for m in mutants.iter() {
-            match self.validate_mutant(m) {
-                Ok(true) => valid_mutants.push(m.clone()),
-                _ => (),
+            if let Ok(true) = self.validate_mutant(m) {
+                valid_mutants.push(m.clone())
             }
         }
         valid_mutants
@@ -226,9 +225,9 @@ impl SolASTVisitor<Rc<Source>, Vec<Mutant>> for Mutator {
         if let Some(e) = &node.element {
             if let Some(e_obj) = e.as_object() {
                 if e_obj.contains_key("contractKind") {
-                    let contract_name = e_obj.get("name".into()).unwrap();
+                    let contract_name = e_obj.get("name").unwrap();
                     if let Some(contract) = &self.conf.contract {
-                        return contract != &contract_name.as_str().unwrap();
+                        return contract != contract_name.as_str().unwrap();
                     } else {
                         return false;
                     }
@@ -256,8 +255,7 @@ impl SolASTVisitor<Rc<Source>, Vec<Mutant>> for Mutator {
             .mutation_operators
             .iter()
             .filter(|m| m.applies_to(node))
-            .map(|m| m.mutate(node, arg.clone()))
-            .flatten()
+            .flat_map(|m| m.mutate(node, arg.clone()))
             .into_iter()
             .collect();
 

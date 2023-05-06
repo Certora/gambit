@@ -176,7 +176,7 @@ pub struct GambitConfigFile {
 #[derive(Parser)]
 #[clap(rename_all = "kebab-case")]
 pub enum Command {
-    Mutate(MutateParams), // Maybe we want to do other things in the future like support checking mutants?
+    Mutate(Box<MutateParams>), // Maybe we want to do other things in the future like support checking mutants?
     Summary(SummaryParams),
 }
 

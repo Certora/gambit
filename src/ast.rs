@@ -240,12 +240,12 @@ impl SolAST {
             self.node_kind(),
             self.node_type(),
         );
-        if visitor.skip_node(self, &arg) {
+        if visitor.skip_node(self, arg) {
             log::debug!("    Skipping");
             return;
         }
 
-        if let Some(result) = visitor.visit_node(self, &arg) {
+        if let Some(result) = visitor.visit_node(self, arg) {
             log::debug!("    Visit successful");
             acc.push(result);
         } else {
