@@ -1,4 +1,6 @@
-pragma solidity ^0.5.12;
+// SPDX-License-Identifier: GPL-3.0-only
+
+pragma solidity ^0.8.13;
 
 library Utils {
     function getarray(address[] memory c, address e) internal pure {

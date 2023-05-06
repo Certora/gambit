@@ -256,7 +256,6 @@ impl SolASTVisitor<Rc<Source>, Vec<Mutant>> for Mutator {
             .iter()
             .filter(|m| m.applies_to(node))
             .flat_map(|m| m.mutate(node, arg.clone()))
-            .into_iter()
             .collect();
 
         Some(op_node_pairs)
