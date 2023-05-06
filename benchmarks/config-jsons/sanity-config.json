@@ -2,66 +2,7 @@
     "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
     "solc": "solc",
     "num-mutants": 1,
-    "mutations": ["binary-op-mutation"]
-},
-{
-    "filename": "../RequireMutation/RequireMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["require-mutation"]
-},
-{
-    "filename": "../AssignmentMutation/AssignmentMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["assignment-mutation"]
-},
-{
-    "filename": "../DeleteExpressionMutation/DeleteExpressionMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["delete-expression-mutation"]
-},    
-{
-    "filename": "../FunctionCallMutation/FunctionCallMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["function-call-mutation"]
-},
-{
-    "filename": "../IfStatementMutation/IfStatementMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["if-statement-mutation"],
-    "solc-optimize": true
-},
-{
-    "filename": "../SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["swap-arguments-function-mutation"]
-},
-{
-    "filename": "../SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["swap-arguments-operator-mutation"]
-},
-{
-    "filename": "../SwapLinesMutation/SwapLinesMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["swap-lines-mutation"]
-},
-{
-    "filename": "../UnaryOperatorMutation/UnaryOperatorMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["unary-operator-mutation"]
-},
-{
-    "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["elim-delegate-mutation"]
-}]
+    "mutations": ["binary-op-mutation"],
+    "sourceroot": "../BinaryOpMutation" 
+}
+]
