@@ -65,7 +65,7 @@
     },
     {
         "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
-        "solc": "solc8.13",
+        "solc": "solc",
         "mutations": [
             "elim-delegate-mutation"
         ]

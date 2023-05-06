@@ -2,11 +2,11 @@
     {
         "filename": "../MultipleContracts/C.sol",
         "contract": "Utils",
-        "solc": "solc5.12"
+        "solc": "solc8.13"
     },
     {
         "filename": "../MultipleContracts/C.sol",
         "contract": "C",
-        "solc": "solc5.12"
+        "solc": "solc8.13"
     }
 ]
