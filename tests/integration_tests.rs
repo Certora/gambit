@@ -154,16 +154,16 @@ fn multiple_contracts_1() {
         "multiple-contracts-1.json",
         &vec![
             //C.get10PowerDecimals
-            ("BinaryOpMutation", "**", "+", (22, 24)),
-            ("BinaryOpMutation", "**", "-", (22, 24)),
-            ("BinaryOpMutation", "**", "*", (22, 24)),
-            ("BinaryOpMutation", "**", "/", (22, 24)),
-            ("BinaryOpMutation", "**", "%", (22, 24)),
+            ("BinaryOpMutation", "**", "+", (24, 24)),
+            ("BinaryOpMutation", "**", "-", (24, 24)),
+            ("BinaryOpMutation", "**", "*", (24, 24)),
+            ("BinaryOpMutation", "**", "/", (24, 24)),
+            ("BinaryOpMutation", "**", "%", (24, 24)),
             (
                 "SwapArgumentsOperatorMutation",
                 "a ** decimals",
                 "decimals ** a",
-                (22, 23),
+                (24, 23),
             ),
         ],
     )
@@ -175,21 +175,21 @@ fn multiple_contracts_2() {
         "multiple-contracts-2.json",
         &vec![
             /* Utils.add */
-            ("BinaryOpMutation", "+", "-", (9, 17)),
-            ("BinaryOpMutation", "+", "*", (9, 17)),
-            ("BinaryOpMutation", "+", "/", (9, 17)),
-            ("BinaryOpMutation", "+", "%", (9, 17)),
+            ("BinaryOpMutation", "+", "-", (11, 17)),
+            ("BinaryOpMutation", "+", "*", (11, 17)),
+            ("BinaryOpMutation", "+", "/", (11, 17)),
+            ("BinaryOpMutation", "+", "%", (11, 17)),
             /* C.get10PowerDecimals */
-            ("BinaryOpMutation", "**", "+", (22, 24)),
-            ("BinaryOpMutation", "**", "-", (22, 24)),
-            ("BinaryOpMutation", "**", "*", (22, 24)),
-            ("BinaryOpMutation", "**", "/", (22, 24)),
-            ("BinaryOpMutation", "**", "%", (22, 24)),
+            ("BinaryOpMutation", "**", "+", (24, 24)),
+            ("BinaryOpMutation", "**", "-", (24, 24)),
+            ("BinaryOpMutation", "**", "*", (24, 24)),
+            ("BinaryOpMutation", "**", "/", (24, 24)),
+            ("BinaryOpMutation", "**", "%", (24, 24)),
             (
                 "SwapArgumentsOperatorMutation",
                 "a ** decimals",
                 "decimals ** a",
-                (22, 23),
+                (24, 23),
             ),
         ],
     )
@@ -202,29 +202,29 @@ fn multiple_contracts_3() {
         &vec![
             /* Utils.getarray */
             /* Utils.add */
-            ("BinaryOpMutation", "+", "-", (9, 17)),
-            ("BinaryOpMutation", "+", "*", (9, 17)),
-            ("BinaryOpMutation", "+", "/", (9, 17)),
-            ("BinaryOpMutation", "+", "%", (9, 17)),
+            ("BinaryOpMutation", "+", "-", (11, 17)),
+            ("BinaryOpMutation", "+", "*", (11, 17)),
+            ("BinaryOpMutation", "+", "/", (11, 17)),
+            ("BinaryOpMutation", "+", "%", (11, 17)),
             /* C.get10PowerDecimals */
-            ("BinaryOpMutation", "**", "+", (22, 24)),
-            ("BinaryOpMutation", "**", "-", (22, 24)),
-            ("BinaryOpMutation", "**", "*", (22, 24)),
-            ("BinaryOpMutation", "**", "/", (22, 24)),
-            ("BinaryOpMutation", "**", "%", (22, 24)),
+            ("BinaryOpMutation", "**", "+", (24, 24)),
+            ("BinaryOpMutation", "**", "-", (24, 24)),
+            ("BinaryOpMutation", "**", "*", (24, 24)),
+            ("BinaryOpMutation", "**", "/", (24, 24)),
+            ("BinaryOpMutation", "**", "%", (24, 24)),
             (
                 "SwapArgumentsOperatorMutation",
                 "a ** decimals",
                 "decimals ** a",
-                (22, 23),
+                (24, 23),
             ),
             /* C.getarray */
             /* C.callmyself */
             /* C.add */
-            ("BinaryOpMutation", "+", "-", (36, 17)),
-            ("BinaryOpMutation", "+", "*", (36, 17)),
-            ("BinaryOpMutation", "+", "/", (36, 17)),
-            ("BinaryOpMutation", "+", "%", (36, 17)),
+            ("BinaryOpMutation", "+", "-", (38, 17)),
+            ("BinaryOpMutation", "+", "*", (38, 17)),
+            ("BinaryOpMutation", "+", "/", (38, 17)),
+            ("BinaryOpMutation", "+", "%", (38, 17)),
         ],
     )
 }
@@ -236,18 +236,18 @@ fn multiple_contracts_4() {
         &vec![
             /* Utils.getarray */
             /* Utils.add */
-            ("BinaryOpMutation", "+", "-", (9, 17)),
-            ("BinaryOpMutation", "+", "*", (9, 17)),
-            ("BinaryOpMutation", "+", "/", (9, 17)),
-            ("BinaryOpMutation", "+", "%", (9, 17)),
+            ("BinaryOpMutation", "+", "-", (11, 17)),
+            ("BinaryOpMutation", "+", "*", (11, 17)),
+            ("BinaryOpMutation", "+", "/", (11, 17)),
+            ("BinaryOpMutation", "+", "%", (11, 17)),
             /* C.get10PowerDecimals */
             /* C.getarray */
             /* C.callmyself */
             /* C.add */
-            ("BinaryOpMutation", "+", "-", (36, 17)),
-            ("BinaryOpMutation", "+", "*", (36, 17)),
-            ("BinaryOpMutation", "+", "/", (36, 17)),
-            ("BinaryOpMutation", "+", "%", (36, 17)),
+            ("BinaryOpMutation", "+", "-", (38, 17)),
+            ("BinaryOpMutation", "+", "*", (38, 17)),
+            ("BinaryOpMutation", "+", "/", (38, 17)),
+            ("BinaryOpMutation", "+", "%", (38, 17)),
         ],
     )
 }
