@@ -106,9 +106,8 @@ pub struct MutateParams {
     pub seed: u64,
 
     /// Output directory to place results of mutation
-    #[arg(long, short, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]
-    #[serde(default = "crate::default_gambit_output_directory")]
-    pub outdir: String,
+    #[arg(long, short)]
+    pub outdir: Option<String>,
 
     /// Root of all source files, this determines all path offsets. By default
     /// it is the current working directory. All filenames (either specified by

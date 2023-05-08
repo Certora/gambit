@@ -1,6 +1,6 @@
 use crate::{
-    mutation::MutationType, source::Source, Mutant, MutantWriter, MutateParams, Mutation, SolAST,
-    SolASTVisitor, Solc,
+    default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutantWriter,
+    MutateParams, Mutation, SolAST, SolASTVisitor, Solc,
 };
 use std::{error, path::PathBuf, rc::Rc};
 use tempfile::{tempdir, NamedTempFile};
@@ -55,7 +55,15 @@ pub struct Mutator {
 impl From<&MutateParams> for Mutator {
     fn from(value: &MutateParams) -> Self {
         let conf = MutatorConf::from(value);
-        let mut solc = Solc::new(value.solc.clone(), value.outdir.clone().into());
+        let mut solc = Solc::new(
+            value.solc.clone(),
+            value
+                .outdir
+                .clone()
+                .unwrap_or(default_gambit_output_directory())
+                .clone()
+                .into(),
+        );
         solc.with_optimize(value.solc_optimize);
         if let Some(basepath) = value.solc_base_path.clone() {
             solc.with_basepath(basepath);

@@ -1,7 +1,10 @@
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
-use gambit::{normalize_path, repair_remapping, run_mutate, run_summary, Command, MutateParams};
+use gambit::{
+    default_gambit_output_directory, normalize_path, repair_remapping, run_mutate, run_summary,
+    Command, MutateParams,
+};
 
 /// Entry point
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -146,7 +149,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // | Parameter       | Resolve WRT Conf? | Sourceroot Inclusion? |
                     // | --------------- | ----------------- | --------------------- |
                     // | filename        | Yes               | Yes                   |
-                    // | outdir          | Yes               | No                    |
+                    // | outdir          | If not None       | No                    |
                     // | solc_allowpaths | Yes               | No                    |
                     // | solc_basepath   | Yes               | No                    |
                     // | solc_remapping  | Yes               | No                    |
@@ -190,16 +193,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // not exist yet, so we can't canonicalize
 
                     log::info!("    [.] Resolving params.outdir");
-                    let outdir_path = PathBuf::from(&params.outdir);
-                    let outdir_path = if outdir_path.is_absolute() {
-                        normalize_path(&outdir_path)
-                    } else {
-                        normalize_path(&json_parent_directory.join(&outdir_path))
+                    let outdir_path = match &params.outdir {
+                        Some(outdir) => {
+                            let outdir_path = PathBuf::from(outdir);
+                            let outdir_path = if outdir_path.is_absolute() {
+                                normalize_path(&outdir_path)
+                            } else {
+                                normalize_path(&json_parent_directory.join(&outdir_path))
+                            };
+                            outdir_path
+                        }
+                        None => normalize_path(
+                            &PathBuf::from(".").join(default_gambit_output_directory()),
+                        ),
                     };
                     let outdir = outdir_path.to_str().unwrap().to_string();
                     log::info!(
                         "    [->] Resolved path `{}` to `{}`",
-                        &params.outdir,
+                        &params
+                            .outdir
+                            .clone()
+                            .unwrap_or(default_gambit_output_directory()),
                         &outdir,
                     );
 
@@ -245,7 +259,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // reporting the modified value of params).
                     params.sourceroot = Some(source_root_string.clone());
                     params.filename = Some(filename_string.clone());
-                    params.outdir = outdir;
+                    params.outdir = Some(outdir);
                     params.solc_allow_paths = allow_paths;
                     params.solc_base_path = basepath;
                     params.solc_remappings = remapping;
@@ -375,11 +389,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     &source_root_string
                 );
 
-                log::info!("    [.] Resolving params.outdir {}", &params.outdir);
-                let outdir = normalize_path(&PathBuf::from(&params.outdir))
-                    .to_str()
-                    .unwrap()
-                    .to_string();
+                log::info!("    [.] Resolving params.outdir {:?}", &params.outdir);
+                let outdir = normalize_path(&PathBuf::from(
+                    &params.outdir.unwrap_or(default_gambit_output_directory()),
+                ))
+                .to_str()
+                .unwrap()
+                .to_string();
 
                 log::info!("    [.] Resolving params.solc_allowpaths");
                 let solc_allowpaths = params.solc_allow_paths.map(|aps| {
@@ -424,7 +440,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // reporting the modified value of params).
                 params.sourceroot = Some(source_root_string);
                 params.filename = Some(filename_string);
-                params.outdir = outdir;
+                params.outdir = Some(outdir);
                 params.solc_allow_paths = solc_allowpaths;
                 params.solc_base_path = solc_basepath;
                 params.solc_remappings = solc_remapping;

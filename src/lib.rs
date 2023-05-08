@@ -50,8 +50,8 @@ pub fn run_mutate(
     for params in mutate_params {
         let outdir = &params.outdir;
         outdir_map
-            .entry(outdir.to_string())
-            .or_default()
+            .entry(outdir.clone().unwrap_or(default_gambit_output_directory()))
+            .or_insert(vec![])
             .push(params);
     }
 
