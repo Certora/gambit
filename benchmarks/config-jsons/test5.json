@@ -5,7 +5,6 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "contract": "Utils",
-        "solc": "solc5.12"
+        "contract": "Utils"
     }
 ]

@@ -5,9 +5,10 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc": "solc5.12",
         "contract": "C",
-        "functions": ["getarray"],
+        "functions": [
+            "getarray"
+        ],
         "mutations": [
             "function-call-mutation"
         ]
