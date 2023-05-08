@@ -1,8 +1,11 @@
-[{
-    "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
-    "solc": "solc",
-    "num-mutants": 1,
-    "mutations": ["binary-op-mutation"],
-    "sourceroot": "../BinaryOpMutation" 
-}
+[
+    {
+        "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
+        "solc": "solc",
+        "num-mutants": 1,
+        "mutations": [
+            "binary-op-mutation"
+        ],
+        "sourceroot": "../BinaryOpMutation"
+    }
 ]

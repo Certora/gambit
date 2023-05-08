@@ -1,6 +1,7 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
         "contract": "Utils",
         "functions": [
             "getarray"
@@ -9,6 +10,7 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
         "contract": "C",
         "functions": [
             "getarray",

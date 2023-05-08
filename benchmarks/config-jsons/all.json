@@ -1,36 +1,42 @@
 [
     {
         "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "binary-op-mutation"
         ]
     },
     {
         "filename": "../RequireMutation/RequireMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "require-mutation"
         ]
     },
     {
         "filename": "../AssignmentMutation/AssignmentMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "assignment-mutation"
         ]
     },
     {
         "filename": "../DeleteExpressionMutation/DeleteExpressionMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "delete-expression-mutation"
         ]
     },
     {
         "filename": "../FunctionCallMutation/FunctionCallMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "function-call-mutation"
         ]
     },
     {
         "filename": "../IfStatementMutation/IfStatementMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "if-statement-mutation"
         ],
@@ -38,24 +44,28 @@
     },
     {
         "filename": "../SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "swap-arguments-function-mutation"
         ]
     },
     {
         "filename": "../SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "swap-arguments-operator-mutation"
         ]
     },
     {
         "filename": "../UnaryOperatorMutation/UnaryOperatorMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "unary-operator-mutation"
         ]
     },
     {
         "filename": "../ElimDelegateMutation/ElimDelegateMutation.sol",
+        "sourceroot": "..",
         "mutations": [
             "elim-delegate-mutation"
         ]

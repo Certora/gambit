@@ -1,6 +1,7 @@
 [
     {
         "filename": "../10Power/TenPower.sol",
+        "sourceroot": "..",
         "mutations": [
             "binary-op-mutation",
             "swap-arguments-operator-mutation"
@@ -8,6 +9,7 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
         "mutations": [
             "function-call-mutation"
         ]

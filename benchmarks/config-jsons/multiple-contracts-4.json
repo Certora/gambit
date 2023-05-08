@@ -1,6 +1,7 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
         "contract": "Utils",
         "functions": [
             "add"
@@ -12,6 +13,7 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
         "contract": "C",
         "functions": [
             "add"
