@@ -379,8 +379,8 @@ fn get_config_json(config_json: &str) -> Result<Vec<MutateParams>, Box<dyn error
 
     for params in mutate_params.iter_mut() {
         // Update outdir
-        let outdir = base_outdir.join(&params.outdir);
-        params.outdir = outdir.to_str().unwrap().to_string();
+        let outdir = base_outdir.join(&params.outdir.clone().unwrap_or("gambit_out".to_string()));
+        params.outdir = Some(outdir.to_str().unwrap().to_string());
         params.filename = params.filename.clone().map(|fnm| {
             json_parent_directory
                 .join(fnm)
