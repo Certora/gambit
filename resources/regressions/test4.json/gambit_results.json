@@ -5,7 +5,6 @@
     "id": "1",
     "name": "mutants/1/10Power/TenPower.sol",
     "original": "10Power/TenPower.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -13,7 +12,6 @@
     "id": "2",
     "name": "mutants/2/10Power/TenPower.sol",
     "original": "10Power/TenPower.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -21,7 +19,6 @@
     "id": "3",
     "name": "mutants/3/10Power/TenPower.sol",
     "original": "10Power/TenPower.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -29,7 +26,6 @@
     "id": "4",
     "name": "mutants/4/10Power/TenPower.sol",
     "original": "10Power/TenPower.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -37,7 +33,6 @@
     "id": "5",
     "name": "mutants/5/10Power/TenPower.sol",
     "original": "10Power/TenPower.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "SwapArgumentsOperatorMutation",
@@ -45,7 +40,6 @@
     "id": "6",
     "name": "mutants/6/10Power/TenPower.sol",
     "original": "10Power/TenPower.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -53,7 +47,6 @@
     "id": "7",
     "name": "mutants/7/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -61,7 +54,6 @@
     "id": "8",
     "name": "mutants/8/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -69,7 +61,6 @@
     "id": "9",
     "name": "mutants/9/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -77,7 +68,6 @@
     "id": "10",
     "name": "mutants/10/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -85,7 +75,6 @@
     "id": "11",
     "name": "mutants/11/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -93,7 +82,6 @@
     "id": "12",
     "name": "mutants/12/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -101,7 +89,6 @@
     "id": "13",
     "name": "mutants/13/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -109,7 +96,6 @@
     "id": "14",
     "name": "mutants/14/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -117,7 +103,6 @@
     "id": "15",
     "name": "mutants/15/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "SwapArgumentsOperatorMutation",
@@ -125,7 +110,6 @@
     "id": "16",
     "name": "mutants/16/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -133,7 +117,6 @@
     "id": "17",
     "name": "mutants/17/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -141,7 +124,6 @@
     "id": "18",
     "name": "mutants/18/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -149,7 +131,6 @@
     "id": "19",
     "name": "mutants/19/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   },
   {
     "description": "BinaryOpMutation",
@@ -157,6 +138,5 @@
     "id": "20",
     "name": "mutants/20/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
-    "sourceroot": "/Users/benku/Gambit/benchmarks"
   }
 ]
