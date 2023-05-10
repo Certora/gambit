@@ -61,7 +61,6 @@ impl From<&MutateParams> for Mutator {
                 .outdir
                 .clone()
                 .unwrap_or(default_gambit_output_directory())
-                .clone()
                 .into(),
         );
         solc.with_optimize(value.solc_optimize);

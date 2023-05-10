@@ -196,12 +196,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let outdir_path = match &params.outdir {
                         Some(outdir) => {
                             let outdir_path = PathBuf::from(outdir);
-                            let outdir_path = if outdir_path.is_absolute() {
+                            if outdir_path.is_absolute() {
                                 normalize_path(&outdir_path)
                             } else {
                                 normalize_path(&json_parent_directory.join(&outdir_path))
-                            };
-                            outdir_path
+                            }
                         }
                         None => normalize_path(
                             &PathBuf::from(".").join(default_gambit_output_directory()),
