@@ -27,20 +27,6 @@ echo "gambit: $GAMBIT"
 echo "configs: $CONFIGS"
 echo "regressions: $REGRESSIONS"
 
-# Make sure gambit install is up to date!
-(
-    echo "Installing gambit..."
-    cd "$GAMBIT" || {
-        echo "Error: couldn't cd $GAMBIT"
-        exit 1
-    }
-    cargo install --path . || {
-        echo "Error: couldn't install gambit"
-        exit 1
-    }
-    echo "Gambit installed"
-)
-
 [ -e "$REGRESSIONS" ] || {
     echo "No regressions exist!"
 }
@@ -60,9 +46,10 @@ for conf_path in "$CONFIGS"/*; do
             exit 1
         }
         printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
-        stdout="$(gambit mutate --json "$conf_path")"
+        stdout="$(cargo run -- mutate --json "$conf_path")"
         printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
         printf "  \033[1mDiffing\033[0m gambit_out and %s\n" "$regression_dir"
+        bash "$SCRIPTS"/remove_sourceroots.sh gambit_out/gambit_results.json
         if diff -r gambit_out "$regression_dir"; then
             printf "  \033[92mSUCCESS\033[0m\n"
         else

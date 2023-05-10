@@ -26,20 +26,6 @@ echo "gambit: $GAMBIT"
 echo "configs: $CONFIGS"
 echo "regressions: $REGRESSIONS"
 
-# Make sure gambit install is up to date!
-(
-    echo "Installing gambit..."
-    cd "$GAMBIT" || {
-        echo "Error: couldn't cd $GAMBIT"
-        exit 1
-    }
-    cargo install --path . || {
-        echo "Error: couldn't install gambit"
-        exit 1
-    }
-    echo "Gambit installed"
-)
-
 [ -e "$REGRESSIONS" ] && {
     echo "Removing old regressions"
     rm -rf "$REGRESSIONS"
@@ -62,9 +48,11 @@ for conf_path in "$CONFIGS"/*; do
             exit 1
         }
         printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
-        stdout="$(gambit mutate --json "$conf_path")"
+        stdout="$(cargo run -- mutate --json "$conf_path")"
         printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
         mv gambit_out "$outdir"
+        printf "  \033[1mMoving Outdir:\033[0m to %s\n" "$outdir"
+        bash "$SCRIPTS"/remove_sourceroots.sh "$outdir/gambit_results.json"
     )
     printf "  \033[1mWrote regression:\033[0m %s\n" "$outdir"
 
