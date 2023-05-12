@@ -5,34 +5,36 @@ first-order source code mutation on Solidity programs. By applying predefined
 syntax transformations called mutation operators (for example, `a + b` -> `a -
 b`) to a Solidity program's source code, Gambit generates variants of the
 program called **mutants**. These mutants can be used to evaluate test suites or
-the specs used for verification.
+specs used for formal verification.
 
 ## Installation
 
-To install Gambit you'll need to [install Rust](https://www.rust-lang.org/tools/install).
+To use Gambit, you need to [install Rust](https://www.rust-lang.org/tools/install).
 
 To install Gambit, clone this repository and run `cargo install --path .` from
 the repository's root.
 
 Please note that Gambit relies on the Solidity compiler.
+
 ## Usage
 
-Once Gambit is installed you can invoke it from commandline with the gambit
+Once Gambit is installed you can invoke it from command line with the `gambit`
 executable.
 
 _**Note:** We recommend you install Gambit, and the following instructions will
-assume that you have followed the instructions in Installation. However, if you
+assume that you have followed the instructions above for installation. However, if you
 would prefer not to install Gambit, never fear! You can replace all invocations
 of `gambit ...` with `cargo run -- ...` and the results will be identical (as
-long as you run `cargo run -- ...` from the root of the Gambit repository)._
+long as you run `cargo run -- ...` from the root of the Gambit repository).
+The `.cargo/config` file also has some aliases you can use if you are keen._
 
-Gambit has two commands: `mutate` and `summary`. `gambit mutate` is the primary
+Gambit has two main commands: `mutate` and `summary`. `gambit mutate` is the primary
 way to use Gambit and is responsible for mutating code. `gambit summary` is a
 convenience command for summarizing generated mutants in a human-readable way.
 
 Running `gambit mutate` will invoke the solidity compiler via `solc`, so make
 sure it is visible on your path. Alternatively, you can specify where Gambit can
-find the Solidity compiler with `--solc path/to/solc`
+find the Solidity compiler with `--solc path/to/solc`.
 
 ### Running  `gambit mutate` 
 
@@ -55,7 +57,7 @@ gambit mutate --json gambit-conf.json
 _**Note:** all relative paths specified in a JSON configuration file are interpreted
 to be relative to the config file's parent directory._
 
-In the following section we'll provide examples of how to run Gambit using both
+In the following section we provide examples of how to run Gambit using both
 `--filename` and `--json`. We provide more complete documentation in the
 _Documentation_ section below.
 
@@ -66,7 +68,7 @@ the root of this repository.
 
 ### Example 1: Mutating a Single File
 
-To mutate a sginle file, use the `--filename` option (or `-f`), followed by the
+To mutate a single file, use the `--filename` option (or `-f`), followed by the
 file to mutate.
 
 ```bash
@@ -143,7 +145,7 @@ to view pretty-printed diffs of each mutant:
 ![The output of `gambit summary`](doc/gambit-summary.png)
 
 For more information on the `gambit_out` directory, please see the _Results
-Directory_ section below
+Directory_ section below.
 
 
 ### Example 4: Specifying solc Pass-through Arguments
@@ -195,9 +197,9 @@ to Gambit the root of the files that are being mutated, and all source file
 paths (both original and mutated) are reported relative to this sourceroot.
 
 _If Gambit encounters a source file to mutate that does not belong to the
-sourceroot it will print an error message exit._
+sourceroot it will print an error message and exit._
 
-By default, the sourceroot is always the current working directory.
+**By default, the sourceroot is always the current working directory.**
 
 Here are some examples of using the `--sourceroot` option.
 
@@ -298,8 +300,6 @@ passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 | `--solc-base-path`   | passes a value to solc's `--base-path` argument                               |
 | `--solc-allow-paths` | passes a value to solc's `--allow-paths` argument                             |
 | `--solc-remapping`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
-
-
 
 
 
