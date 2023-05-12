@@ -133,7 +133,7 @@ gambit_results.json    input_json    mutants    mutants.log
          "id": "1",
          "name": "mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
          "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-         "sourceroot": "/Users/benku/Gambit"
+         "sourceroot": "/Users/Gambit"
        },
        ...
      ]
@@ -199,7 +199,7 @@ paths (both original and mutated) are reported relative to this sourceroot.
 _If Gambit encounters a source file to mutate that does not belong to the
 sourceroot it will print an error message and exit._
 
-**By default, the sourceroot is always the current working directory.**
+**By default, the sourceroot is always the current working directory.
 
 Here are some examples of using the `--sourceroot` option.
 
@@ -234,7 +234,7 @@ Here are some examples of using the `--sourceroot` option.
 
    ```bash
    $ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot scripts
-   [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/benku/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/benku/Gambit/scripts
+   [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/Gambit/scripts
    ```
 
    Gambit prints an error and exits.
@@ -300,6 +300,8 @@ passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 | `--solc-base-path`   | passes a value to solc's `--base-path` argument                               |
 | `--solc-allow-paths` | passes a value to solc's `--allow-paths` argument                             |
 | `--solc-remapping`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
+
+
 
 
 
