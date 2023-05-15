@@ -123,7 +123,6 @@ Gambit outputs all of its results in `gambit_out`:
 ```bash
 tree -L 2 gambit_out
 ```
-produces
 <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
 gambit_out
