@@ -21,8 +21,13 @@ Mutants can be used to evaluate test suites or specs used for formal
 You can download prebuilt Gambit binaries for Mac and Linux from our
 [releases](https://github.com/Certora/gambit/releases) page.
 
-To build Gambit from source, clone this repository and run `cargo install --path .` 
-from the repository's root. This will build Gambit and install it to a globally visible
+To build Gambit from source, clone this repository and run
+
+```
+cargo install --path .
+```
+
+from this repository's root. This will build Gambit and install it to a globally visible
 location on your `PATH`.
 
 You can also build gambit with `cargo build --release` fromt he root of this
