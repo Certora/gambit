@@ -89,9 +89,10 @@ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol
 
 This will produce the following output:
 
-```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
 Generated 34 mutants in 0.69 seconds
-```
+</pre>
 
 _**Note:** The mutated file must located within your current working directory or
 one of its subdirectories. If you want to mutate code in an arbitrary directory,
@@ -109,9 +110,10 @@ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
 
 which produces:
 
-```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
 Generated 3 mutants in 0.15 seconds
-```
+</pre>
 
 ### Example 3: Viewing Gambit Results
 _**Note:** this example assumes you've just completed Example 2_
@@ -122,7 +124,8 @@ Gambit outputs all of its results in `gambit_out`:
 tree -L 2 gambit_out
 ```
 produces
-```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
 gambit_out
 ├── gambit_results.json
 ├── input_json
@@ -133,7 +136,7 @@ gambit_out
 │   ├── 2
 │   └── 3
 └── mutants.log
-```
+</pre>
 
 See the [Results Directory](#results-directory) section for a detailed
 explanation of this layout. The `gambit summary` command
@@ -214,12 +217,12 @@ Here are some examples of using the `--sourceroot` option.
    ```
 
    This should output the following:
-
-   ```
+   <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+   <pre>
    Generated 1 mutants in 0.13 seconds
    1,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
    gambit_out/mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
-   ```
+   </pre>
 
    The first command generates a single mutant, and its sourcepath is relative to `.`,
    the default sourceroot. We can see that the reported paths in `mutants.log`,
@@ -237,11 +240,11 @@ Here are some examples of using the `--sourceroot` option.
 
    which will output:
 
-   ```
+   <pre>
    Generated 1 mutants in 0.13 seconds
    1,BinaryOpMutation,BinaryOpMutation.sol,23:10, % ,*
    gambit_out/mutants/1/BinaryOpMutation.sol
-   ```
+   </pre>
 
    The reported filenames, and the offset path inside of
    `gambit_out/mutants/1/`, are now relative to the sourceroot that we
