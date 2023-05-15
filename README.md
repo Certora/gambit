@@ -84,7 +84,12 @@ To mutate a single file, use the `--filename` option (or `-f`), followed by the
 file to mutate.
 
 ```bash
-$ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol                          
+gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol                          
+```
+
+This will produce the following output:
+
+```
 Generated 34 mutants in 0.69 seconds
 ```
 
@@ -99,7 +104,12 @@ provides a way to randomly downsample the number of mutants with the
 `--num-mutants` or `-n` option:
 
 ```bash
-$ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
+gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
+```
+
+which produces:
+
+```
 Generated 3 mutants in 0.15 seconds
 ```
 
@@ -109,9 +119,9 @@ _**Note:** this example assumes you've just completed Example 2_
 Gambit outputs all of its results in `gambit_out`:
 
 ```bash
-$ ls gambit_out
-gambit_results.json    input_json    mutants    mutants.log
+tree -L 2 gambit_out
 ```
+
 
 * **Mutant Sources:** are located in `mutants/`:
 
