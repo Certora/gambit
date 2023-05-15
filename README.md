@@ -282,7 +282,7 @@ examples.
 _**Note:** Any paths provided by the configuration file are resolved relative to
 the configuration file's parent directory._
 
-## Configuration Files {#configuration-files}
+## Configuration Files
 Configuration files allow you to save complex configurations and perform
 multiple mutations at once. Gambit uses a simple JSON object format to store
 mutation options, where each `--option VALUE` specified on the CLI is
@@ -374,7 +374,7 @@ This has the following structure:
 + `mutants.log`: a log file with all mutant information. This is similar to
   `results.json` but in a different format and with different information
 
-## CLI Options {#cli-options}
+## CLI Options
 
  `gambit mutate` supports the following options; for a comprehensive list, run
  `gambit mutate --help`:
