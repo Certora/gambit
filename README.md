@@ -1,11 +1,12 @@
 # Gambit: Mutant Generation for Solidity
 
-Gambit is a state-of-the-art mutation system for Solidity that performs
-first-order source code mutation on Solidity programs. By applying predefined
-syntax transformations called mutation operators (for example, `a + b` -> `a -
-b`) to a Solidity program's source code, Gambit generates variants of the
-program called **mutants**. These mutants can be used to evaluate test suites or
-specs used for formal verification.
+Gambit is a state-of-the-art mutation system for Solidity.
+By applying predefined syntax transformations called _mutation operators_ (for
+  example, `a + b` -> `a - b`) to a Solidity program's source code, Gambit
+  generates variants of the program called **mutants**.
+These mutants can be used to evaluate test suites or specs used for formal
+  verification: each mutant represents a potential bug in the program, and a
+  stronger test suites and specifications should detect more mutants.
 
 ## Installation
 
