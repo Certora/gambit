@@ -30,28 +30,21 @@ cargo install --path .
 from this repository's root. This will build Gambit and install it to a globally visible
 location on your `PATH`.
 
-You can also build gambit with `cargo build --release` fromt he root of this
+You can also build gambit with `cargo build --release` from the root of this
 repository.  This will create a `gambit` binary in `gambit/target/release/`
 which you can manually place on your path or invoke directly (e.g., by calling
 `path/to/gambit/target/release/gambit`).
 
 ## Usage
 
-_**Note:** The following instructions assume that you've installed Gambit.  If
-you have built Gambit with `cargo build --release`, replace all instances of
-`gambit ...` with the path to `path/to/gambit/target/release/gambit ...`.
-long as you run `cargo run -- ...` from the root of the Gambit repository)._
-
-Once Gambit is installed you can invoke it from command line with the `gambit`
-executable.
-
 Gambit has two main commands: `mutate` and `summary`. `gambit mutate` is
 responsible for mutating code, and `gambit summary` is a convenience command for
 summarizing generated mutants in a human-readable way.
 
 Running `gambit mutate` will invoke the solidity compiler via `solc`, so make
-sure it is visible on your path. Alternatively, you can specify where Gambit can
-find the Solidity compiler with `--solc path/to/solc`.
+sure it is visible on your `PATH`. Alternatively, you can specify where Gambit can
+find the Solidity compiler with the option `--solc path/to/solc`, or specify a
+version of solc (e.g., solc8.12) with the option `--solc solc8.12`.
 
 ### Running  `gambit mutate` 
 
@@ -78,7 +71,7 @@ to be relative to the config file's parent directory._
 
 In the following section we provide examples of how to run Gambit using both
 `--filename` and `--json`. We provide more complete documentation in the
-_Documentation_ section below.
+[Configuration Files](#configuration-files) and [CLI-Options](#cli-options) sections below.
 
 ## Examples
 
@@ -289,7 +282,7 @@ examples.
 _**Note:** Any paths provided by the configuration file are resolved relative to
 the configuration file's parent directory._
 
-## Configuration Files
+## Configuration Files {#configuration-files}
 Configuration files allow you to save complex configurations and perform
 multiple mutations at once. Gambit uses a simple JSON object format to store
 mutation options, where each `--option VALUE` specified on the CLI is
@@ -381,7 +374,7 @@ This has the following structure:
 + `mutants.log`: a log file with all mutant information. This is similar to
   `results.json` but in a different format and with different information
 
-## CLI Options
+## CLI Options {#cli-options}
 
  `gambit mutate` supports the following options; for a comprehensive list, run
  `gambit mutate --help`:
