@@ -135,52 +135,16 @@ gambit_out
 └── mutants.log
 ```
 
-
-* **Mutant Sources:** are located in `mutants/`:
-
-  ```bash
-  $ ls gambit_out/mutants
-  1 2 3
-
-  $ find gambit_out/mutants -name "*.sol"
-  gambit_out/mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
-  gambit_out/mutants/3/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
-  gambit_out/mutants/2/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
-  ```
-
-* **Summary Files:**
-  1. A high-level human readable summary `gambit_out/mutants.log`:
-
-     ```csv
-     1,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,**
-     2,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,-
-     3,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
-     ```
-
-  2. A more detailed summary that includes information like the unified diff of
-     the original program and the mutant `gambit_out/gambit_results.json`:
-
-     ```json
-     [
-       {
-         "description": "BinaryOpMutation",
-         "diff": "--- original\n+++ mutant\n@@ -12,7 +12,8 @@\n     }\n \n     function myMultiplication(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x * y;\n+\t/// BinaryOpMutation(`*` |==> `**`) of: `return x * y;`\n+\treturn x**y;\n     }\n \n     function myDivision(uint256 x, uint256 y) public pure returns (uint256) {\n@@ -27,4 +28,4 @@\n \treturn x ** y;\n     }\n \n-}\n+}\n\\ No newline at end of file\n",
-         "id": "1",
-         "name": "mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-         "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-         "sourceroot": "/Users/Gambit"
-       },
-       ...
-     ]
-     ```
-
-The `gambit_results.json` file is hard to read, so you can run `gambit summary`
-to view pretty-printed diffs of each mutant:
+See the [Results Directory](#results-directory) section for a detailed
+explanation of this layout. The `gambit summary` command
+pretty prints each mutant for easy inspection:
 
 ![The output of `gambit summary`](doc/gambit-summary.png)
 
-For more information on the `gambit_out` directory, please see the _Results
-Directory_ section below.
+By default `gambit summary` prints info on all mutants. If you are interested in
+particular mutants you can specify a subset of mutant ids with the `--mids` flag.
+For instance, `gambit summary --mids 3 4 5`  will only print info for mutant ids
+3 through 5.
 
 
 ### Example 4: Specifying solc Pass-through Arguments
