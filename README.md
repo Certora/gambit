@@ -3,30 +3,32 @@
 Gambit is a state-of-the-art mutation system for Solidity.
 By applying predefined syntax transformations called _mutation operators_ (for
   example, `a + b` -> `a - b`) to a Solidity program's source code, Gambit
-  generates variants of the program called **mutants**.
-These mutants can be used to evaluate test suites or specs used for formal
-  verification: each mutant represents a potential bug in the program, and a
+  generates variants of the program called _mutants_.
+Mutants can be used to evaluate test suites or specs used for formal
+  verification: each mutant represents a potential bug in the program, and
   stronger test suites and specifications should detect more mutants.
+
+## Requirements
+
+1. Gambit is written in Rust. You'll need to [install Rust and
+   Cargo](https://www.rust-lang.org/tools/install) to build Gambit.
+2. Gambit uses the solc, the Solidity compiler, to generate mutants. You'll need
+   to have solc binary that is compatable with the project you are mutating (see
+   the `--solc` option in `gambit mutate --help`)
 
 ## Installation
 
-To use Gambit, you need to [install Rust](https://www.rust-lang.org/tools/install).
+You can download prebuilt Gambit binaries for Mac and Linux from our
+[releases](https://github.com/Certora/gambit/releases) page.
 
-To install Gambit, clone this repository and run `cargo install --path .` from
-the repository's root. If you prefer to run Gambit without installing
+To build Gambit from source, clone this repository and run `cargo install --path .` 
+from the repository's root. This will build Gambit and install it to a globally visible
+location on your `PATH`.
 
-Please note that Gambit relies on the Solidity compiler
-
-_**Note:** If you prefer to run Gambit without installing, you can also build
-  it by running `cargo build --release` from the `gambit/` directory.
-This will create a `gambit` binary in `gambit/target/release/`._
-
-
-_**Note:** Gambit depends on the solc compiler which can be
-  [downloaded from here](https://github.com/ethereum/solc-bin) (the binary
-  version will depend on your Solidity project).
-The solc binary must either be visible as `solc` on your `PATH` or provided with
- the `--solc` option._
+You can also build gambit with `cargo build --release` fromt he root of this
+repository.  This will create a `gambit` binary in `gambit/target/release/`
+which you can manually place on your path or invoke directly (e.g., by calling
+`path/to/gambit/target/release/gambit`).
 
 ## Usage
 
