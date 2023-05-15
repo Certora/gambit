@@ -255,9 +255,9 @@ Here are some examples of using the `--sourceroot` option.
    This will try to find the specified file inside of `scripts`, and since it
    doesn't exist Gambit reports the error:
 
-   ```
+   <pre>
    [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/USER/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/USER/Gambit/scripts
-   ```
+   </pre>
 
    Gambit prints an error and exits.
 
