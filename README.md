@@ -144,7 +144,7 @@ gambit_results.json    input_json    mutants    mutants.log
          "id": "1",
          "name": "mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
          "original": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol",
-         "sourceroot": "/Users/benku/Gambit"
+         "sourceroot": "/Users/Gambit"
        },
        ...
      ]
@@ -248,7 +248,7 @@ Here are some examples of using the `--sourceroot` option.
 
    ```bash
    $ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot scripts
-   [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/benku/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/benku/Gambit/scripts
+   [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/Gambit/scripts
    ```
 
    Gambit prints an error and exits.
