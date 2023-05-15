@@ -121,6 +121,19 @@ Gambit outputs all of its results in `gambit_out`:
 ```bash
 tree -L 2 gambit_out
 ```
+produces
+```
+gambit_out
+├── gambit_results.json
+├── input_json
+│   ├── BinaryOpMutation.sol_json.ast
+│   └── BinaryOpMutation.sol_json.ast.json
+├── mutants
+│   ├── 1
+│   ├── 2
+│   └── 3
+└── mutants.log
+```
 
 
 * **Mutant Sources:** are located in `mutants/`:
