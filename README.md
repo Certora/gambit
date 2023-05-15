@@ -208,11 +208,16 @@ Here are some examples of using the `--sourceroot` option.
 1. From the root of the Gambit repository, run:
 
    ```bash
-   $ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1
+   gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1
+   cat gambit_out/mutants.log 
+   find gambit_out/mutants -name "*.sol"
+   ```
+
+   This should output the following:
+
+   ```
    Generated 1 mutants in 0.13 seconds
-   $ cat gambit_out/mutants.log 
    1,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
-   $ find gambit_out/mutants -name "*.sol"
    gambit_out/mutants/1/benchmarks/BinaryOpMutation/BinaryOpMutation.sol
    ```
 
@@ -221,22 +226,37 @@ Here are some examples of using the `--sourceroot` option.
    and the mutant file path in `gambit_out/mutants/1`, are the relative to this
    sourceroot: `benchmarks/BinaryOpMutation/BinaryOpMutation.sol`
   
-2. Suppose we want our paths to be reported relative to `benchmarks/BinaryOpMutation`. We can run
+2. Suppose we want our paths to be reported relative to
+   `benchmarks/BinaryOpMutation`. We can run
 
    ```bash
-   $ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot benchmarks/BinaryOpMutation
+   gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot benchmarks/BinaryOpMutation
+   cat gambit_out/mutants.log 
+   find gambit_out/mutants -name "*.sol"
+   ```
+
+   which will output:
+
+   ```
    Generated 1 mutants in 0.13 seconds
-   $ cat gambit_out/mutants.log 
    1,BinaryOpMutation,BinaryOpMutation.sol,23:10, % ,*
-   $ find gambit_out/mutants -name "*.sol"
    gambit_out/mutants/1/BinaryOpMutation.sol
    ```
+
+   The reported filenames, and the offset path inside of
+   `gambit_out/mutants/1/`, are now relative to the sourceroot that we
+   specified.
 
 3. Finally, suppose we use a sourceroot that doesn't contain the source file:
 
    ```bash
-   $ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot scripts
-   [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/Gambit/scripts
+   gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot scripts
+   ```
+   This will try to find the specified file inside of `scripts`, and since it
+   doesn't exist Gambit reports the error:
+
+   ```
+   [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/USER/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/USER/Gambit/scripts
    ```
 
    Gambit prints an error and exits.
