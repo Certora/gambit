@@ -164,7 +164,7 @@ For projects that have complex dependencies and imports, you may need to:
   use solc's [import remapping][remapping] syntax with `--solc-remappings`:
 
   ```bash
-  cargo gambit path/to/file.sol \
+  gambit mutate path/to/file.sol \
     --solc-remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
@@ -172,14 +172,14 @@ For projects that have complex dependencies and imports, you may need to:
   [--allow-paths][allowed] argument, use `--solc-allow-paths`:
 
   ```bash
-  cargo gambit path/to/file.sol --solc-allowpaths PATH1 --solc-allowpaths PATH2 ...
+  gambit mutatepath/to/file.sol --solc-allowpaths PATH1 --solc-allowpaths PATH2 ...
   ```
 
 * **Use optimization:** To run the solidity compiler with optimizations (solc's
   `--optimize` argument), use `--solc-optimize`:
 
   ```bash
-  cargo gambit path/to/file.sol --solc-optimize
+  gambit mutate path/to/file.sol --solc-optimize
   ```
 
 [remapping]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#import-remapping
