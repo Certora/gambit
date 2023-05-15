@@ -86,9 +86,6 @@ file to mutate.
 ```bash
 gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol                          
 ```
-
-This will produce the following output:
-
 <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
 Generated 34 mutants in 0.69 seconds
@@ -107,10 +104,6 @@ provides a way to randomly downsample the number of mutants with the
 ```bash
 gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
 ```
-
-which produces:
-
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
 Generated 3 mutants in 0.15 seconds
 </pre>
@@ -239,6 +232,7 @@ Here are some examples of using the `--sourceroot` option.
 
    which will output:
 
+   <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
    <pre>
    Generated 1 mutants in 0.13 seconds
    1,BinaryOpMutation,BinaryOpMutation.sol,23:10, % ,*
@@ -257,6 +251,7 @@ Here are some examples of using the `--sourceroot` option.
    This will try to find the specified file inside of `scripts`, and since it
    doesn't exist Gambit reports the error:
 
+   <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
    <pre>
    [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/USER/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived sourceroot /Users/USER/Gambit/scripts
    </pre>
@@ -358,10 +353,12 @@ to the `benchmarks/` directory the `"filename"` would need to be updated to
 `gambit_out`). Here is an example:
 
 ```bash
-$ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 5
+gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 5
+tree gambit_out -L 2
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
 Generated 5 mutants in 0.15 seconds
-
-$ tree gambit_out -L 2
 
 gambit_out
 ├── gambit_results.json
@@ -373,7 +370,8 @@ gambit_out
 │   ├── 4
 │   └── 5
 └── mutants.log
-```
+
+</pre>
 
 This has the following structure:
 + `gambit_results.json`: a JSON file with detailed results
