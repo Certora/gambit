@@ -1,8 +1,9 @@
 {
     "filename": "../10Power/TenPower.sol",
-     "mutations": [
+    "mutations": [
         "binary-op-mutation",
         "swap-arguments-operator-mutation"
     ],
+    "sourceroot": "..",
     "solc-optimize": true
 }

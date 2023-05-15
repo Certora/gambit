@@ -1,0 +1,8 @@
+1,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,-
+2,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
+3,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
+4,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%
+5,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,-
+6,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,*
+7,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,/
+8,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,%

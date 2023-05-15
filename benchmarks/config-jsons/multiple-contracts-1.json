@@ -1,0 +1,21 @@
+[
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
+        "contract": "Utils",
+        "functions": [
+            "getarray"
+        ],
+        "solc": "solc"
+    },
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "sourceroot": "..",
+        "contract": "C",
+        "functions": [
+            "getarray",
+            "get10PowerDecimals"
+        ],
+        "solc": "solc"
+    }
+]

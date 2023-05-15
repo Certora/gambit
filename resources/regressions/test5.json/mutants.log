@@ -1,0 +1,10 @@
+1,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,+
+2,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,-
+3,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,*
+4,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,/
+5,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,%
+6,SwapArgumentsOperatorMutation,10Power/TenPower.sol,8:23,a ** decimals,decimals ** a
+7,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,-
+8,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
+9,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
+10,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%

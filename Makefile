@@ -1,5 +1,5 @@
-all_linux: linux test sanity
-all_macos: macos test sanity
+all_linux: linux test regression
+all_macos: macos test regression
 
 .PHONY: linux
 linux:
@@ -21,6 +21,5 @@ macos:
 test:
 	cargo test --release
 
-.PHONY: sanity
-sanity:
-	python3 scripts/sanity_check.py
+regression:
+	bash scripts/run_regressions.sh

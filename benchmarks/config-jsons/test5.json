@@ -1,11 +1,12 @@
 [
     {
         "filename": "../10Power/TenPower.sol",
+        "sourceroot": "..",
         "contract": "TenPower"
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "contract": "Utils",
-        "solc": "solc5.12"
+        "sourceroot": "..",
+        "contract": "Utils"
     }
 ]
