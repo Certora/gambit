@@ -8,12 +8,12 @@ contract BinaryOpMutation {
     }
 
     function mySubtraction(uint256 x, uint256 y) public pure returns (uint256) {
-	/// SwapArgumentsOperatorMutation(`x - y` |==> `y - x`) of: `return x - y;`
-	return y - x;
+	return x - y;
     }
 
     function myMultiplication(uint256 x, uint256 y) public pure returns (uint256) {
-	return x * y;
+	/// BinaryOpMutation(`*` |==> `+`) of: `return x * y;`
+	return x+y;
     }
 
     function myDivision(uint256 x, uint256 y) public pure returns (uint256) {

@@ -8,115 +8,59 @@
 8,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,11:10, - ,/
 9,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,11:10, - ,%
 10,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,11:10, - ,**
-11,SwapArgumentsOperatorMutation,BinaryOpMutation/BinaryOpMutation.sol,11:9,x - y,y - x
-12,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,+
-13,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,-
-14,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,/
-15,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,%
-16,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,**
-17,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,+
-18,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,-
-19,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,*
-20,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,%
-21,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,**
-22,SwapArgumentsOperatorMutation,BinaryOpMutation/BinaryOpMutation.sol,19:9,x / y,y / x
-23,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,+
-24,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,-
-25,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
-26,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,/
-27,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,**
-28,SwapArgumentsOperatorMutation,BinaryOpMutation/BinaryOpMutation.sol,23:9,x % y,y % x
-29,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,+
-30,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,-
-31,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,*
-32,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,/
-33,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,%
-34,SwapArgumentsOperatorMutation,BinaryOpMutation/BinaryOpMutation.sol,27:9,x ** y,y ** x
-35,RequireMutation,RequireMutation/RequireMutation.sol,7:10,cond1,true
-36,RequireMutation,RequireMutation/RequireMutation.sol,7:10,cond1,false
-37,RequireMutation,RequireMutation/RequireMutation.sol,8:10,cond2,true
-38,RequireMutation,RequireMutation/RequireMutation.sol,8:10,cond2,false
-39,RequireMutation,RequireMutation/RequireMutation.sol,9:10,cond3,true
-40,RequireMutation,RequireMutation/RequireMutation.sol,9:10,cond3,false
-41,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,13:6,42,0
-42,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,13:6,42,1
-43,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,14:6,13,0
-44,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,14:6,13,1
-45,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,15:6,3110,0
-46,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,15:6,3110,1
-47,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,16:6,true,false
-48,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,17:6,false,true
-49,UnaryOperatorMutation,DeleteExpressionMutation/DeleteExpressionMutation.sol,10:13,++,--
-50,SwapArgumentsOperatorMutation,DeleteExpressionMutation/DeleteExpressionMutation.sol,9:22,i < x,x < i
-51,DeleteExpressionMutation,DeleteExpressionMutation/DeleteExpressionMutation.sol,9:29,i++,/* i++ */
-52,UnaryOperatorMutation,DeleteExpressionMutation/DeleteExpressionMutation.sol,9:30,++,--
-53,BinaryOpMutation,FunctionCallMutation/FunctionCallMutation.sol,7:10, + ,-
-54,BinaryOpMutation,FunctionCallMutation/FunctionCallMutation.sol,7:10, + ,*
-55,BinaryOpMutation,FunctionCallMutation/FunctionCallMutation.sol,7:10, + ,/
-56,BinaryOpMutation,FunctionCallMutation/FunctionCallMutation.sol,7:10, + ,%
-57,BinaryOpMutation,FunctionCallMutation/FunctionCallMutation.sol,7:10, + ,**
-58,IfStatementMutation,IfStatementMutation/IfStatementMutation.sol,7:6,a,true
-59,IfStatementMutation,IfStatementMutation/IfStatementMutation.sol,7:6,a,false
-60,BinaryOpMutation,SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol,8:10, - ,+
-61,BinaryOpMutation,SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol,8:10, - ,*
-62,BinaryOpMutation,SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol,8:10, - ,/
-63,BinaryOpMutation,SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol,8:10, - ,%
-64,BinaryOpMutation,SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol,8:10, - ,**
-65,SwapArgumentsOperatorMutation,SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol,8:9,x - y,y - x
-66,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:10, - ,+
-67,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:10, - ,*
-68,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:10, - ,/
-69,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:10, - ,%
-70,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:10, - ,**
-71,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:9,x - y,y - x
-72,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:10, / ,+
-73,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:10, / ,-
-74,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:10, / ,*
-75,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:10, / ,%
-76,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:10, / ,**
-77,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:9,x / y,y / x
-78,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:10, % ,+
-79,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:10, % ,-
-80,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:10, % ,*
-81,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:10, % ,/
-82,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:10, % ,**
-83,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:9,x % y,y % x
-84,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:10, ** ,+
-85,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:10, ** ,-
-86,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:10, ** ,*
-87,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:10, ** ,/
-88,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:10, ** ,%
-89,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:9,x ** y,y ** x
-90,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,23:9,x > y,y > x
-91,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,27:9,x < y,y < x
-92,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,31:9,x >= y,y >= x
-93,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,35:9,x <= y,y <= x
-94,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:10, << ,+
-95,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:10, << ,-
-96,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:10, << ,*
-97,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:10, << ,/
-98,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:10, << ,%
-99,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:10, << ,**
-100,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:9,x << y,y << x
-101,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:10, >> ,+
-102,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:10, >> ,-
-103,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:10, >> ,*
-104,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:10, >> ,/
-105,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:10, >> ,%
-106,BinaryOpMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:10, >> ,**
-107,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:9,x >> y,y >> x
-108,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,7:9,~,++
-109,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,7:9,~,--
-110,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,11:9,++,--
-111,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,11:9,++,~
-112,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,15:9,--,++
-113,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,15:9,--,~
-114,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,19:3,++,--
-115,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,24:3,--,++
-116,AssignmentMutation,ElimDelegateMutation/ElimDelegateMutation.sol,10:15,_num,0
-117,AssignmentMutation,ElimDelegateMutation/ElimDelegateMutation.sol,10:15,_num,1
-118,AssignmentMutation,ElimDelegateMutation/ElimDelegateMutation.sol,12:17,msg.value,0
-119,AssignmentMutation,ElimDelegateMutation/ElimDelegateMutation.sol,12:17,msg.value,1
-120,ElimDelegateMutation,ElimDelegateMutation/ElimDelegateMutation.sol,25:55,delegatecall,call
-121,AssignmentMutation,ElimDelegateMutation/ElimDelegateMutation.sol,28:23,success,true
-122,AssignmentMutation,ElimDelegateMutation/ElimDelegateMutation.sol,28:23,success,false
+11,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,+
+12,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,-
+13,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,/
+14,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,%
+15,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,15:10, * ,**
+16,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,+
+17,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,-
+18,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,*
+19,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,%
+20,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,19:10, / ,**
+21,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,+
+22,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,-
+23,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
+24,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,/
+25,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,**
+26,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,+
+27,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,-
+28,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,*
+29,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,/
+30,BinaryOpMutation,BinaryOpMutation/BinaryOpMutation.sol,27:10, ** ,%
+31,RequireMutation,RequireMutation/RequireMutation.sol,7:10,cond1,true
+32,RequireMutation,RequireMutation/RequireMutation.sol,7:10,cond1,false
+33,RequireMutation,RequireMutation/RequireMutation.sol,8:10,cond2,true
+34,RequireMutation,RequireMutation/RequireMutation.sol,8:10,cond2,false
+35,RequireMutation,RequireMutation/RequireMutation.sol,9:10,cond3,true
+36,RequireMutation,RequireMutation/RequireMutation.sol,9:10,cond3,false
+37,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,13:6,42,0
+38,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,13:6,42,1
+39,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,14:6,13,0
+40,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,14:6,13,1
+41,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,15:6,3110,0
+42,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,15:6,3110,1
+43,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,16:6,true,false
+44,AssignmentMutation,AssignmentMutation/AssignmentMutation.sol,17:6,false,true
+45,DeleteExpressionMutation,DeleteExpressionMutation/DeleteExpressionMutation.sol,9:29,i++,/* i++ */
+46,IfStatementMutation,IfStatementMutation/IfStatementMutation.sol,7:6,a,true
+47,IfStatementMutation,IfStatementMutation/IfStatementMutation.sol,7:6,a,false
+48,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,7:9,x - y,y - x
+49,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,11:9,x / y,y / x
+50,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,15:9,x % y,y % x
+51,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,19:9,x ** y,y ** x
+52,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,23:9,x > y,y > x
+53,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,27:9,x < y,y < x
+54,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,31:9,x >= y,y >= x
+55,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,35:9,x <= y,y <= x
+56,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,39:9,x << y,y << x
+57,SwapArgumentsOperatorMutation,SwapArgumentsOperatorMutation/SwapArgumentsOperatorMutation.sol,43:9,x >> y,y >> x
+58,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,7:9,~,++
+59,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,7:9,~,--
+60,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,11:9,++,--
+61,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,11:9,++,~
+62,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,15:9,--,++
+63,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,15:9,--,~
+64,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,19:3,++,--
+65,UnaryOperatorMutation,UnaryOperatorMutation/UnaryOperatorMutation.sol,24:3,--,++
+66,ElimDelegateMutation,ElimDelegateMutation/ElimDelegateMutation.sol,25:55,delegatecall,call

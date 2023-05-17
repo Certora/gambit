@@ -1,7 +1,7 @@
 [
   {
     "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -20,7 +20,8 @@\n     }\n \n     function myModulo(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x % y;\n+\t/// BinaryOpMutation(`%` |==> `*`) of: `return x % y;`\n+\treturn x*y;\n     }\n \n     function myExponentiation(uint256 x, uint256 y) public pure returns (uint256) {\n",
+    "diff": "--- original\n+++ mutant\n@@ -20,7 +20,8 @@\n     }\n \n     function myModulo(uint256 x, uint256 y) public pure returns (uint256) {\n-\treturn x % y;\n+\t/// BinaryOpMutation(`%` |==> `-`) of: `return x % y;`\n+\treturn x-y;\n     }\n \n     function myExponentiation(uint256 x, uint256 y) public pure returns (uint256) {\n",
     "id": "1",
     "name": "mutants/1/BinaryOpMutation.sol",
     "original": "BinaryOpMutation.sol",
