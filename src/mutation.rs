@@ -1,7 +1,15 @@
-use crate::{get_indent, SolAST, Source};
+use crate::{get_indent, Source};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
+use solang_parser::pt::{Expression, Statement, VariableDeclaration};
 use std::{error, fmt::Display, rc::Rc};
+
+/// A single type wrapping the types of parse tree nodes we can mutate
+pub enum MutationPoint {
+    Statement(Statement),
+    Expression(Expression),
+    VariableDeclaration(VariableDeclaration),
+}
 
 /// This struct describes a mutant.
 #[derive(Debug, Clone)]
@@ -118,10 +126,10 @@ impl Display for Mutant {
 /// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
     /// Check if this mutation applies to this AST node
-    fn applies_to(&self, node: &SolAST) -> bool;
+    fn applies_to(&self, node: &MutationPoint) -> bool;
 
     /// Generate all mutants of a given node by this agent
-    fn mutate(&self, node: &SolAST, source: Rc<Source>) -> Vec<Mutant>;
+    fn mutate(&self, node: &MutationPoint, source: Rc<Source>) -> Vec<Mutant>;
 }
 
 /// Kinds of mutations.
@@ -158,86 +166,43 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
-    fn applies_to(&self, node: &SolAST) -> bool {
+    fn applies_to(&self, node: &MutationPoint) -> bool {
         match self {
-            MutationType::AssignmentMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "Assignment";
-                }
-            }
+            MutationType::AssignmentMutation => match node {
+                MutationPoint::Statement(Statement::Expression(
+                    _,
+                    Expression::Assign(_, lhs, rhs),
+                )) => todo!(),
+                _ => false,
+            },
             MutationType::BinaryOpMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "BinaryOperation";
-                }
+                todo!("Not Implemented")
             }
             MutationType::DeleteExpressionMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "ExpressionStatement";
-                }
+                todo!("Not Implemented")
             }
             MutationType::ElimDelegateMutation => {
-                return node.node_type().map_or_else(
-                    || false,
-                    |n| {
-                        n == "FunctionCall"
-                            && (node
-                                .expression()
-                                .node_type()
-                                .map_or_else(|| false, |nt| nt == "MemberAccess"))
-                            && (node
-                                .expression()
-                                .get_string("memberName")
-                                .map_or_else(|| false, |mn| mn == "delegatecall"))
-                    },
-                );
+                todo!("Not Implemented")
             }
             MutationType::FunctionCallMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && !node.arguments().is_empty();
-                }
+                todo!("Not Implemented")
             }
             MutationType::IfStatementMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "IfStatement";
-                }
+                todo!("Not Implemented")
             }
             MutationType::RequireMutation => {
-                return node.node_type().map_or_else(
-                    || false,
-                    |n| {
-                        n == "FunctionCall"
-                            && (node
-                                .expression()
-                                .name()
-                                .map_or_else(|| false, |nm| nm == "require"))
-                            && !node.arguments().is_empty()
-                    },
-                );
+                todo!("Not Implemented")
             }
             MutationType::SwapArgumentsFunctionMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && node.arguments().len() > 1;
-                }
+                todo!("Not Implemented")
             }
             MutationType::SwapArgumentsOperatorMutation => {
-                let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
-                if let Some(n) = node.node_type() {
-                    return n == "BinaryOperation"
-                        && non_comm_ops.contains(
-                            &node
-                                .operator()
-                                .unwrap_or_else(|| panic!("Expression does not have operator"))
-                                .as_str(),
-                        );
-                }
+                todo!("Not Implemented")
             }
             MutationType::UnaryOperatorMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "UnaryOperation";
-                }
+                todo!("Not Implemented")
             }
         }
-        false
     }
 
     /// Produce all mutants at the given node
@@ -247,70 +212,23 @@ impl Mutation for MutationType {
     /// * `node` - The Solidity AST node to mutate
     /// * `source` - The original source file: we use this to generate a new
     ///   source file
-    fn mutate(&self, node: &SolAST, source: Rc<Source>) -> Vec<Mutant> {
+    fn mutate(&self, node: &MutationPoint, source: Rc<Source>) -> Vec<Mutant> {
         if !self.applies_to(node) {
             return vec![];
         }
         match self {
             MutationType::AssignmentMutation => {
-                let rhs = node.right_hand_side();
-                let node_kind = rhs.node_kind();
-                let orig = rhs.get_text(source.contents());
-                let replacements: Vec<&str> = if let Some(kind) = node_kind {
-                    if &kind == "bool" {
-                        vec!["true", "false"]
-                    } else if rhs.is_literal_number() {
-                        vec!["(-1)", "0", "1"]
-                    } else {
-                        vec!["0", "(-1)", "1", "true", "false"]
-                    }
-                } else {
-                    vec!["0", "(-1)", "1", "true", "false"]
-                }
-                .iter()
-                .filter(|v| !orig.eq(*v))
-                .copied()
-                .collect();
-
-                let (s, e) = rhs.get_bounds();
-                replacements
-                    .iter()
-                    .map(|r| Mutant::new(source.clone(), *self, s, e, r.to_string()))
-                    .collect()
+                todo!("Not implemented")
             }
             MutationType::BinaryOpMutation => {
-                let orig = node.operator().unwrap();
-                let orig = String::from(orig.trim());
-
-                let ops: Vec<&str> = vec!["+", "-", "*", "/", "%", "**"]
-                    .iter()
-                    .filter(|v| !orig.eq(*v))
-                    .copied()
-                    .collect();
-
-                let (_, endl) = node.left_expression().get_bounds();
-                let (startr, _) = node.right_expression().get_bounds();
-                ops.iter()
-                    .map(|op| Mutant::new(source.clone(), *self, endl, startr, op.to_string()))
-                    .collect()
+                todo!("Not Implemented")
             }
 
             MutationType::DeleteExpressionMutation => {
-                let (start, end) = node.get_bounds();
-                let commented = format!("/* {} */", node.expression().get_text(source.contents()));
-                vec![Mutant::new(source, *self, start, end, commented)]
+                todo!("Not Implemented")
             }
             MutationType::ElimDelegateMutation => {
-                let (_, endl) = node.expression().expression().get_bounds();
-                let (_, endr) = node.expression().get_bounds();
-
-                vec![Mutant::new(
-                    source,
-                    *self,
-                    endl + 1,
-                    endr,
-                    "call".to_string(),
-                )]
+                todo!("Not Implemented")
             }
 
             // TODO: Should we enable this? I'm not sure if this is the best mutation operator
@@ -325,37 +243,15 @@ impl Mutation for MutationType {
             }
 
             MutationType::IfStatementMutation => {
-                let cond = node.condition();
-                let orig = cond.get_text(source.contents());
-                let bs: Vec<&str> = vec!["true", "false"]
-                    .iter()
-                    .filter(|v| !orig.eq(*v))
-                    .copied()
-                    .collect();
-
-                let (start, end) = cond.get_bounds();
-
-                bs.iter()
-                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
-                    .collect()
+                todo!("Not Implemented")
             }
 
             MutationType::RequireMutation => {
-                let arg = &node.arguments()[0];
-                let orig = arg.get_text(source.contents());
-                let bs: Vec<&str> = vec!["true", "false"]
-                    .iter()
-                    .filter(|v| !orig.eq(*v))
-                    .copied()
-                    .collect();
-                let (start, end) = arg.get_bounds();
-                bs.iter()
-                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
-                    .collect()
+                todo!("Not Implemented")
             }
 
             MutationType::SwapArgumentsFunctionMutation => {
-                vec![]
+                todo!("Not Implemented")
 
                 // TODO: I'm removing this operator for now as I'm not sure how
                 // to implement it deterministically. I'm also faily convinced
@@ -378,52 +274,11 @@ impl Mutation for MutationType {
             }
 
             MutationType::SwapArgumentsOperatorMutation => {
-                let left = node.left_expression();
-                let right = node.right_expression();
-                let (left_start, left_end) = left.get_bounds();
-                let (right_start, right_end) = right.get_bounds();
-                let start = left_start;
-                let end = right_end;
-                let op = node.operator().unwrap();
-                let op = format!(" {} ", op.trim());
-                let contents = source.contents();
-                let left_contents =
-                    String::from_utf8(contents[left_start..left_end].to_vec()).unwrap();
-                let right_contents =
-                    String::from_utf8(contents[right_start..right_end].to_vec()).unwrap();
-
-                let mut repl: String = right_contents;
-                repl.push_str(&op);
-                repl.push_str(&left_contents);
-
-                vec![Mutant::new(source.clone(), *self, start, end, repl)]
+                todo!("Not Implemented")
             }
 
             MutationType::UnaryOperatorMutation => {
-                let prefix_ops = vec!["++", "--", "~"];
-                let suffix_ops = vec!["++", "--"];
-
-                let op = node
-                    .operator()
-                    .expect("Unary operation must have an operator!");
-
-                let (start, end) = node.get_bounds();
-                let is_prefix = source.contents()[start] == op.as_bytes()[0];
-                let replacements: Vec<&str> = if is_prefix { prefix_ops } else { suffix_ops }
-                    .iter()
-                    .filter(|v| !op.eq(*v))
-                    .copied()
-                    .collect();
-                let (start, end) = if is_prefix {
-                    (start, start + op.len())
-                } else {
-                    (end - op.len(), end)
-                };
-
-                replacements
-                    .iter()
-                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
-                    .collect()
+                todo!("Not Implemented")
             }
         }
     }

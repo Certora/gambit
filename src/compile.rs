@@ -1,9 +1,6 @@
 use crate::invoke_command;
-use crate::SolAST;
-use serde_json::Value;
 use std::{
     error,
-    fs::File,
     path::{Path, PathBuf},
 };
 
@@ -13,10 +10,8 @@ type CompilerRet = (i32, Vec<u8>, Vec<u8>);
 /// helper functions. The main object of interest in this module is `Solc`.
 
 /// compilation constants
-static INPUT_JSON: &str = "input_json";
 static ALLOWPATH: &str = "--allow-paths";
 static OPTIMIZE: &str = "--optimize";
-static DOT_JSON: &str = ".json";
 
 /// Compilation configurations. This exists across compilations of individual
 /// files
@@ -76,69 +71,6 @@ impl Solc {
 }
 
 impl Solc {
-    /// Compile a solidity file to an AST
-    ///
-    /// This method:
-    /// 1. Creates a new directory in `self.conf.output_directory` to store the
-    ///    compiled AST file
-    /// 2. Invokes solc with flags derived from `self.conf`
-    /// 3. Copies the AST file to a JSON file in the same directory
-    /// 4. Reads the JSON into a SolAST struct and returns it
-    pub fn compile_ast(&self, solidity_file: &Path) -> Result<SolAST, Box<dyn error::Error>> {
-        log::debug!(
-            "Invoking AST compilation (--stop-after parse) on {}",
-            solidity_file.display()
-        );
-        let outdir = &self.output_directory;
-        let mk_dir_result = Self::make_ast_dir(solidity_file, outdir.as_path());
-        let (ast_dir, ast_path, json_path) = match mk_dir_result {
-            Ok(x) => x,
-            Err(e) => {
-                log::error!(
-                    "Error: Failed to run make_ast_dir({}, {})\nEncountered error {}",
-                    solidity_file.display(),
-                    outdir.as_path().display(),
-                    e
-                );
-                return Err(e);
-            }
-        };
-
-        match self.invoke_compiler(solidity_file, &ast_dir, false) {
-            Ok((code, stdout, stderr)) => {
-                if code != 0 {
-                    log::error!(
-                        "Solidity compiler returned exit code {} on file `{}`",
-                        code,
-                        solidity_file.display()
-                    );
-                    log::error!("stdout: {}", String::from_utf8(stdout).unwrap());
-                    log::error!("stderr: {}", String::from_utf8(stderr).unwrap());
-                }
-            }
-            Err(e) => {
-                log::error!(
-                "Failed to compile source with invoke_compiler({}, {}, {}) \nEncountered error {}",
-                solidity_file.display(),
-                ast_dir.display(),
-                true,
-                e
-            );
-                return Err(e);
-            }
-        }
-        std::fs::copy(&ast_path, &json_path)?;
-        log::debug!("Wrote AST to {}", &ast_path.display());
-        log::debug!("Wrote AST as JSON to {}", &json_path.display());
-
-        let json_f = File::open(&json_path)?;
-        let ast_json: Value = serde_json::from_reader(json_f)?;
-        log::debug!("Deserialized JSON AST from {}", &json_path.display());
-        Ok(SolAST {
-            element: Some(ast_json),
-        })
-    }
-
     /// Invoke the full solidity compiler and return the exit code, stdout, and stderr
     pub fn compile(
         &self,
@@ -209,59 +141,6 @@ impl Solc {
                 Ok((code, stdout, stderr))
             }
         }
-    }
-
-    /// A helper function to create the directory where the AST (.ast) and it's
-    /// json representation (.ast.json) are stored.
-    ///
-    /// # Arguments
-    ///
-    /// * `solidity_file` - Solidity file that is going to be compiled
-    /// * `output_directory` - The output directory
-    ///
-    /// # Returns
-    ///
-    /// This returns a 3-tuple:
-    /// * `ast_dir` - the path to the directory of the solidity AST
-    /// * `ast_path` - the solidity AST file (contained inside `sol_ast_dir`)
-    /// * `json_path` - the solidity AST JSON file (contained inside
-    ///   `sol_ast_dir`)
-    fn make_ast_dir(
-        solidity_file: &Path,
-        output_directory: &Path,
-    ) -> Result<(PathBuf, PathBuf, PathBuf), Box<dyn error::Error>> {
-        let extension = solidity_file.extension();
-        if extension.is_none() || !extension.unwrap().eq("sol") {
-            panic!("Invalid Extension: {}", solidity_file.display());
-        }
-
-        let input_json_dir = output_directory.join(INPUT_JSON);
-        if input_json_dir.exists() {
-            log::debug!("{} already exists", input_json_dir.display());
-        } else {
-            log::debug!("{} doesn't exist", input_json_dir.display());
-        }
-
-        let filename = PathBuf::from(solidity_file.file_name().unwrap());
-        let sol_ast_dir = input_json_dir
-            .join(filename)
-            .parent()
-            .unwrap()
-            .to_path_buf();
-
-        std::fs::create_dir_all(&sol_ast_dir)?;
-        log::debug!("Created AST directory {}", input_json_dir.display());
-
-        let ast_fnm = Path::new(solidity_file)
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_owned()
-            + "_json.ast";
-        let ast_path = sol_ast_dir.join(&ast_fnm);
-        let json_path = sol_ast_dir.join(ast_fnm + DOT_JSON);
-        Ok((sol_ast_dir, ast_path, json_path))
     }
 
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`

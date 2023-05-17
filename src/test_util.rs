@@ -1,4 +1,3 @@
-use crate::{SolAST, SolASTVisitor};
 use std::{io::prelude::*, path::PathBuf};
 use tempfile::Builder;
 
@@ -57,17 +56,4 @@ contract Wrapper {{
         statements.join("\n        ")
     );
     solidity_code
-}
-
-#[derive(Default)]
-struct ExprParserHelper {}
-
-impl SolASTVisitor<(), SolAST> for ExprParserHelper {
-    fn visit_node(&self, node: &SolAST, _: &()) -> Option<SolAST> {
-        if node.node_type() == Some("Assignment".into()) {
-            Some(node.right_hand_side())
-        } else {
-            None
-        }
-    }
 }

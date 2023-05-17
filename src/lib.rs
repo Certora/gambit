@@ -1,7 +1,4 @@
-mod ast;
 use std::{collections::HashMap, fs, path::PathBuf, time::Instant};
-
-pub use ast::*;
 
 mod cli;
 pub use cli::*;
@@ -133,6 +130,9 @@ pub fn run_mutate(
             // TODO: Separate out Filtering from Validation
 
             // Check if we are filtering
+            let validator = Validator {
+                solc: Solc::new(params.solc.clone(), outdir_path.clone()),
+            };
             let mutants = if let Some(num_mutants) = params.num_mutants {
                 log::info!("Filtering down to {} mutants", num_mutants);
                 log::debug!("  seed: {:?}", params.seed);
@@ -142,7 +142,7 @@ pub fn run_mutate(
                 } else {
                     Some(params.seed)
                 };
-                let filter = RandomDownSampleFilter::new(seed, !params.skip_validate);
+                let filter = RandomDownSampleFilter::new(seed, !params.skip_validate, validator);
                 let mutants = filter.filter_mutants(&mutator, num_mutants)?;
                 log::info!("Filtering resulted in {} mutants", mutants.len());
                 mutants
@@ -150,7 +150,7 @@ pub fn run_mutate(
                 log::info!("Skipping validation");
                 mutants
             } else {
-                let mutants = mutator.get_valid_mutants(&mutants);
+                let mutants = validator.get_valid_mutants(&mutants);
                 log::info!("Validation resulted in {} mutants", mutants.len());
                 mutants
             };

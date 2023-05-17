@@ -1,6 +1,11 @@
 use crate::{
     default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutantWriter,
-    MutateParams, Mutation, SolAST, SolASTVisitor, Solc,
+    MutateParams, Mutation, MutationPoint, Solc,
+};
+use solang_parser;
+use solang_parser::pt::{
+    ContractDefinition, ContractPart, Expression, FunctionDefinition, SourceUnit, SourceUnitPart,
+    Statement,
 };
 use clap::ValueEnum;
 use std::{error, path::PathBuf, rc::Rc};
@@ -55,9 +60,6 @@ pub struct Mutator {
 
     /// The mutants, in order of generation
     pub mutants: Vec<Mutant>,
-
-    /// Solc configuration
-    solc: Solc,
 
     /// A temporary directory to store intermediate work
     _tmp: PathBuf,
@@ -128,9 +130,12 @@ impl Mutator {
             conf,
             sources,
             mutants: vec![],
-            solc,
             _tmp: "".into(),
         }
+    }
+
+    pub fn mutation_operators(&self) -> &[MutationType] {
+        &self.conf.mutation_operators.as_slice()
     }
 
     /// Run all mutations! This is the main external entry point into mutation.
@@ -144,11 +149,10 @@ impl Mutator {
     pub fn mutate(&mut self) -> Result<&Vec<Mutant>, Box<dyn error::Error>> {
         let mut mutants: Vec<Mutant> = vec![];
 
-        let solc = &self.solc;
         for source in self.sources.iter() {
             log::info!("Mutating source {}", source.filename().display());
 
-            match self.mutate_file(source.clone(), solc) {
+            match self.mutate_file(source.clone()) {
                 Ok(mut file_mutants) => {
                     log::info!("    Generated {} mutants from source", file_mutants.len());
                     mutants.append(&mut file_mutants);
@@ -165,31 +169,10 @@ impl Mutator {
     }
 
     /// Mutate a single file.
-    fn mutate_file(
-        &self,
-        source: Rc<Source>,
-        solc: &Solc,
-    ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-        let ast = solc.compile_ast(source.filename())?;
-        if !solc.output_directory().exists() {
-            log::debug!(
-                "[Pre traverse] Output directory {} doesn't exist!",
-                solc.output_directory().display()
-            );
-        }
-        let result = ast.traverse(self, source).into_iter().flatten().collect();
-        if !solc.output_directory().exists() {
-            log::debug!(
-                "[Post traverse] Output directory {} doesn't exist!",
-                solc.output_directory().display()
-            );
-        }
+    fn mutate_file(&self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+        let (pt, comments) = solang_parser::parse(&source.filename_as_str(), 0).unwrap();
+        let result = mutate_source_unit(&pt, &self.mutation_operators())?;
         Ok(result)
-    }
-
-    /// Check if a node in the AST is an assert.
-    pub fn is_assert_call(node: &SolAST) -> bool {
-        node.name().map_or_else(|| false, |n| n == "assert")
     }
 
     /// Get a slice of the mutants produced by this mutator
@@ -200,82 +183,169 @@ impl Mutator {
     pub fn sources(&self) -> &Vec<Rc<Source>> {
         &self.sources
     }
+}
 
-    pub fn solc(&self) -> &Solc {
-        &self.solc
+pub fn mutate_source_unit(
+    source_unit: &SourceUnit,
+    mut_ops: &[MutationType],
+) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    let mut mutants: Vec<Mutant> = Vec::default();
+    for part in source_unit.0.iter() {
+        mutants.append(&mut mutate_source_unit_part(part, mut_ops)?);
     }
+    Ok(mutants)
+}
 
-    /// validate a mutant by writing it to disk and compiling it. If compilation
-    /// fails then this is an invalid mutant.
-    pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
-        let source_filename = mutant.source.filename();
-        let source_parent_dir = source_filename.parent().unwrap();
-        let mutant_file = NamedTempFile::new_in(source_parent_dir)?;
-        let mutant_file_path = mutant_file.path();
-        log::debug!(
-            "Validating mutant of {}: copying mutated code to {}",
-            source_filename.display(),
-            mutant_file_path.display()
-        );
-        let dir = tempdir()?;
-        MutantWriter::write_mutant_to_file(mutant_file_path, mutant)?;
-        let code = match self.solc().compile(mutant_file_path, dir.path()) {
-            Ok((code, _, _)) => code == 0,
-            Err(_) => false,
-        };
-        Ok(code)
+pub fn mutate_source_unit_part(
+    part: &SourceUnitPart,
+    mut_ops: &[MutationType],
+) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    match part {
+        SourceUnitPart::ContractDefinition(cd) => mutate_contract_definition(cd.as_ref(), mut_ops),
+        SourceUnitPart::FunctionDefinition(fd) => todo!(),
+        SourceUnitPart::VariableDefinition(_) => todo!(),
+        _ => Ok(vec![]),
     }
+}
+pub fn mutate_contract_definition(
+    contract_definition: &ContractDefinition,
+    mut_ops: &[MutationType],
+) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    let mut mutants: Vec<Mutant> = Vec::default();
+    for part in contract_definition.parts.iter() {
+        todo!()
+    }
+    Ok(mutants)
+}
 
-    pub fn get_valid_mutants(&self, mutants: &[Mutant]) -> Vec<Mutant> {
-        log::info!("Validating mutants...");
-        let mut valid_mutants = vec![];
-        for m in mutants.iter() {
-            if let Ok(true) = self.validate_mutant(m) {
-                valid_mutants.push(m.clone())
-            }
-        }
-        valid_mutants
+pub fn mutate_function_definition(
+    function_definition: &FunctionDefinition,
+    mut_ops: &Vec<MutationType>,
+) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    if let Some(statement) = &function_definition.body {
+        mutate_statement(statement, mut_ops)
+    } else {
+        Ok(vec![])
     }
 }
 
-impl SolASTVisitor<Rc<Source>, Vec<Mutant>> for Mutator {
-    fn skip_node(&self, node: &SolAST, _source: &Rc<Source>) -> bool {
-        if let Some(e) = &node.element {
-            if let Some(e_obj) = e.as_object() {
-                if e_obj.contains_key("contractKind") {
-                    let contract_name = e_obj.get("name").unwrap();
-                    if let Some(contract) = &self.conf.contract {
-                        return contract != contract_name.as_str().unwrap();
-                    } else {
-                        return false;
-                    }
-                } else if node.node_kind() == Some("function".to_string()) {
-                    match &self.conf.funcs_to_mutate {
-                        Some(fns) => {
-                            if let Some(name) = node.name() {
-                                return !fns.contains(&name);
-                            }
-                            return true;
-                        }
-                        None => {
-                            return false;
-                        }
-                    }
-                }
+pub fn mutate_statement(
+    statement: &Statement,
+    mut_ops: &Vec<MutationType>,
+) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    match statement {
+        Statement::Block {
+            loc,
+            unchecked,
+            statements,
+        } => {
+            let mut mutants: Vec<Mutant> = Vec::default();
+            for statement in statements.iter() {
+                mutants.append(&mut mutate_statement(statement, mut_ops)?);
             }
+            Ok(mutants)
         }
-        false
+        Statement::Assembly {
+            loc,
+            dialect,
+            flags,
+            block,
+        } => todo!(),
+        Statement::If(_, cond, then, els) => {
+            todo!()
+        }
+        Statement::While(_, cond, body) => {
+            todo!()
+        }
+        Statement::Expression(_, expr) => {
+            todo!()
+        }
+        Statement::VariableDefinition(_, var_decl, initializer) => {
+            todo!()
+        }
+        Statement::For(_, init, cond, update, body) => {
+            todo!()
+        }
+        Statement::DoWhile(_, body, cond) => {
+            todo!()
+        }
+        Statement::Continue(_) => todo!(),
+        Statement::Break(_) => todo!(),
+        Statement::Return(_, expr) => {
+            todo!()
+        }
+        Statement::Revert(_, _, _) => todo!(),
+        Statement::RevertNamedArgs(_, _, _) => todo!(),
+        Statement::Emit(_, _) => todo!(),
+        Statement::Try(_, _, _, _) => todo!(),
+        _ => Ok(vec![]),
     }
+}
 
-    fn visit_node(&self, node: &SolAST, arg: &Rc<Source>) -> Option<Vec<Mutant>> {
-        let op_node_pairs: Vec<Mutant> = self
-            .conf
-            .mutation_operators
-            .iter()
-            .filter(|m| m.applies_to(node))
-            .flat_map(|m| m.mutate(node, arg.clone()))
-            .collect();
-
-        Some(op_node_pairs)
+pub fn mutate_expression(
+    expr: &Expression,
+    mut_ops: &Vec<MutationType>,
+) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    match expr {
+        Expression::PostIncrement(_, _) => todo!(),
+        Expression::PostDecrement(_, _) => todo!(),
+        Expression::New(_, _) => todo!(),
+        Expression::ArraySubscript(_, _, _) => todo!(),
+        Expression::ArraySlice(_, _, _, _) => todo!(),
+        Expression::Parenthesis(_, _) => todo!(),
+        Expression::MemberAccess(_, _, _) => todo!(),
+        Expression::FunctionCall(_, func, args) => todo!(),
+        Expression::FunctionCallBlock(_, _, _) => todo!(),
+        Expression::NamedFunctionCall(_, _, _) => todo!(),
+        Expression::Not(_, _) => todo!(),
+        Expression::BitwiseNot(_, _) => todo!(),
+        Expression::Delete(_, _) => todo!(),
+        Expression::PreIncrement(_, _) => todo!(),
+        Expression::PreDecrement(_, _) => todo!(),
+        Expression::UnaryPlus(_, _) => todo!(),
+        Expression::Negate(_, _) => todo!(),
+        Expression::Power(_, _, _) => todo!(),
+        Expression::Multiply(_, _, _) => todo!(),
+        Expression::Divide(_, _, _) => todo!(),
+        Expression::Modulo(_, _, _) => todo!(),
+        Expression::Add(_, _, _) => todo!(),
+        Expression::Subtract(_, _, _) => todo!(),
+        Expression::ShiftLeft(_, _, _) => todo!(),
+        Expression::ShiftRight(_, _, _) => todo!(),
+        Expression::BitwiseAnd(_, _, _) => todo!(),
+        Expression::BitwiseXor(_, _, _) => todo!(),
+        Expression::BitwiseOr(_, _, _) => todo!(),
+        Expression::Less(_, _, _) => todo!(),
+        Expression::More(_, _, _) => todo!(),
+        Expression::LessEqual(_, _, _) => todo!(),
+        Expression::MoreEqual(_, _, _) => todo!(),
+        Expression::Equal(_, _, _) => todo!(),
+        Expression::NotEqual(_, _, _) => todo!(),
+        Expression::And(_, _, _) => todo!(),
+        Expression::Or(_, _, _) => todo!(),
+        Expression::ConditionalOperator(_, _, _, _) => todo!(),
+        Expression::Assign(_, _, _) => todo!(),
+        Expression::AssignOr(_, _, _) => todo!(),
+        Expression::AssignAnd(_, _, _) => todo!(),
+        Expression::AssignXor(_, _, _) => todo!(),
+        Expression::AssignShiftLeft(_, _, _) => todo!(),
+        Expression::AssignShiftRight(_, _, _) => todo!(),
+        Expression::AssignAdd(_, _, _) => todo!(),
+        Expression::AssignSubtract(_, _, _) => todo!(),
+        Expression::AssignMultiply(_, _, _) => todo!(),
+        Expression::AssignDivide(_, _, _) => todo!(),
+        Expression::AssignModulo(_, _, _) => todo!(),
+        Expression::BoolLiteral(_, _) => todo!(),
+        Expression::NumberLiteral(_, _, _, _) => todo!(),
+        Expression::RationalNumberLiteral(_, _, _, _, _) => todo!(),
+        Expression::HexNumberLiteral(_, _, _) => todo!(),
+        Expression::StringLiteral(_) => todo!(),
+        Expression::Type(_, _) => todo!(),
+        Expression::HexLiteral(_) => todo!(),
+        Expression::AddressLiteral(_, _) => todo!(),
+        Expression::Variable(_) => todo!(),
+        Expression::List(_, _) => todo!(),
+        Expression::ArrayLiteral(_, _) => todo!(),
+        Expression::This(_) => todo!(),
     }
 }

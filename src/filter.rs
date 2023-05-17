@@ -1,8 +1,9 @@
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use std::error;
+use tempfile::{tempdir, NamedTempFile};
 
-use crate::{Mutant, Mutator};
+use crate::{Mutant, MutantWriter, Mutator, Solc};
 
 /// This module downsamples mutants.
 
@@ -26,11 +27,17 @@ pub struct RandomDownSampleFilter {
     /// Should filtered mutants be validated with an external compiler run? This
     /// is more expensive but disabling this option may produce invalid mutants.
     validate: bool,
+
+    validator: Validator,
 }
 
 impl RandomDownSampleFilter {
-    pub fn new(seed: Option<u64>, validate: bool) -> Self {
-        Self { seed, validate }
+    pub fn new(seed: Option<u64>, validate: bool, validator: Validator) -> Self {
+        Self {
+            seed,
+            validate,
+            validator,
+        }
     }
 }
 
@@ -57,7 +64,7 @@ impl MutantFilter for RandomDownSampleFilter {
             let idx = r.gen_range(0..mutants.len());
             let mutant = mutants.remove(idx);
             if self.validate() {
-                if let Ok(true) = mutator.validate_mutant(&mutant.1) {
+                if let Ok(true) = self.validator.validate_mutant(&mutant.1) {
                     sampled.push(mutant)
                 }
             } else {
@@ -72,5 +79,44 @@ impl MutantFilter for RandomDownSampleFilter {
 
     fn validate(&self) -> bool {
         self.validate
+    }
+}
+
+/// Responsible for mutant validation logic
+pub struct Validator {
+    pub solc: Solc,
+}
+
+impl Validator {
+    /// validate a mutant by writing it to disk and compiling it. If compilation
+    /// fails then this is an invalid mutant.
+    pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
+        let source_filename = mutant.source.filename();
+        let source_parent_dir = source_filename.parent().unwrap();
+        let mutant_file = NamedTempFile::new_in(source_parent_dir)?;
+        let mutant_file_path = mutant_file.path();
+        log::debug!(
+            "Validating mutant of {}: copying mutated code to {}",
+            source_filename.display(),
+            mutant_file_path.display()
+        );
+        let dir = tempdir()?;
+        MutantWriter::write_mutant_to_file(mutant_file_path, mutant)?;
+        let code = match self.solc.compile(mutant_file_path, dir.path()) {
+            Ok((code, _, _)) => code == 0,
+            Err(_) => false,
+        };
+        Ok(code)
+    }
+
+    pub fn get_valid_mutants(&self, mutants: &[Mutant]) -> Vec<Mutant> {
+        log::info!("Validating mutants...");
+        let mut valid_mutants = vec![];
+        for m in mutants.iter() {
+            if let Ok(true) = self.validate_mutant(m) {
+                valid_mutants.push(m.clone())
+            }
+        }
+        valid_mutants
     }
 }
