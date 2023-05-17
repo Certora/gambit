@@ -30,7 +30,7 @@ impl From<&MutateParams> for MutatorConf {
             ops.iter()
                 .map(|op| {
                     MutationType::from_str(op.as_str(), true)
-                        .expect(format!("Unrecognized mutation operator {op}").as_str())
+                        .unwrap_or_else(|_| panic!("Unrecognized mutation operator {op}"))
                 })
                 .collect()
         } else {
