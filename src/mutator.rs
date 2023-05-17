@@ -28,7 +28,10 @@ impl From<&MutateParams> for MutatorConf {
     fn from(mutate_params: &MutateParams) -> Self {
         let mutation_operators = if let Some(ops) = &mutate_params.mutations {
             ops.iter()
-                .map(|op| MutationType::from_str(op.as_str(), true).unwrap())
+                .map(|op| {
+                    MutationType::from_str(op.as_str(), true)
+                        .expect(format!("Unrecognized mutation operator {op}").as_str())
+                })
                 .collect()
         } else {
             MutationType::default_mutation_operators()
