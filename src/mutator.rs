@@ -1,6 +1,6 @@
 use crate::{
-    default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutateParams,
-    Solc,
+    default_gambit_output_directory, mutation::Mutation, mutation::MutationType, source::Source,
+    Mutant, MutateParams, Solc,
 };
 use clap::ValueEnum;
 use solang_parser;
@@ -168,8 +168,8 @@ impl Mutator {
 
     /// Mutate a single file.
     fn mutate_file(&self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-        let (pt, comments) = solang_parser::parse(&source.filename_as_str(), 0).unwrap();
-        let result = mutate_source_unit(&pt, &self.mutation_operators())?;
+        let (pt, _) = solang_parser::parse(&source.filename_as_str(), 0).unwrap();
+        let result = mutate_source_unit(&pt, &self.mutation_operators(), source.clone())?;
         Ok(result)
     }
 
@@ -186,10 +186,11 @@ impl Mutator {
 pub fn mutate_source_unit(
     source_unit: &SourceUnit,
     mut_ops: &[MutationType],
+    source: Rc<Source>,
 ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
     let mut mutants: Vec<Mutant> = Vec::default();
     for part in source_unit.0.iter() {
-        mutants.append(&mut mutate_source_unit_part(part, mut_ops)?);
+        mutants.append(&mut mutate_source_unit_part(part, mut_ops, source.clone())?);
     }
     Ok(mutants)
 }
@@ -197,10 +198,15 @@ pub fn mutate_source_unit(
 pub fn mutate_source_unit_part(
     part: &SourceUnitPart,
     mut_ops: &[MutationType],
+    source: Rc<Source>,
 ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
     match part {
-        SourceUnitPart::ContractDefinition(cd) => mutate_contract_definition(cd.as_ref(), mut_ops),
-        SourceUnitPart::FunctionDefinition(fd) => todo!(),
+        SourceUnitPart::ContractDefinition(cd) => {
+            mutate_contract_definition(cd.as_ref(), mut_ops, source)
+        }
+        SourceUnitPart::FunctionDefinition(fd) => {
+            mutate_function_definition(fd.as_ref(), mut_ops, source)
+        }
         SourceUnitPart::VariableDefinition(_) => todo!(),
         _ => Ok(vec![]),
     }
@@ -208,20 +214,35 @@ pub fn mutate_source_unit_part(
 pub fn mutate_contract_definition(
     contract_definition: &ContractDefinition,
     mut_ops: &[MutationType],
+    source: Rc<Source>,
 ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
     let mut mutants: Vec<Mutant> = Vec::default();
     for part in contract_definition.parts.iter() {
-        todo!()
+        match part {
+            solang_parser::pt::ContractPart::FunctionDefinition(fd) => mutants.append(
+                &mut mutate_function_definition(&fd, mut_ops, source.clone())?,
+            ),
+            solang_parser::pt::ContractPart::VariableDefinition(_)
+            | solang_parser::pt::ContractPart::StructDefinition(_)
+            | solang_parser::pt::ContractPart::EventDefinition(_)
+            | solang_parser::pt::ContractPart::EnumDefinition(_)
+            | solang_parser::pt::ContractPart::ErrorDefinition(_)
+            | solang_parser::pt::ContractPart::TypeDefinition(_)
+            | solang_parser::pt::ContractPart::Annotation(_)
+            | solang_parser::pt::ContractPart::Using(_)
+            | solang_parser::pt::ContractPart::StraySemicolon(_) => continue,
+        }
     }
     Ok(mutants)
 }
 
 pub fn mutate_function_definition(
     function_definition: &FunctionDefinition,
-    mut_ops: &Vec<MutationType>,
+    mut_ops: &[MutationType],
+    source: Rc<Source>,
 ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
     if let Some(statement) = &function_definition.body {
-        mutate_statement(statement, mut_ops)
+        mutate_statement(statement, mut_ops, source)
     } else {
         Ok(vec![])
     }
@@ -229,25 +250,27 @@ pub fn mutate_function_definition(
 
 pub fn mutate_statement(
     statement: &Statement,
-    mut_ops: &Vec<MutationType>,
+    mut_ops: &[MutationType],
+    source: Rc<Source>,
 ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-    match statement {
+    let mut mutants: Vec<Mutant> = match statement {
         Statement::Block {
-            loc,
-            unchecked,
+            loc: _,
+            unchecked: _,
             statements,
         } => {
-            let mut mutants: Vec<Mutant> = Vec::default();
-            for statement in statements.iter() {
-                mutants.append(&mut mutate_statement(statement, mut_ops)?);
-            }
-            Ok(mutants)
+            let mutants = statements
+                .iter()
+                .flat_map(|s| mutate_statement(s, mut_ops, source.clone()).unwrap())
+                .collect::<Vec<Mutant>>();
+
+            mutants
         }
         Statement::Assembly {
-            loc,
-            dialect,
-            flags,
-            block,
+            loc: _,
+            dialect: _,
+            flags: _,
+            block: _,
         } => todo!(),
         Statement::If(_, cond, then, els) => {
             todo!()
@@ -276,13 +299,18 @@ pub fn mutate_statement(
         Statement::RevertNamedArgs(_, _, _) => todo!(),
         Statement::Emit(_, _) => todo!(),
         Statement::Try(_, _, _, _) => todo!(),
-        _ => Ok(vec![]),
+        _ => vec![],
+    };
+    for op in mut_ops.iter() {
+        mutants.append(&mut op.mutate_statement(statement, source.clone()));
     }
+    Ok(mutants)
 }
 
 pub fn mutate_expression(
     expr: &Expression,
-    mut_ops: &Vec<MutationType>,
+    mut_ops: &[MutationType],
+    source: Rc<Source>,
 ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
     match expr {
         Expression::PostIncrement(_, _) => todo!(),

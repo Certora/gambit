@@ -77,6 +77,18 @@ impl Source {
         &self.contents
     }
 
+    pub fn contents_before_offset(&self, offset: usize) -> &[u8] {
+        &self.contents[..offset]
+    }
+
+    pub fn contents_after_offset(&self, offset: usize) -> &[u8] {
+        &self.contents[offset..]
+    }
+
+    pub fn contents_between_offsets(&self, start: usize, end: usize) -> &[u8] {
+        &self.contents[start..end]
+    }
+
     /// Get the sourceroot for this source file
     pub fn sourceroot(&self) -> &Path {
         self.sourceroot.as_path()

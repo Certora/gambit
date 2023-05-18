@@ -188,7 +188,7 @@ impl Mutation for MutationType {
     /// * `node` - The Solidity AST node to mutate
     /// * `source` - The original source file: we use this to generate a new
     ///   source file
-    fn mutate_statement(&self, stmt: &Statement, _source: Rc<Source>) -> Vec<Mutant> {
+    fn mutate_statement(&self, stmt: &Statement, source: Rc<Source>) -> Vec<Mutant> {
         match self {
             MutationType::AssignmentMutation => match stmt {
                 Statement::Expression(_, Expression::Assign(_, _lhs, _rhs)) => {
@@ -197,7 +197,32 @@ impl Mutation for MutationType {
                 _ => vec![],
             },
             MutationType::IfStatementMutation => {
-                todo!("Not Implemented")
+                if let Statement::If(loc, cond, then, els) = stmt {
+                    let replacements = match cond {
+                        Expression::BoolLiteral(_, true) => vec!["false"],
+                        Expression::BoolLiteral(_, false) => vec!["true"],
+                        _ => vec!["true", "false"],
+                    };
+                    let mutations = replacements
+                        .into_iter()
+                        .map(|r| {
+                            Mutant::new(
+                                source.clone(),
+                                self.clone(),
+                                loc.start(),
+                                loc.end(),
+                                r.to_string(),
+                            )
+                        })
+                        .chain(self.mutate_statement(then, source.clone()).into_iter())
+                        .chain(els.as_ref().map_or(vec![].into_iter(), |e| {
+                            self.mutate_statement(&e, source.clone()).into_iter()
+                        }))
+                        .collect();
+                    mutations
+                } else {
+                    vec![]
+                }
             }
 
             MutationType::RequireMutation => {
