@@ -125,11 +125,26 @@ impl Display for Mutant {
 /// Every kind of mutation implements this trait. A mutation can check if it
 /// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
-    /// Check if this mutation applies to this AST node
-    fn applies_to(&self, node: &MutationPoint) -> bool;
-
     /// Generate all mutants of a given node by this agent
-    fn mutate(&self, node: &MutationPoint, source: Rc<Source>) -> Vec<Mutant>;
+    fn mutate(&self, node: &MutationPoint, source: Rc<Source>) -> Vec<Mutant> {
+        match node {
+            MutationPoint::Statement(stmt) => self.mutate_statement(stmt, source),
+            MutationPoint::Expression(expr) => self.mutate_expression(expr, source),
+            MutationPoint::VariableDeclaration(decl) => {
+                self.mutate_variable_declaration(decl, source)
+            }
+        }
+    }
+
+    fn mutate_statement(&self, _stmt: &Statement, source: Rc<Source>) -> Vec<Mutant>;
+
+    fn mutate_expression(&self, _expr: &Expression, source: Rc<Source>) -> Vec<Mutant>;
+
+    fn mutate_variable_declaration(
+        &self,
+        _decl: &VariableDeclaration,
+        source: Rc<Source>,
+    ) -> Vec<Mutant>;
 }
 
 /// Kinds of mutations.
@@ -166,45 +181,6 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
-    fn applies_to(&self, node: &MutationPoint) -> bool {
-        match self {
-            MutationType::AssignmentMutation => match node {
-                MutationPoint::Statement(Statement::Expression(
-                    _,
-                    Expression::Assign(_, lhs, rhs),
-                )) => todo!(),
-                _ => false,
-            },
-            MutationType::BinaryOpMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::DeleteExpressionMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::ElimDelegateMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::FunctionCallMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::IfStatementMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::RequireMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::SwapArgumentsFunctionMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::SwapArgumentsOperatorMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::UnaryOperatorMutation => {
-                todo!("Not Implemented")
-            }
-        }
-    }
-
     /// Produce all mutants at the given node
     ///
     /// # Arguments
@@ -212,36 +188,14 @@ impl Mutation for MutationType {
     /// * `node` - The Solidity AST node to mutate
     /// * `source` - The original source file: we use this to generate a new
     ///   source file
-    fn mutate(&self, node: &MutationPoint, source: Rc<Source>) -> Vec<Mutant> {
-        if !self.applies_to(node) {
-            return vec![];
-        }
+    fn mutate_statement(&self, stmt: &Statement, _source: Rc<Source>) -> Vec<Mutant> {
         match self {
-            MutationType::AssignmentMutation => {
-                todo!("Not implemented")
-            }
-            MutationType::BinaryOpMutation => {
-                todo!("Not Implemented")
-            }
-
-            MutationType::DeleteExpressionMutation => {
-                todo!("Not Implemented")
-            }
-            MutationType::ElimDelegateMutation => {
-                todo!("Not Implemented")
-            }
-
-            // TODO: Should we enable this? I'm not sure if this is the best mutation operator
-            MutationType::FunctionCallMutation => {
-                // if let Some(arg) = node.arguments().choose(rand) {
-                //     node.replace_in_source(source, arg.get_text(source))
-                // } else {
-                //     node.get_text(source)
-                // }
-
-                vec![] // For now I'm removing this operator: not sure what it does!
-            }
-
+            MutationType::AssignmentMutation => match stmt {
+                Statement::Expression(_, Expression::Assign(_, _lhs, _rhs)) => {
+                    todo!("EVR")
+                }
+                _ => vec![],
+            },
             MutationType::IfStatementMutation => {
                 todo!("Not Implemented")
             }
@@ -250,36 +204,47 @@ impl Mutation for MutationType {
                 todo!("Not Implemented")
             }
 
-            MutationType::SwapArgumentsFunctionMutation => {
-                todo!("Not Implemented")
+            MutationType::BinaryOpMutation
+            | MutationType::DeleteExpressionMutation
+            | MutationType::ElimDelegateMutation
+            | MutationType::FunctionCallMutation
+            | MutationType::SwapArgumentsFunctionMutation
+            | MutationType::SwapArgumentsOperatorMutation
+            | MutationType::UnaryOperatorMutation => vec![],
+        }
+    }
 
-                // TODO: I'm removing this operator for now as I'm not sure how
-                // to implement it deterministically. I'm also faily convinced
-                // that this operator should be removed
+    fn mutate_expression(&self, _expr: &Expression, _source: Rc<Source>) -> Vec<Mutant> {
+        match self {
+            MutationType::AssignmentMutation
+            | MutationType::IfStatementMutation
+            | MutationType::RequireMutation => vec![],
+            MutationType::BinaryOpMutation => todo!(),
+            MutationType::DeleteExpressionMutation => todo!(),
+            MutationType::ElimDelegateMutation => todo!(),
+            MutationType::FunctionCallMutation => todo!(),
+            MutationType::SwapArgumentsFunctionMutation => todo!(),
+            MutationType::SwapArgumentsOperatorMutation => todo!(),
+            MutationType::UnaryOperatorMutation => todo!(),
+        }
+    }
 
-                // let mut children = node.arguments();
-                // children.shuffle(rand);
-
-                // if children.len() == 2 {
-                //     node.replace_multiple(
-                //         source,
-                //         vec![
-                //             (children[0].clone(), children[1].get_text(source)),
-                //             (children[1].clone(), children[0].get_text(source)),
-                //         ],
-                //     )
-                // } else {
-                //     node.get_text(source)
-                // }
-            }
-
-            MutationType::SwapArgumentsOperatorMutation => {
-                todo!("Not Implemented")
-            }
-
-            MutationType::UnaryOperatorMutation => {
-                todo!("Not Implemented")
-            }
+    fn mutate_variable_declaration(
+        &self,
+        _decl: &VariableDeclaration,
+        _source: Rc<Source>,
+    ) -> Vec<Mutant> {
+        match self {
+            MutationType::AssignmentMutation => vec![],
+            MutationType::IfStatementMutation => vec![],
+            MutationType::RequireMutation => vec![],
+            MutationType::BinaryOpMutation => vec![],
+            MutationType::DeleteExpressionMutation => vec![],
+            MutationType::ElimDelegateMutation => vec![],
+            MutationType::FunctionCallMutation => vec![],
+            MutationType::SwapArgumentsFunctionMutation => vec![],
+            MutationType::SwapArgumentsOperatorMutation => vec![],
+            MutationType::UnaryOperatorMutation => vec![],
         }
     }
 }

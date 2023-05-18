@@ -1,15 +1,13 @@
 use crate::{
-    default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutantWriter,
-    MutateParams, Mutation, MutationPoint, Solc,
-};
-use solang_parser;
-use solang_parser::pt::{
-    ContractDefinition, ContractPart, Expression, FunctionDefinition, SourceUnit, SourceUnitPart,
-    Statement,
+    default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutateParams,
+    Solc,
 };
 use clap::ValueEnum;
+use solang_parser;
+use solang_parser::pt::{
+    ContractDefinition, Expression, FunctionDefinition, SourceUnit, SourceUnitPart, Statement,
+};
 use std::{error, path::PathBuf, rc::Rc};
-use tempfile::{tempdir, NamedTempFile};
 
 /// This module is responsible for high level logic of running mutation over
 /// Solidity programs.
