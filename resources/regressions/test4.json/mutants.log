@@ -4,17 +4,3 @@
 4,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,/
 5,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,%
 6,SwapArgumentsOperatorMutation,10Power/TenPower.sol,8:23,a ** decimals,decimals ** a
-7,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,-
-8,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
-9,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
-10,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%
-11,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,+
-12,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,-
-13,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,*
-14,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,/
-15,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,%
-16,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,24:23,a ** decimals,decimals ** a
-17,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,-
-18,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,*
-19,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,/
-20,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,%

@@ -11,10 +11,10 @@ contract AssignmentMutation {
 
     constructor() {
 	x = 42; // original: 42
-	/// AssignmentMutation(`13` |==> `0`) of: `y = 13; // original: 13`
-	y = 0; // original: 13
+	y = 13; // original: 13
 	z = 3110; // original: 3110
-	a = true; // original: true
+	/// AssignmentMutation(`true` |==> `false`) of: `a = true; // original: true`
+	a = false; // original: true
 	b = false; // original: false
     }
 }

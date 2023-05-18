@@ -128,30 +128,30 @@ pub trait Mutation {
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
     AssignmentMutation,
-    BinOpMutation,
+    BinaryOpMutation,
     DeleteExpressionMutation,
     ElimDelegateMutation,
     FunctionCallMutation,
-    IfCondMutation,
+    IfStatementMutation,
     RequireMutation,
     SwapArgumentsFunctionMutation,
     SwapArgumentsOperatorMutation,
-    UnOpMutation,
+    UnaryOperatorMutation,
 }
 
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
             MutationType::AssignmentMutation => "AssignmentMutation",
-            MutationType::BinOpMutation => "BinaryOpMutation",
+            MutationType::BinaryOpMutation => "BinaryOpMutation",
             MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
-            MutationType::IfCondMutation => "IfStatementMutation",
+            MutationType::IfStatementMutation => "IfStatementMutation",
             MutationType::RequireMutation => "RequireMutation",
             MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
-            MutationType::UnOpMutation => "UnaryOperatorMutation",
+            MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
         };
         str.into()
     }
@@ -165,7 +165,7 @@ impl Mutation for MutationType {
                     return n == "Assignment";
                 }
             }
-            MutationType::BinOpMutation => {
+            MutationType::BinaryOpMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation";
                 }
@@ -196,7 +196,7 @@ impl Mutation for MutationType {
                     return n == "FunctionCall" && !node.arguments().is_empty();
                 }
             }
-            MutationType::IfCondMutation => {
+            MutationType::IfStatementMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "IfStatement";
                 }
@@ -231,7 +231,7 @@ impl Mutation for MutationType {
                         );
                 }
             }
-            MutationType::UnOpMutation => {
+            MutationType::UnaryOperatorMutation => {
                 if let Some(n) = node.node_type() {
                     return n == "UnaryOperation";
                 }
@@ -278,7 +278,7 @@ impl Mutation for MutationType {
                     .map(|r| Mutant::new(source.clone(), *self, s, e, r.to_string()))
                     .collect()
             }
-            MutationType::BinOpMutation => {
+            MutationType::BinaryOpMutation => {
                 let orig = node.operator().unwrap();
                 let orig = String::from(orig.trim());
 
@@ -324,7 +324,7 @@ impl Mutation for MutationType {
                 vec![] // For now I'm removing this operator: not sure what it does!
             }
 
-            MutationType::IfCondMutation => {
+            MutationType::IfStatementMutation => {
                 let cond = node.condition();
                 let orig = cond.get_text(source.contents());
                 let bs: Vec<&str> = vec!["true", "false"]
@@ -399,7 +399,7 @@ impl Mutation for MutationType {
                 vec![Mutant::new(source.clone(), *self, start, end, repl)]
             }
 
-            MutationType::UnOpMutation => {
+            MutationType::UnaryOperatorMutation => {
                 let prefix_ops = vec!["++", "--", "~"];
                 let suffix_ops = vec!["++", "--"];
 
@@ -433,15 +433,15 @@ impl MutationType {
     pub fn default_mutation_operators() -> Vec<MutationType> {
         vec![
             MutationType::AssignmentMutation,
-            MutationType::BinOpMutation,
+            MutationType::BinaryOpMutation,
             MutationType::DeleteExpressionMutation,
             MutationType::ElimDelegateMutation,
             MutationType::FunctionCallMutation,
-            MutationType::IfCondMutation,
+            MutationType::IfStatementMutation,
             MutationType::RequireMutation,
             // MutationType::SwapArgumentsFunctionMutation,
             MutationType::SwapArgumentsOperatorMutation,
-            MutationType::UnOpMutation,
+            MutationType::UnaryOperatorMutation,
         ]
     }
 }
@@ -525,7 +525,7 @@ mod test {
 
     #[test]
     pub fn test_binary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![BinOpMutation];
+        let ops = vec![BinaryOpMutation];
         let repls = vec!["+", "-", "*", "/", "%", "**"];
         // Closure to drop the given operator for he set of replacements
         let without = |s: &str| {
@@ -609,7 +609,7 @@ contract A {
 
     #[test]
     pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![IfCondMutation];
+        let ops = vec![IfStatementMutation];
         assert_num_mutants_for_statements(
             &vec!["uint256 x;", "if (true) { x = 1; } else { x = 2 ;}"],
             &ops,
@@ -634,7 +634,7 @@ contract A {
 
     #[test]
     pub fn test_unary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![UnOpMutation];
+        let ops = vec![UnaryOperatorMutation];
         let prefix = vec!["++", "--", "~"];
         let suffix = vec!["++", "--"];
 

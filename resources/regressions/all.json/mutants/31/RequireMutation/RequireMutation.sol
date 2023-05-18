@@ -4,10 +4,10 @@ pragma experimental ABIEncoderV2;
 
 contract RequireMutation {
     function myRequires(bool cond1, bool cond2, bool cond3) public pure returns (bool) {
-	require(cond1);
+	/// RequireMutation(`cond1` |==> `true`) of: `require(cond1);`
+	require(true);
 	require(cond2);
-	/// RequireMutation(`cond3` |==> `false`) of: `require(cond3);`
-	require(false);
+	require(cond3);
 	return true;
     }
 }

@@ -2,6 +2,7 @@ use crate::{
     default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutantWriter,
     MutateParams, Mutation, SolAST, SolASTVisitor, Solc,
 };
+use clap::ValueEnum;
 use std::{error, path::PathBuf, rc::Rc};
 use tempfile::{tempdir, NamedTempFile};
 
@@ -25,8 +26,18 @@ pub struct MutatorConf {
 
 impl From<&MutateParams> for MutatorConf {
     fn from(mutate_params: &MutateParams) -> Self {
+        let mutation_operators = if let Some(ops) = &mutate_params.mutations {
+            ops.iter()
+                .map(|op| {
+                    MutationType::from_str(op.as_str(), true)
+                        .unwrap_or_else(|_| panic!("Unrecognized mutation operator {op}"))
+                })
+                .collect()
+        } else {
+            MutationType::default_mutation_operators()
+        };
         MutatorConf {
-            mutation_operators: MutationType::default_mutation_operators(),
+            mutation_operators,
             funcs_to_mutate: mutate_params.functions.clone(),
             contract: mutate_params.contract.clone(),
         }
