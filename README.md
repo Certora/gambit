@@ -396,6 +396,7 @@ This has the following structure:
 | `--random-seed`       | use a random seed. Note this overrides any value specified by `--seed`                                                       |
 | `--contract`          | specify a specific contract name to mutate; by default mutate all contracts                                                  |
 | `--functions`         | specify one or more functions to mutate; by default mutate all functions                                                     |
+| `--mutations`         | specify one or more mutation operators to use; only generates mutants that are created using the specified operators         |
 
 Gambit also supports _pass-through arguments_, which are arguments that are
 passed directly to solc. All pass-through arguments are prefixed with `solc-`:
