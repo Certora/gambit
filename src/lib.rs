@@ -1,8 +1,5 @@
 use std::{collections::HashMap, fs, path::PathBuf, time::Instant};
 
-mod ast_util;
-pub use ast_util::*;
-
 mod cli;
 pub use cli::*;
 
