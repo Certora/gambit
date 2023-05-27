@@ -1,13 +1,17 @@
 use crate::{
-    default_gambit_output_directory, mutation::Mutation, mutation::MutationType, source::Source,
-    Mutant, MutateParams, Solc,
+    default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutateParams,
+    Mutation, Solc,
 };
 use clap::ValueEnum;
-use solang_parser;
-use solang_parser::pt::{
-    ContractDefinition, Expression, FunctionDefinition, SourceUnit, SourceUnitPart, Statement,
+use solang::{
+    file_resolver::FileResolver,
+    parse_and_resolve,
+    sema::{
+        ast::{Expression, Statement},
+        Recurse,
+    },
 };
-use std::{error, path::PathBuf, rc::Rc};
+use std::{error, ffi::OsStr, path::PathBuf, rc::Rc};
 
 /// This module is responsible for high level logic of running mutation over
 /// Solidity programs.
@@ -58,6 +62,9 @@ pub struct Mutator {
 
     /// The mutants, in order of generation
     pub mutants: Vec<Mutant>,
+
+    /// The current source being mutated
+    pub current_source: Option<Rc<Source>>,
 
     /// A temporary directory to store intermediate work
     _tmp: PathBuf,
@@ -128,6 +135,7 @@ impl Mutator {
             conf,
             sources,
             mutants: vec![],
+            current_source: None,
             _tmp: "".into(),
         }
     }
@@ -144,11 +152,15 @@ impl Mutator {
     ///
     /// and returns a Vec of mutants. These are not yet written to disk, and can
     /// be further validated, suppressed, and downsampled as desired.
-    pub fn mutate(&mut self) -> Result<&Vec<Mutant>, Box<dyn error::Error>> {
+    pub fn mutate(
+        &mut self,
+        sources: Vec<Rc<Source>>,
+    ) -> Result<&Vec<Mutant>, Box<dyn error::Error>> {
         let mut mutants: Vec<Mutant> = vec![];
 
-        for source in self.sources.iter() {
+        for source in sources.iter() {
             log::info!("Mutating source {}", source.filename().display());
+            self.current_source = Some(source.clone());
 
             match self.mutate_file(source.clone()) {
                 Ok(mut file_mutants) => {
@@ -160,6 +172,8 @@ impl Mutator {
                     log::warn!("Encountered error: {}", e);
                 }
             }
+
+            self.current_source = None;
         }
 
         self.mutants.append(&mut mutants);
@@ -167,10 +181,19 @@ impl Mutator {
     }
 
     /// Mutate a single file.
-    fn mutate_file(&self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-        let (pt, _) = solang_parser::parse(&source.filename_as_str(), 0).unwrap();
-        let result = mutate_source_unit(&pt, &self.mutation_operators(), source.clone())?;
-        Ok(result)
+    fn mutate_file(&mut self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+        let mut resolver = FileResolver::new();
+        let target = solang::Target::EVM;
+        let ns = parse_and_resolve(&OsStr::new(source.filename()), &mut resolver, target);
+        // mutate functions
+        for function in ns.functions.iter() {
+            if function.has_body {
+                for statement in function.body.iter() {
+                    statement.recurse(self, mutate_statement);
+                }
+            }
+        }
+        todo!("TODO: Implement this");
     }
 
     /// Get a slice of the mutants produced by this mutator
@@ -181,197 +204,135 @@ impl Mutator {
     pub fn sources(&self) -> &Vec<Rc<Source>> {
         &self.sources
     }
-}
 
-pub fn mutate_source_unit(
-    source_unit: &SourceUnit,
-    mut_ops: &[MutationType],
-    source: Rc<Source>,
-) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-    let mut mutants: Vec<Mutant> = Vec::default();
-    for part in source_unit.0.iter() {
-        mutants.append(&mut mutate_source_unit_part(part, mut_ops, source.clone())?);
-    }
-    Ok(mutants)
-}
-
-pub fn mutate_source_unit_part(
-    part: &SourceUnitPart,
-    mut_ops: &[MutationType],
-    source: Rc<Source>,
-) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-    match part {
-        SourceUnitPart::ContractDefinition(cd) => {
-            mutate_contract_definition(cd.as_ref(), mut_ops, source)
-        }
-        SourceUnitPart::FunctionDefinition(fd) => {
-            mutate_function_definition(fd.as_ref(), mut_ops, source)
-        }
-        SourceUnitPart::VariableDefinition(_) => todo!(),
-        _ => Ok(vec![]),
-    }
-}
-pub fn mutate_contract_definition(
-    contract_definition: &ContractDefinition,
-    mut_ops: &[MutationType],
-    source: Rc<Source>,
-) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-    let mut mutants: Vec<Mutant> = Vec::default();
-    for part in contract_definition.parts.iter() {
-        match part {
-            solang_parser::pt::ContractPart::FunctionDefinition(fd) => mutants.append(
-                &mut mutate_function_definition(&fd, mut_ops, source.clone())?,
-            ),
-            solang_parser::pt::ContractPart::VariableDefinition(_)
-            | solang_parser::pt::ContractPart::StructDefinition(_)
-            | solang_parser::pt::ContractPart::EventDefinition(_)
-            | solang_parser::pt::ContractPart::EnumDefinition(_)
-            | solang_parser::pt::ContractPart::ErrorDefinition(_)
-            | solang_parser::pt::ContractPart::TypeDefinition(_)
-            | solang_parser::pt::ContractPart::Annotation(_)
-            | solang_parser::pt::ContractPart::Using(_)
-            | solang_parser::pt::ContractPart::StraySemicolon(_) => continue,
+    pub fn apply_operators_to_expression(&mut self, expr: &Expression) {
+        if let Some(source) = &self.current_source {
+            let mut mutants = vec![];
+            for op in self.mutation_operators() {
+                mutants.append(&mut op.mutate_expression(expr, source));
+            }
+            self.mutants.append(&mut mutants);
         }
     }
-    Ok(mutants)
-}
 
-pub fn mutate_function_definition(
-    function_definition: &FunctionDefinition,
-    mut_ops: &[MutationType],
-    source: Rc<Source>,
-) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-    if let Some(statement) = &function_definition.body {
-        mutate_statement(statement, mut_ops, source)
-    } else {
-        Ok(vec![])
+    pub fn apply_operators_to_statement(&mut self, stmt: &Statement) {
+        if let Some(source) = &self.current_source {
+            let mut mutants = vec![];
+            for op in self.mutation_operators() {
+                mutants.append(&mut op.mutate_statement(stmt, source));
+            }
+            self.mutants.append(&mut mutants);
+        }
     }
 }
 
-pub fn mutate_statement(
-    statement: &Statement,
-    mut_ops: &[MutationType],
-    source: Rc<Source>,
-) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-    let mut mutants: Vec<Mutant> = match statement {
-        Statement::Block {
+pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
+    mutator.apply_operators_to_statement(statement);
+    match statement {
+        Statement::Block { .. } => true,
+        Statement::VariableDecl(_, _, _, _) => true,
+        Statement::If(_, _, c, _, _) => {
+            c.recurse(mutator, mutate_expression);
+            true
+        }
+        Statement::While(_, _, c, _) => {
+            c.recurse(mutator, mutate_expression);
+            true
+        }
+        Statement::For {
             loc: _,
-            unchecked: _,
-            statements,
+            reachable: _,
+            init: _,
+            cond,
+            ..
         } => {
-            let mutants = statements
-                .iter()
-                .flat_map(|s| mutate_statement(s, mut_ops, source.clone()).unwrap())
-                .collect::<Vec<Mutant>>();
-
-            mutants
+            if let Some(cond) = cond {
+                cond.recurse(mutator, mutate_expression);
+            }
+            true
         }
-        Statement::Assembly {
-            loc: _,
-            dialect: _,
-            flags: _,
-            block: _,
-        } => todo!(),
-        Statement::If(_, cond, then, els) => {
-            todo!()
-        }
-        Statement::While(_, cond, body) => {
-            todo!()
-        }
-        Statement::Expression(_, expr) => {
-            todo!()
-        }
-        Statement::VariableDefinition(_, var_decl, initializer) => {
-            todo!()
-        }
-        Statement::For(_, init, cond, update, body) => {
-            todo!()
-        }
-        Statement::DoWhile(_, body, cond) => {
-            todo!()
-        }
-        Statement::Continue(_) => todo!(),
-        Statement::Break(_) => todo!(),
-        Statement::Return(_, expr) => {
-            todo!()
-        }
-        Statement::Revert(_, _, _) => todo!(),
-        Statement::RevertNamedArgs(_, _, _) => todo!(),
-        Statement::Emit(_, _) => todo!(),
-        Statement::Try(_, _, _, _) => todo!(),
-        _ => vec![],
-    };
-    for op in mut_ops.iter() {
-        mutants.append(&mut op.mutate_statement(statement, source.clone()));
+        Statement::DoWhile(_, _, _, _) => true,
+        Statement::Expression(_, _, _) => true,
+        Statement::Delete(_, _, _) => true,
+        Statement::Destructure(_, _, _) => true,
+        Statement::Continue(_) => true,
+        Statement::Break(_) => true,
+        Statement::Return(_, _) => true,
+        Statement::Revert { .. } => true,
+        Statement::Emit { .. } => true,
+        Statement::TryCatch(_, _, _) => true,
+        Statement::Underscore(_) => false,
+        Statement::Assembly(_, _) => false,
     }
-    Ok(mutants)
 }
 
-pub fn mutate_expression(
-    expr: &Expression,
-    mut_ops: &[MutationType],
-    source: Rc<Source>,
-) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+pub fn mutate_expression(expr: &Expression, mutator: &mut Mutator) -> bool {
+    mutator.apply_operators_to_expression(expr);
     match expr {
-        Expression::PostIncrement(_, _) => todo!(),
-        Expression::PostDecrement(_, _) => todo!(),
-        Expression::New(_, _) => todo!(),
-        Expression::ArraySubscript(_, _, _) => todo!(),
-        Expression::ArraySlice(_, _, _, _) => todo!(),
-        Expression::Parenthesis(_, _) => todo!(),
-        Expression::MemberAccess(_, _, _) => todo!(),
-        Expression::FunctionCall(_, func, args) => todo!(),
-        Expression::FunctionCallBlock(_, _, _) => todo!(),
-        Expression::NamedFunctionCall(_, _, _) => todo!(),
-        Expression::Not(_, _) => todo!(),
-        Expression::BitwiseNot(_, _) => todo!(),
-        Expression::Delete(_, _) => todo!(),
-        Expression::PreIncrement(_, _) => todo!(),
-        Expression::PreDecrement(_, _) => todo!(),
-        Expression::UnaryPlus(_, _) => todo!(),
-        Expression::Negate(_, _) => todo!(),
-        Expression::Power(_, _, _) => todo!(),
-        Expression::Multiply(_, _, _) => todo!(),
-        Expression::Divide(_, _, _) => todo!(),
-        Expression::Modulo(_, _, _) => todo!(),
-        Expression::Add(_, _, _) => todo!(),
-        Expression::Subtract(_, _, _) => todo!(),
-        Expression::ShiftLeft(_, _, _) => todo!(),
-        Expression::ShiftRight(_, _, _) => todo!(),
-        Expression::BitwiseAnd(_, _, _) => todo!(),
-        Expression::BitwiseXor(_, _, _) => todo!(),
-        Expression::BitwiseOr(_, _, _) => todo!(),
-        Expression::Less(_, _, _) => todo!(),
-        Expression::More(_, _, _) => todo!(),
-        Expression::LessEqual(_, _, _) => todo!(),
-        Expression::MoreEqual(_, _, _) => todo!(),
-        Expression::Equal(_, _, _) => todo!(),
-        Expression::NotEqual(_, _, _) => todo!(),
-        Expression::And(_, _, _) => todo!(),
-        Expression::Or(_, _, _) => todo!(),
-        Expression::ConditionalOperator(_, _, _, _) => todo!(),
-        Expression::Assign(_, _, _) => todo!(),
-        Expression::AssignOr(_, _, _) => todo!(),
-        Expression::AssignAnd(_, _, _) => todo!(),
-        Expression::AssignXor(_, _, _) => todo!(),
-        Expression::AssignShiftLeft(_, _, _) => todo!(),
-        Expression::AssignShiftRight(_, _, _) => todo!(),
-        Expression::AssignAdd(_, _, _) => todo!(),
-        Expression::AssignSubtract(_, _, _) => todo!(),
-        Expression::AssignMultiply(_, _, _) => todo!(),
-        Expression::AssignDivide(_, _, _) => todo!(),
-        Expression::AssignModulo(_, _, _) => todo!(),
-        Expression::BoolLiteral(_, _) => todo!(),
-        Expression::NumberLiteral(_, _, _, _) => todo!(),
-        Expression::RationalNumberLiteral(_, _, _, _, _) => todo!(),
-        Expression::HexNumberLiteral(_, _, _) => todo!(),
-        Expression::StringLiteral(_) => todo!(),
-        Expression::Type(_, _) => todo!(),
-        Expression::HexLiteral(_) => todo!(),
-        Expression::AddressLiteral(_, _) => todo!(),
-        Expression::Variable(_) => todo!(),
-        Expression::List(_, _) => todo!(),
-        Expression::ArrayLiteral(_, _) => todo!(),
-        Expression::This(_) => todo!(),
+        Expression::BoolLiteral { .. } => true,
+        Expression::BytesLiteral { .. } => true,
+        Expression::CodeLiteral { .. } => true,
+        Expression::NumberLiteral { .. } => true,
+        Expression::RationalNumberLiteral { .. } => true,
+        Expression::StructLiteral { .. } => true,
+        Expression::ArrayLiteral { .. } => true,
+        Expression::ConstArrayLiteral { .. } => true,
+        Expression::Add { .. } => true,
+        Expression::Subtract { .. } => true,
+        Expression::Multiply { .. } => true,
+        Expression::Divide { .. } => true,
+        Expression::Modulo { .. } => true,
+        Expression::Power { .. } => true,
+        Expression::BitwiseOr { .. } => true,
+        Expression::BitwiseAnd { .. } => true,
+        Expression::BitwiseXor { .. } => true,
+        Expression::ShiftLeft { .. } => true,
+        Expression::ShiftRight { .. } => true,
+        Expression::Variable { .. } => true,
+        Expression::ConstantVariable { .. } => true,
+        Expression::StorageVariable { .. } => true,
+        Expression::Load { .. } => true,
+        Expression::GetRef { .. } => true,
+        Expression::StorageLoad { .. } => true,
+        Expression::ZeroExt { .. } => true,
+        Expression::SignExt { .. } => true,
+        Expression::Trunc { .. } => true,
+        Expression::CheckingTrunc { .. } => true,
+        Expression::Cast { .. } => true,
+        Expression::BytesCast { .. } => true,
+        Expression::PreIncrement { .. } => true,
+        Expression::PreDecrement { .. } => true,
+        Expression::PostIncrement { .. } => true,
+        Expression::PostDecrement { .. } => true,
+        Expression::Assign { .. } => true,
+        Expression::More { .. } => true,
+        Expression::Less { .. } => true,
+        Expression::MoreEqual { .. } => true,
+        Expression::LessEqual { .. } => true,
+        Expression::Equal { .. } => true,
+        Expression::NotEqual { .. } => true,
+        Expression::Not { .. } => true,
+        Expression::BitwiseNot { .. } => true,
+        Expression::Negate { .. } => true,
+        Expression::ConditionalOperator { .. } => true,
+        Expression::Subscript { .. } => true,
+        Expression::StructMember { .. } => true,
+        Expression::AllocDynamicBytes { .. } => true,
+        Expression::StorageArrayLength { .. } => true,
+        Expression::StringCompare { .. } => true,
+        Expression::StringConcat { .. } => false,
+        Expression::Or { .. } => true,
+        Expression::And { .. } => true,
+        Expression::InternalFunction { .. } => true,
+        Expression::ExternalFunction { .. } => todo!(),
+        Expression::InternalFunctionCall { .. } => todo!(),
+        Expression::ExternalFunctionCall { .. } => todo!(),
+        Expression::ExternalFunctionCallRaw { .. } => todo!(),
+        Expression::Constructor { .. } => true,
+        Expression::FormatString { .. } => true,
+        Expression::Builtin { .. } => true,
+        Expression::InterfaceId { .. } => true,
+        Expression::List { .. } => true,
+        Expression::UserDefinedOperator { .. } => true,
     }
 }

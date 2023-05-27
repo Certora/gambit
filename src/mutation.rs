@@ -1,15 +1,8 @@
 use crate::{get_indent, Source};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
-use solang_parser::pt::{Expression, Statement, VariableDeclaration};
+use solang::sema::ast::{Expression, Statement};
 use std::{error, fmt::Display, rc::Rc};
-
-/// A single type wrapping the types of parse tree nodes we can mutate
-pub enum MutationPoint {
-    Statement(Statement),
-    Expression(Expression),
-    VariableDeclaration(VariableDeclaration),
-}
 
 /// This struct describes a mutant.
 #[derive(Debug, Clone)]
@@ -125,37 +118,34 @@ impl Display for Mutant {
 /// Every kind of mutation implements this trait. A mutation can check if it
 /// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
-    /// Generate all mutants of a given node by this agent
-    fn mutate(&self, node: &MutationPoint, source: Rc<Source>) -> Vec<Mutant> {
-        match node {
-            MutationPoint::Statement(stmt) => self.mutate_statement(stmt, source),
-            MutationPoint::Expression(expr) => self.mutate_expression(expr, source),
-            MutationPoint::VariableDeclaration(decl) => {
-                self.mutate_variable_declaration(decl, source)
-            }
-        }
-    }
+    fn mutate_statement(&self, _stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant>;
 
-    fn mutate_statement(&self, _stmt: &Statement, source: Rc<Source>) -> Vec<Mutant>;
-
-    fn mutate_expression(&self, _expr: &Expression, source: Rc<Source>) -> Vec<Mutant>;
-
-    fn mutate_variable_declaration(
-        &self,
-        _decl: &VariableDeclaration,
-        source: Rc<Source>,
-    ) -> Vec<Mutant>;
+    fn mutate_expression(&self, _expr: &Expression, source: &Rc<Source>) -> Vec<Mutant>;
 }
 
 /// Kinds of mutations.
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
+    // # New Operators
+    // ## Literal Value Replacement
+    LiteralValueReplacement,
+    // ## Binary Operator Replacement
+    ConditionalOperatorReplacement,
+    RelationalOperatorReplacement,
+    ArithmeticOperatorReplacement,
+    LogicalOperatorReplacement,
+    ShiftOperatorReplacement,
+    // ## UnaryOperatorReplacement
+    UnaryOperatorReplacement,
+    ExpressionValueReplacement,
+
+    // # Old Operators (Deprecated)
     AssignmentMutation,
     BinaryOpMutation,
     DeleteExpressionMutation,
     ElimDelegateMutation,
     FunctionCallMutation,
-    IfStatementMutation,
+    // IfStatementMutation,
     RequireMutation,
     SwapArgumentsFunctionMutation,
     SwapArgumentsOperatorMutation,
@@ -165,12 +155,21 @@ pub enum MutationType {
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
+            MutationType::LiteralValueReplacement => "LiteralValueReplacement",
+            MutationType::ConditionalOperatorReplacement => "ConditionalOperatorReplacement",
+            MutationType::RelationalOperatorReplacement => "RelationalOperatorReplacement",
+            MutationType::ArithmeticOperatorReplacement => "ArithmeticOperatorReplacemnt",
+            MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
+            MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
+            MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
+            MutationType::ExpressionValueReplacement => "ExpressionOperatorReplacement",
+
             MutationType::AssignmentMutation => "AssignmentMutation",
             MutationType::BinaryOpMutation => "BinaryOpMutation",
             MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
             MutationType::FunctionCallMutation => "FunctionCallMutation",
-            MutationType::IfStatementMutation => "IfStatementMutation",
+            // MutationType::IfStatementMutation => "IfStatementMutation",
             MutationType::RequireMutation => "RequireMutation",
             MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
@@ -181,96 +180,14 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
-    /// Produce all mutants at the given node
-    ///
-    /// # Arguments
-    ///
-    /// * `node` - The Solidity AST node to mutate
-    /// * `source` - The original source file: we use this to generate a new
-    ///   source file
-    fn mutate_statement(&self, stmt: &Statement, source: Rc<Source>) -> Vec<Mutant> {
-        match self {
-            MutationType::AssignmentMutation => match stmt {
-                Statement::Expression(_, Expression::Assign(_, _lhs, _rhs)) => {
-                    todo!("EVR")
-                }
-                _ => vec![],
-            },
-            MutationType::IfStatementMutation => {
-                if let Statement::If(loc, cond, then, els) = stmt {
-                    let replacements = match cond {
-                        Expression::BoolLiteral(_, true) => vec!["false"],
-                        Expression::BoolLiteral(_, false) => vec!["true"],
-                        _ => vec!["true", "false"],
-                    };
-                    let mutations = replacements
-                        .into_iter()
-                        .map(|r| {
-                            Mutant::new(
-                                source.clone(),
-                                self.clone(),
-                                loc.start(),
-                                loc.end(),
-                                r.to_string(),
-                            )
-                        })
-                        .chain(self.mutate_statement(then, source.clone()).into_iter())
-                        .chain(els.as_ref().map_or(vec![].into_iter(), |e| {
-                            self.mutate_statement(&e, source.clone()).into_iter()
-                        }))
-                        .collect();
-                    mutations
-                } else {
-                    vec![]
-                }
-            }
-
-            MutationType::RequireMutation => {
-                todo!("Not Implemented")
-            }
-
-            MutationType::BinaryOpMutation
-            | MutationType::DeleteExpressionMutation
-            | MutationType::ElimDelegateMutation
-            | MutationType::FunctionCallMutation
-            | MutationType::SwapArgumentsFunctionMutation
-            | MutationType::SwapArgumentsOperatorMutation
-            | MutationType::UnaryOperatorMutation => vec![],
-        }
+    fn mutate_statement(&self, _stmt: &Statement, _source: &Rc<Source>) -> Vec<Mutant> {
+        println!("statment boop");
+        vec![]
     }
 
-    fn mutate_expression(&self, _expr: &Expression, _source: Rc<Source>) -> Vec<Mutant> {
-        match self {
-            MutationType::AssignmentMutation
-            | MutationType::IfStatementMutation
-            | MutationType::RequireMutation => vec![],
-            MutationType::BinaryOpMutation => todo!(),
-            MutationType::DeleteExpressionMutation => todo!(),
-            MutationType::ElimDelegateMutation => todo!(),
-            MutationType::FunctionCallMutation => todo!(),
-            MutationType::SwapArgumentsFunctionMutation => todo!(),
-            MutationType::SwapArgumentsOperatorMutation => todo!(),
-            MutationType::UnaryOperatorMutation => todo!(),
-        }
-    }
-
-    fn mutate_variable_declaration(
-        &self,
-        _decl: &VariableDeclaration,
-        _source: Rc<Source>,
-    ) -> Vec<Mutant> {
-        match self {
-            MutationType::AssignmentMutation => vec![],
-            MutationType::IfStatementMutation => vec![],
-            MutationType::RequireMutation => vec![],
-            MutationType::BinaryOpMutation => vec![],
-            MutationType::DeleteExpressionMutation => vec![],
-            MutationType::ElimDelegateMutation => vec![],
-            MutationType::FunctionCallMutation => vec![],
-            MutationType::SwapArgumentsFunctionMutation => vec![],
-            MutationType::SwapArgumentsOperatorMutation => vec![],
-            MutationType::UnaryOperatorMutation => vec![],
-        }
+    fn mutate_expression(&self, _expr: &Expression, _source: &Rc<Source>) -> Vec<Mutant> {
+        println!("expr boop");
+        vec![]
     }
 }
 
@@ -282,7 +199,7 @@ impl MutationType {
             MutationType::DeleteExpressionMutation,
             MutationType::ElimDelegateMutation,
             MutationType::FunctionCallMutation,
-            MutationType::IfStatementMutation,
+            // MutationType::IfStatementMutation,
             MutationType::RequireMutation,
             // MutationType::SwapArgumentsFunctionMutation,
             MutationType::SwapArgumentsOperatorMutation,
@@ -452,17 +369,17 @@ contract A {
         Ok(())
     }
 
-    #[test]
-    pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![IfStatementMutation];
-        assert_num_mutants_for_statements(
-            &vec!["uint256 x;", "if (true) { x = 1; } else { x = 2 ;}"],
-            &ops,
-            1,
-        );
-        assert_num_mutants_for_statements(&vec!["if (true) {}"], &ops, 1);
-        Ok(())
-    }
+    // #[test]
+    // pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
+    //     let ops = vec![IfStatementMutation];
+    //     assert_num_mutants_for_statements(
+    //         &vec!["uint256 x;", "if (true) { x = 1; } else { x = 2 ;}"],
+    //         &ops,
+    //         1,
+    //     );
+    //     assert_num_mutants_for_statements(&vec!["if (true) {}"], &ops, 1);
+    //     Ok(())
+    // }
 
     #[test]
     pub fn test_require_mutation() -> Result<(), Box<dyn error::Error>> {
@@ -583,7 +500,8 @@ contract A {
             .rand_bytes(5)
             .tempdir()?;
         let mut mutator = make_mutator(ops, source, outdir.into_path());
-        mutator.mutate()?;
+        let sources = mutator.sources().clone();
+        mutator.mutate(sources)?;
 
         Ok(mutator)
     }
@@ -638,7 +556,8 @@ contract A {
             .rand_bytes(5)
             .tempdir()?;
         let mut mutator = make_mutator(ops, source, outdir.into_path());
-        mutator.mutate()?;
+        let sources = mutator.sources().clone();
+        mutator.mutate(sources)?;
 
         Ok(mutator)
     }

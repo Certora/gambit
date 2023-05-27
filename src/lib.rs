@@ -1,5 +1,8 @@
 use std::{collections::HashMap, fs, path::PathBuf, time::Instant};
 
+mod ast_util;
+pub use ast_util::*;
+
 mod cli;
 pub use cli::*;
 
@@ -116,7 +119,8 @@ pub fn run_mutate(
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);
             log::info!("Generating mutants");
-            let mutants = mutator.mutate()?.clone();
+            let sources = mutator.sources().clone();
+            let mutants = mutator.mutate(sources)?.clone();
             log::info!(
                 "(pre filter/validate) Generated {} mutants for {}",
                 &mutants.len(),
