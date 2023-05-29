@@ -181,12 +181,10 @@ impl ToString for MutationType {
 
 impl Mutation for MutationType {
     fn mutate_statement(&self, _stmt: &Statement, _source: &Rc<Source>) -> Vec<Mutant> {
-        println!("statment boop");
         vec![]
     }
 
     fn mutate_expression(&self, _expr: &Expression, _source: &Rc<Source>) -> Vec<Mutant> {
-        println!("expr boop");
         vec![]
     }
 }

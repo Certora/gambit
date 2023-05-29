@@ -183,6 +183,7 @@ impl Mutator {
     /// Mutate a single file.
     fn mutate_file(&mut self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
         let mut resolver = FileResolver::new();
+        resolver.add_import_path(&PathBuf::from("."));
         let target = solang::Target::EVM;
         let ns = parse_and_resolve(&OsStr::new(source.filename()), &mut resolver, target);
         // mutate functions
@@ -193,7 +194,7 @@ impl Mutator {
                 }
             }
         }
-        todo!("TODO: Implement this");
+        Ok(self.mutants.clone())
     }
 
     /// Get a slice of the mutants produced by this mutator
@@ -216,6 +217,7 @@ impl Mutator {
     }
 
     pub fn apply_operators_to_statement(&mut self, stmt: &Statement) {
+        println!("applying ops {:?} to {:?}", self.mutation_operators(), stmt);
         if let Some(source) = &self.current_source {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
@@ -257,7 +259,12 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
         Statement::Destructure(_, _, _) => true,
         Statement::Continue(_) => true,
         Statement::Break(_) => true,
-        Statement::Return(_, _) => true,
+        Statement::Return(_, rv) => {
+            if let Some(rv) = rv {
+                rv.recurse(mutator, mutate_expression)
+            }
+            true
+        }
         Statement::Revert { .. } => true,
         Statement::Emit { .. } => true,
         Statement::TryCatch(_, _, _) => true,
@@ -278,7 +285,10 @@ pub fn mutate_expression(expr: &Expression, mutator: &mut Mutator) -> bool {
         Expression::ArrayLiteral { .. } => true,
         Expression::ConstArrayLiteral { .. } => true,
         Expression::Add { .. } => true,
-        Expression::Subtract { .. } => true,
+        Expression::Subtract { loc: _, ty, .. } => {
+            println!("Type: {:?}", ty);
+            true
+        }
         Expression::Multiply { .. } => true,
         Expression::Divide { .. } => true,
         Expression::Modulo { .. } => true,
