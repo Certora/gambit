@@ -131,7 +131,7 @@ pub enum MutationType {
     // ## Literal Value Replacement
     LiteralValueReplacement,
     // ## Binary Operator Replacement
-    ConditionalOperatorReplacement,
+    BitwiseOperatorReplacement,
     RelationalOperatorReplacement,
     ArithmeticOperatorReplacement,
     LogicalOperatorReplacement,
@@ -159,7 +159,7 @@ impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
             MutationType::LiteralValueReplacement => "LiteralValueReplacement",
-            MutationType::ConditionalOperatorReplacement => "ConditionalOperatorReplacement",
+            MutationType::BitwiseOperatorReplacement => "ConditionalOperatorReplacement",
             MutationType::RelationalOperatorReplacement => "RelationalOperatorReplacement",
             MutationType::ArithmeticOperatorReplacement => "ArithmeticOperatorReplacemnt",
             MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
@@ -205,12 +205,12 @@ impl Mutation for MutationType {
         match self {
             // Binary Operators
             MutationType::ArithmeticOperatorReplacement => arith_op_replacement(self, expr, source),
-            MutationType::ShiftOperatorReplacement => todo!(),
+            MutationType::ShiftOperatorReplacement => shift_op_replacement(self, expr, source),
+            MutationType::BitwiseOperatorReplacement => bitwise_op_replacement(self, expr, source),
             MutationType::RelationalOperatorReplacement => rel_op_replacement(self, expr, source),
+            MutationType::LogicalOperatorReplacement => logical_op_replacement(self, expr, source),
             // Other
-            MutationType::ConditionalOperatorReplacement => todo!(),
             MutationType::LiteralValueReplacement => todo!(),
-            MutationType::LogicalOperatorReplacement => todo!(),
             MutationType::UnaryOperatorReplacement => todo!(),
             MutationType::ExpressionValueReplacement => todo!(),
 
@@ -246,6 +246,7 @@ impl MutationType {
     }
 }
 
+/// Get a string representation of an operator
 fn get_operator(expr: &Expression) -> &str {
     match expr {
         Expression::Add { .. } => "+",
@@ -305,6 +306,54 @@ fn arith_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
         }
         Expression::Power { base, exp, .. } => {
             let (start, end) = (base.loc().end(), exp.loc().start());
+            replacements
+                .iter()
+                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .collect()
+        }
+        _ => vec![],
+    }
+}
+
+fn bitwise_op_replacement(
+    op: &MutationType,
+    expr: &Expression,
+    source: &Rc<Source>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let bitwise_op = get_operator(expr);
+    let rs = vec!["|", "&", "^"];
+    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != bitwise_op).collect();
+
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    match expr {
+        Expression::BitwiseOr { left, right, .. }
+        | Expression::BitwiseAnd { left, right, .. }
+        | Expression::BitwiseXor { left, right, .. } => {
+            let (start, end) = (left.loc().end(), right.loc().start());
+            replacements
+                .iter()
+                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .collect()
+        }
+        _ => vec![],
+    }
+}
+
+fn shift_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let shift_op = get_operator(expr);
+    let rs = vec!["<<", ">>"];
+    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != shift_op).collect();
+
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    match expr {
+        Expression::ShiftLeft { left, right, .. } | Expression::ShiftRight { left, right, .. } => {
+            let (start, end) = (left.loc().end(), right.loc().start());
             replacements
                 .iter()
                 .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
@@ -402,6 +451,55 @@ fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>)
                 r.to_string(),
             ),
             _ => Mutant::new(source.clone(), op.clone(), op_start, op_end, r.to_string()),
+        });
+    }
+    mutants
+}
+
+fn logical_op_replacement(
+    op: &MutationType,
+    expr: &Expression,
+    source: &Rc<Source>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+
+    let replacements = match expr {
+        Expression::And { left, right, .. } => vec![
+            ("LHS", left.loc().start(), left.loc().end()),
+            ("RHS", right.loc().start(), right.loc().end()),
+            ("false", 0, 0),
+        ],
+        Expression::Or { left, right, .. } => vec![
+            ("LHS", left.loc().start(), left.loc().end()),
+            ("RHS", right.loc().start(), right.loc().end()),
+            ("true", 0, 0),
+        ],
+        _ => vec![],
+    };
+
+    // Now, apply the replacements
+    let mut mutants = vec![];
+    let expr_start = expr.loc().start();
+    let expr_end = expr.loc().end();
+    for (r, s, e) in replacements {
+        mutants.push(match r {
+            "LHS" | "RHS" => {
+                let repl = std::str::from_utf8(source.contents_between_offsets(s, e))
+                    .unwrap()
+                    .to_string();
+                Mutant::new(source.clone(), op.clone(), expr_start, expr_end, repl)
+            }
+            "true" | "false" => Mutant::new(
+                source.clone(),
+                op.clone(),
+                expr_start,
+                expr_end,
+                r.to_string(),
+            ),
+            _ => panic!("Illegal State"),
         });
     }
     mutants
