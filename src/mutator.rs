@@ -163,9 +163,8 @@ impl Mutator {
             self.current_source = Some(source.clone());
 
             match self.mutate_file(source.clone()) {
-                Ok(mut file_mutants) => {
+                Ok(file_mutants) => {
                     log::info!("    Generated {} mutants from source", file_mutants.len());
-                    mutants.append(&mut file_mutants);
                 }
                 Err(e) => {
                     log::warn!("Couldn't mutate source {}", source.filename().display());
@@ -183,7 +182,7 @@ impl Mutator {
     /// Mutate a single file.
     fn mutate_file(&mut self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
         let mut resolver = FileResolver::new();
-        resolver.add_import_path(&PathBuf::from("."));
+        resolver.add_import_path(&PathBuf::from("."))?;
         let target = solang::Target::EVM;
         let ns = parse_and_resolve(&OsStr::new(source.filename()), &mut resolver, target);
         // mutate functions
@@ -217,7 +216,7 @@ impl Mutator {
     }
 
     pub fn apply_operators_to_statement(&mut self, stmt: &Statement) {
-        println!("applying ops {:?} to {:?}", self.mutation_operators(), stmt);
+        log::debug!("applying ops {:?} to {:?}", self.mutation_operators(), stmt);
         if let Some(source) = &self.current_source {
             let mut mutants = vec![];
             for op in self.mutation_operators() {

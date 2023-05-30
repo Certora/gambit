@@ -1,7 +1,8 @@
 use crate::{get_indent, Source};
 use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
-use solang::sema::ast::{Expression, Statement};
+use solang::sema::ast::{Expression, RetrieveType, Statement};
+use solang_parser::pt::CodeLocation;
 use std::{error, fmt::Display, rc::Rc};
 
 /// This struct describes a mutant.
@@ -137,7 +138,9 @@ pub enum MutationType {
     ShiftOperatorReplacement,
     // ## UnaryOperatorReplacement
     UnaryOperatorReplacement,
+    // ## Fallback Operators
     ExpressionValueReplacement,
+    StatementDeletion,
 
     // # Old Operators (Deprecated)
     AssignmentMutation,
@@ -163,6 +166,7 @@ impl ToString for MutationType {
             MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
             MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
             MutationType::ExpressionValueReplacement => "ExpressionOperatorReplacement",
+            MutationType::StatementDeletion => "StatementDeletion",
 
             MutationType::AssignmentMutation => "AssignmentMutation",
             MutationType::BinaryOpMutation => "BinaryOpMutation",
@@ -180,12 +184,48 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
-    fn mutate_statement(&self, _stmt: &Statement, _source: &Rc<Source>) -> Vec<Mutant> {
-        vec![]
+    fn mutate_statement(&self, stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant> {
+        let loc = stmt.loc();
+        if let None = loc.try_file_no() {
+            return vec![];
+        }
+        match self {
+            MutationType::StatementDeletion => vec![Mutant::new(
+                source.clone(),
+                self.clone(),
+                stmt.loc().start(),
+                stmt.loc().end() + 1,
+                "".to_string(),
+            )],
+            _ => vec![],
+        }
     }
 
-    fn mutate_expression(&self, _expr: &Expression, _source: &Rc<Source>) -> Vec<Mutant> {
-        vec![]
+    fn mutate_expression(&self, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+        match self {
+            // Binary Operators
+            MutationType::ArithmeticOperatorReplacement => arith_op_replacement(self, expr, source),
+            MutationType::ShiftOperatorReplacement => todo!(),
+            MutationType::RelationalOperatorReplacement => rel_op_replacement(self, expr, source),
+            // Other
+            MutationType::ConditionalOperatorReplacement => todo!(),
+            MutationType::LiteralValueReplacement => todo!(),
+            MutationType::LogicalOperatorReplacement => todo!(),
+            MutationType::UnaryOperatorReplacement => todo!(),
+            MutationType::ExpressionValueReplacement => todo!(),
+
+            // Old Operators
+            MutationType::AssignmentMutation => todo!(),
+            MutationType::BinaryOpMutation => todo!(),
+            MutationType::DeleteExpressionMutation => todo!(),
+            MutationType::ElimDelegateMutation => todo!(),
+            MutationType::FunctionCallMutation => todo!(),
+            MutationType::RequireMutation => todo!(),
+            MutationType::SwapArgumentsFunctionMutation => todo!(),
+            MutationType::SwapArgumentsOperatorMutation => todo!(),
+            MutationType::UnaryOperatorMutation => todo!(),
+            _ => vec![],
+        }
     }
 }
 
@@ -204,6 +244,167 @@ impl MutationType {
             MutationType::UnaryOperatorMutation,
         ]
     }
+}
+
+fn get_operator(expr: &Expression) -> &str {
+    match expr {
+        Expression::Add { .. } => "+",
+        Expression::Subtract { .. } => "-",
+        Expression::Multiply { .. } => "*",
+        Expression::Divide { .. } => "/",
+        Expression::Modulo { .. } => "%",
+        Expression::Power { .. } => "**",
+        Expression::BitwiseOr { .. } => "|",
+        Expression::BitwiseAnd { .. } => "&",
+        Expression::BitwiseXor { .. } => "^",
+        Expression::ShiftLeft { .. } => "<<",
+        Expression::ShiftRight { .. } => ">>",
+        Expression::PreIncrement { .. } => "++",
+        Expression::PreDecrement { .. } => "--",
+        Expression::PostIncrement { .. } => "++",
+        Expression::PostDecrement { .. } => "--",
+        Expression::More { .. } => ">",
+        Expression::Less { .. } => "<",
+        Expression::MoreEqual { .. } => ">=",
+        Expression::LessEqual { .. } => "<=",
+        Expression::Equal { .. } => "==",
+        Expression::NotEqual { .. } => "!=",
+        Expression::Not { .. } => "!",
+        Expression::BitwiseNot { .. } => "~",
+        Expression::Negate { .. } => "-",
+        Expression::ConditionalOperator { .. } => "?",
+        Expression::Or { .. } => "||",
+        Expression::And { .. } => "&&",
+        _ => "",
+    }
+}
+
+fn arith_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let arith_op = get_operator(expr);
+    let rs = vec!["+", "-", "*", "/", "**", "%"];
+    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != arith_op).collect();
+
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    match expr {
+        Expression::BitwiseOr { left, right, .. }
+        | Expression::BitwiseAnd { left, right, .. }
+        | Expression::BitwiseXor { left, right, .. }
+        | Expression::Divide { left, right, .. }
+        | Expression::Modulo { left, right, .. }
+        | Expression::Multiply { left, right, .. }
+        | Expression::Subtract { left, right, .. }
+        | Expression::Add { left, right, .. } => {
+            let (start, end) = (left.loc().end(), right.loc().start());
+            replacements
+                .iter()
+                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .collect()
+        }
+        Expression::Power { base, exp, .. } => {
+            let (start, end) = (base.loc().end(), exp.loc().start());
+            replacements
+                .iter()
+                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .collect()
+        }
+        _ => vec![],
+    }
+}
+
+fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+
+    // We need to know two things to perform a mutation:
+    // 1. The replacement string
+    // 2. The start, stop of each replacement
+    //
+    // For true and false replacements we are replacing the full expression, and
+    // we can get bounds from `expr`. For relational replacements we need to
+    // know the bounds of the binary operator, which we get from left and right.
+    //
+    // Thus, replacements is a tuple of (replacements, (start, end)), where
+    // (start, end) are the binary operator's start and end locations (note,
+    // these are only used for replacing with another operator, otherwise the
+    // `expr.loc` values are used)
+    let (replacements, bounds) = match expr {
+        Expression::Less { left, right, .. } => (
+            vec!["<=", "!=", "false"],
+            (left.loc().end(), right.loc().start()),
+        ),
+        Expression::LessEqual { left, right, .. } => (
+            vec!["<", "==", "true"],
+            (left.loc().end(), right.loc().start()),
+        ),
+        Expression::More { left, right, .. } => (
+            vec![">=", "!=", "false"],
+            (left.loc().end(), right.loc().start()),
+        ),
+        Expression::MoreEqual { left, right, .. } => (
+            vec![">", "==", "true"],
+            (left.loc().end(), right.loc().start()),
+        ),
+        Expression::Equal { left, right, .. } => {
+            // Assuming that we only need the left type to determine legal mutations
+            match left.ty() {
+                // The following types are orderable, so we use those for better mutation operators
+                solang::sema::ast::Type::Int(_)
+                | solang::sema::ast::Type::Uint(_)
+                | solang::sema::ast::Type::Rational => (
+                    vec!["<=", ">=", "false"],
+                    (left.loc().end(), right.loc().start()),
+                ),
+
+                // The following types are not orderable, so we replace with true and false
+                // TODO: Can Addresses be ordered?
+                solang::sema::ast::Type::Address(_) => (vec!["true", "false"], (0, 0)),
+                _ => (vec!["true", "false"], (0, 0)),
+            }
+        }
+        Expression::NotEqual { left, right, .. } => {
+            // Assuming that we only need the left type to determine legal mutations
+            match left.ty() {
+                // The following types are orderable, so we use those for better mutation operators
+                solang::sema::ast::Type::Int(_)
+                | solang::sema::ast::Type::Uint(_)
+                | solang::sema::ast::Type::Rational => (
+                    vec!["< ", "> ", "true"],
+                    (left.loc().end(), right.loc().start()),
+                ),
+
+                // The following types are not orderable, so we replace with true and false
+                // TODO: Can Addresses be ordered?
+                solang::sema::ast::Type::Address(_) => (vec!["true", "false"], (0, 0)),
+                _ => (vec!["true", "false"], (0, 0)),
+            }
+        }
+        _ => (vec![], (0, 0)),
+    };
+
+    // Now, apply the replacements
+    let mut mutants = vec![];
+    let expr_start = expr.loc().start();
+    let expr_end = expr.loc().end();
+    let op_start = bounds.0;
+    let op_end = bounds.1;
+    for r in replacements {
+        mutants.push(match r {
+            "true" | "false" => Mutant::new(
+                source.clone(),
+                op.clone(),
+                expr_start,
+                expr_end,
+                r.to_string(),
+            ),
+            _ => Mutant::new(source.clone(), op.clone(), op_start, op_end, r.to_string()),
+        });
+    }
+    mutants
 }
 
 /// This testing module defines and uses the testing infrastructure, allowing

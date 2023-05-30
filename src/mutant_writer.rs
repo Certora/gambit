@@ -162,7 +162,7 @@ impl MutantWriter {
         let filename = Self::get_mutant_filename(mutants_dir, mid, mutant);
         let mutant_contents = mutant.as_source_string()?;
 
-        log::info!(
+        log::debug!(
             "Writing mutant (mid={}) {:?} to {}",
             mid,
             mutant,
