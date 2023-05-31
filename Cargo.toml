@@ -17,6 +17,9 @@ clap_complete = "4.0.6"
 csv = "1.2.1"
 env_logger = { version = "0.10.0", default-features = false }
 log = "0.4"
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
 project-root = "0.2"
 rand_pcg = "0.3.0"
 rand = { version = "0.8.5", features = ["std"] }

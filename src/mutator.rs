@@ -231,7 +231,15 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
     mutator.apply_operators_to_statement(statement);
     match statement {
         Statement::Block { .. } => true,
-        Statement::VariableDecl(_, _, _, _) => true,
+        Statement::VariableDecl(_, _, _, expr) => {
+            match expr {
+                Some(e) => e.recurse(mutator, mutate_expression),
+                None => (),
+            }
+
+            true
+        }
+
         Statement::If(_, _, c, _, _) => {
             c.recurse(mutator, mutate_expression);
             true

@@ -1,5 +1,7 @@
 use crate::{get_indent, Source};
 use clap::ValueEnum;
+use num_bigint::BigInt;
+use num_traits::{One, Zero};
 use serde::{Deserialize, Serialize};
 use solang::sema::ast::{Expression, RetrieveType, Statement};
 use solang_parser::pt::CodeLocation;
@@ -210,7 +212,7 @@ impl Mutation for MutationType {
             MutationType::RelationalOperatorReplacement => rel_op_replacement(self, expr, source),
             MutationType::LogicalOperatorReplacement => logical_op_replacement(self, expr, source),
             // Other
-            MutationType::LiteralValueReplacement => todo!(),
+            MutationType::LiteralValueReplacement => literal_value_replacement(self, expr, source),
             MutationType::UnaryOperatorReplacement => todo!(),
             MutationType::ExpressionValueReplacement => todo!(),
 
@@ -501,6 +503,61 @@ fn logical_op_replacement(
             ),
             _ => panic!("Illegal State"),
         });
+    }
+    mutants
+}
+
+fn literal_value_replacement(
+    op: &MutationType,
+    expr: &Expression,
+    source: &Rc<Source>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    // We are only replacing BoolLiterals, NumberLiterals, and
+    // RationalNumberLiterals. It's not clear what other literals we should
+    // replace
+    let replacements = match expr {
+        Expression::BoolLiteral { value, .. } => vec![(!value).to_string()],
+        Expression::NumberLiteral { ty, value, .. } => match ty {
+            solang::sema::ast::Type::Address(_) => todo!(),
+            solang::sema::ast::Type::Int(_) => {
+                if value.is_zero() {
+                    vec!["-1".to_string(), "1".to_string()]
+                } else {
+                    vec!["0".to_string(), (-value).to_string()]
+                }
+            }
+            solang::sema::ast::Type::Uint(_) => {
+                if value.is_zero() {
+                    vec!["1".to_string()]
+                } else {
+                    vec!["0".to_string(), (value + BigInt::one()).to_string()]
+                }
+            }
+            _ => vec![],
+        },
+        Expression::RationalNumberLiteral { value: _, .. } => vec![],
+        Expression::BytesLiteral { .. } => vec![],
+        Expression::CodeLiteral { .. } => vec![],
+        Expression::StructLiteral { .. } => vec![],
+        Expression::ArrayLiteral { .. } => vec![],
+        Expression::ConstArrayLiteral { .. } => vec![],
+        _ => vec![],
+    };
+    let mut mutants = vec![];
+    let expr_start = expr.loc().start();
+    let expr_end = expr.loc().end();
+    for r in replacements {
+        mutants.push(Mutant::new(
+            source.clone(),
+            op.clone(),
+            expr_start,
+            expr_end,
+            r.clone(),
+        ));
     }
     mutants
 }
