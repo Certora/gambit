@@ -213,7 +213,7 @@ impl Mutation for MutationType {
             MutationType::LogicalOperatorReplacement => logical_op_replacement(self, expr, source),
             // Other
             MutationType::LiteralValueReplacement => literal_value_replacement(self, expr, source),
-            MutationType::UnaryOperatorReplacement => todo!(),
+            MutationType::UnaryOperatorReplacement => unary_op_replacement(self, expr, source),
             MutationType::ExpressionValueReplacement => todo!(),
 
             // Old Operators
@@ -363,6 +363,30 @@ fn shift_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
         }
         _ => vec![],
     }
+}
+
+fn unary_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let bitwise_op = get_operator(expr);
+    let rs = vec!["-", "~"];
+    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != bitwise_op).collect();
+
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    let muts = match expr {
+        Expression::BitwiseNot { expr: rand, .. } | Expression::Negate { expr: rand, .. } => {
+            let start = expr.loc().start();
+            let end = rand.loc().start();
+            let muts = replacements
+                .iter()
+                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .collect();
+            muts
+        }
+        _ => vec![],
+    };
+    muts
 }
 
 fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {

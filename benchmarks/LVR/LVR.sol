@@ -3,7 +3,7 @@ pragma solidity >0.7.0;
 pragma experimental ABIEncoderV2;
 
 // This contract provides test functions for relational operator replacement (ROR)
-contract ROR {
+contract LVR {
     uint256 one_u = 1;
     uint256 zero_u = 0;
     int256 n_one_s = -1;
