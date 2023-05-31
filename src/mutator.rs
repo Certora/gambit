@@ -281,75 +281,28 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
 }
 
 pub fn mutate_expression(expr: &Expression, mutator: &mut Mutator) -> bool {
-    mutator.apply_operators_to_expression(expr);
     match expr {
-        Expression::BoolLiteral { .. } => true,
-        Expression::BytesLiteral { .. } => true,
-        Expression::CodeLiteral { .. } => true,
-        Expression::NumberLiteral { .. } => true,
-        Expression::RationalNumberLiteral { .. } => true,
-        Expression::StructLiteral { .. } => true,
-        Expression::ArrayLiteral { .. } => true,
-        Expression::ConstArrayLiteral { .. } => true,
-        Expression::Add { .. } => true,
-        Expression::Subtract { loc: _, ty, .. } => {
-            println!("Type: {:?}", ty);
+        // Special case `Not{ Equal { left, right}}`: this is how `NotEqual` is
+        // represented after a parse, and if we special case mutation of this
+        // operator the `Equal {left, right}` node is visited again later,
+        // leading to too many mutants
+        Expression::Not { loc, expr } => {
+            if let Expression::Equal { loc, left, right } = expr.as_ref() {
+                Expression::NotEqual {
+                    loc: *loc,
+                    left: left.clone(),
+                    right: right.clone(),
+                }
+                .recurse(mutator, mutate_expression);
+                false
+            } else {
+                mutator.apply_operators_to_expression(expr);
+                true
+            }
+        }
+        _ => {
+            mutator.apply_operators_to_expression(expr);
             true
         }
-        Expression::Multiply { .. } => true,
-        Expression::Divide { .. } => true,
-        Expression::Modulo { .. } => true,
-        Expression::Power { .. } => true,
-        Expression::BitwiseOr { .. } => true,
-        Expression::BitwiseAnd { .. } => true,
-        Expression::BitwiseXor { .. } => true,
-        Expression::ShiftLeft { .. } => true,
-        Expression::ShiftRight { .. } => true,
-        Expression::Variable { .. } => true,
-        Expression::ConstantVariable { .. } => true,
-        Expression::StorageVariable { .. } => true,
-        Expression::Load { .. } => true,
-        Expression::GetRef { .. } => true,
-        Expression::StorageLoad { .. } => true,
-        Expression::ZeroExt { .. } => true,
-        Expression::SignExt { .. } => true,
-        Expression::Trunc { .. } => true,
-        Expression::CheckingTrunc { .. } => true,
-        Expression::Cast { .. } => true,
-        Expression::BytesCast { .. } => true,
-        Expression::PreIncrement { .. } => true,
-        Expression::PreDecrement { .. } => true,
-        Expression::PostIncrement { .. } => true,
-        Expression::PostDecrement { .. } => true,
-        Expression::Assign { .. } => true,
-        Expression::More { .. } => true,
-        Expression::Less { .. } => true,
-        Expression::MoreEqual { .. } => true,
-        Expression::LessEqual { .. } => true,
-        Expression::Equal { .. } => true,
-        Expression::NotEqual { .. } => true,
-        Expression::Not { .. } => true,
-        Expression::BitwiseNot { .. } => true,
-        Expression::Negate { .. } => true,
-        Expression::ConditionalOperator { .. } => true,
-        Expression::Subscript { .. } => true,
-        Expression::StructMember { .. } => true,
-        Expression::AllocDynamicBytes { .. } => true,
-        Expression::StorageArrayLength { .. } => true,
-        Expression::StringCompare { .. } => true,
-        Expression::StringConcat { .. } => false,
-        Expression::Or { .. } => true,
-        Expression::And { .. } => true,
-        Expression::InternalFunction { .. } => true,
-        Expression::ExternalFunction { .. } => todo!(),
-        Expression::InternalFunctionCall { .. } => todo!(),
-        Expression::ExternalFunctionCall { .. } => todo!(),
-        Expression::ExternalFunctionCallRaw { .. } => todo!(),
-        Expression::Constructor { .. } => true,
-        Expression::FormatString { .. } => true,
-        Expression::Builtin { .. } => true,
-        Expression::InterfaceId { .. } => true,
-        Expression::List { .. } => true,
-        Expression::UserDefinedOperator { .. } => true,
     }
 }
