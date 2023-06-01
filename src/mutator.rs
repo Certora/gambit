@@ -286,7 +286,7 @@ pub fn mutate_expression(expr: &Expression, mutator: &mut Mutator) -> bool {
         // represented after a parse, and if we special case mutation of this
         // operator the `Equal {left, right}` node is visited again later,
         // leading to too many mutants
-        Expression::Not { loc, expr } => {
+        Expression::Not { loc: _, expr } => {
             if let Expression::Equal { loc, left, right } = expr.as_ref() {
                 Expression::NotEqual {
                     loc: *loc,

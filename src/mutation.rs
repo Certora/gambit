@@ -3,8 +3,8 @@ use clap::ValueEnum;
 use num_bigint::BigInt;
 use num_traits::{One, Zero};
 use serde::{Deserialize, Serialize};
-use solang::sema::ast::{Expression, RetrieveType, Statement};
-use solang_parser::pt::CodeLocation;
+use solang::sema::ast::{Expression, RetrieveType, Statement, Type};
+use solang_parser::pt::{CodeLocation, Loc};
 use std::{error, fmt::Display, rc::Rc};
 
 /// This struct describes a mutant.
@@ -248,6 +248,85 @@ impl MutationType {
     }
 }
 
+/// Find the location of an operator. This is not explicitly represented in an
+/// AST node, so we have to do some digging.
+fn get_op_loc(expr: &Expression, source: &Rc<Source>) -> Loc {
+    match expr {
+        // Regular Binary operator
+        Expression::Add { left, right, .. }
+        | Expression::Subtract { left, right, .. }
+        | Expression::Multiply { left, right, .. }
+        | Expression::Divide { left, right, .. }
+        | Expression::Modulo { left, right, .. }
+        | Expression::BitwiseOr { left, right, .. }
+        | Expression::BitwiseAnd { left, right, .. }
+        | Expression::BitwiseXor { left, right, .. }
+        | Expression::ShiftLeft { left, right, .. }
+        | Expression::ShiftRight { left, right, .. }
+        | Expression::Assign { left, right, .. }
+        | Expression::More { left, right, .. }
+        | Expression::Less { left, right, .. }
+        | Expression::MoreEqual { left, right, .. }
+        | Expression::LessEqual { left, right, .. }
+        | Expression::Equal { left, right, .. }
+        | Expression::NotEqual { left, right, .. }
+        | Expression::Or { left, right, .. }
+        | Expression::And { left, right, .. } => {
+            let start = left.loc().end();
+            let end = right.loc().start();
+            let op = get_operator(expr);
+            let substr = source.contents_between_offsets(start, end);
+            let first_op_char = op.as_bytes().to_vec()[0];
+            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).unwrap();
+            let op_start = start + (op_offset_in_substr as usize);
+            let op_end = op_start + op.len();
+            left.loc().with_start(op_start).with_end(op_end)
+        }
+        Expression::StringConcat { .. } | Expression::StringCompare { .. } => todo!(),
+
+        Expression::Power { base, exp, .. } => {
+            let start = base.loc().end();
+            let end = exp.loc().start();
+            let op = get_operator(expr);
+            let substr = source.contents_between_offsets(start, end);
+            let first_op_char = op.as_bytes().to_vec()[0];
+            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).unwrap();
+            let op_start = start + (op_offset_in_substr as usize);
+            let op_end = op_start + op.len();
+            base.loc().with_start(op_start).with_end(op_end)
+        }
+        Expression::PreIncrement { loc, expr, .. } | Expression::PreDecrement { loc, expr, .. } => {
+            loc.with_end(loc.start() + get_operator(expr).len())
+        }
+        Expression::PostIncrement { loc, expr, .. }
+        | Expression::PostDecrement { loc, expr, .. } => {
+            loc.with_start(loc.end() - get_operator(expr).len())
+        }
+
+        Expression::Not { loc, expr, .. }
+        | Expression::BitwiseNot { loc, expr, .. }
+        | Expression::Negate { loc, expr, .. } => {
+            loc.with_end(loc.start() + get_operator(expr).len())
+        }
+
+        Expression::ConditionalOperator {
+            cond, true_option, ..
+        } => {
+            let start = cond.loc().end();
+            let end = true_option.loc().start();
+            let op = get_operator(expr);
+            let substr = source.contents_between_offsets(start, end);
+            let first_op_char = op.as_bytes().to_vec()[0];
+            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).unwrap();
+            let op_start = start + (op_offset_in_substr as usize);
+            let op_end = op_start + op.len();
+            cond.loc().with_start(op_start).with_end(op_end)
+        }
+
+        _ => panic!("No op location for {:?}", expr),
+    }
+}
+
 /// Get a string representation of an operator
 fn get_operator(expr: &Expression) -> &str {
     match expr {
@@ -286,28 +365,43 @@ fn arith_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
     let loc = expr.loc();
     let arith_op = get_operator(expr);
     let rs = vec!["+", "-", "*", "/", "**", "%"];
-    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != arith_op).collect();
+    let mut replacements: Vec<&str> = rs.iter().filter(|x| **x != arith_op).map(|x| *x).collect();
 
     if let None = loc.try_file_no() {
         return vec![];
     }
     match expr {
-        Expression::BitwiseOr { left, right, .. }
-        | Expression::BitwiseAnd { left, right, .. }
-        | Expression::BitwiseXor { left, right, .. }
-        | Expression::Divide { left, right, .. }
-        | Expression::Modulo { left, right, .. }
-        | Expression::Multiply { left, right, .. }
-        | Expression::Subtract { left, right, .. }
-        | Expression::Add { left, right, .. } => {
-            let (start, end) = (left.loc().end(), right.loc().start());
+        Expression::BitwiseOr { .. }
+        | Expression::BitwiseAnd { .. }
+        | Expression::BitwiseXor { .. }
+        | Expression::Divide { .. }
+        | Expression::Modulo { .. }
+        | Expression::Multiply { .. }
+        | Expression::Subtract { .. }
+        | Expression::Add { .. } => {
+            let is_signed_int = if let Type::Int(_) = expr.ty() {
+                true
+            } else {
+                false
+            };
+            if is_signed_int {
+                replacements = replacements
+                    .iter()
+                    .filter(|x| **x != "**")
+                    .map(|x| *x)
+                    .collect();
+            }
+
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
             replacements
                 .iter()
-                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!("{}", r)))
                 .collect()
         }
-        Expression::Power { base, exp, .. } => {
-            let (start, end) = (base.loc().end(), exp.loc().start());
+        Expression::Power { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
             replacements
                 .iter()
                 .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
@@ -323,22 +417,42 @@ fn bitwise_op_replacement(
     source: &Rc<Source>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    let bitwise_op = get_operator(expr);
-    let rs = vec!["|", "&", "^"];
-    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != bitwise_op).collect();
-
     if let None = loc.try_file_no() {
         return vec![];
     }
     match expr {
-        Expression::BitwiseOr { left, right, .. }
-        | Expression::BitwiseAnd { left, right, .. }
-        | Expression::BitwiseXor { left, right, .. } => {
-            let (start, end) = (left.loc().end(), right.loc().start());
-            replacements
-                .iter()
-                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
-                .collect()
+        Expression::BitwiseOr { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
+            vec![Mutant::new(
+                source.clone(),
+                op.clone(),
+                start,
+                end,
+                "&".to_string(),
+            )]
+        }
+        Expression::BitwiseAnd { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
+            vec![Mutant::new(
+                source.clone(),
+                op.clone(),
+                start,
+                end,
+                "|".to_string(),
+            )]
+        }
+        Expression::BitwiseXor { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
+            vec![Mutant::new(
+                source.clone(),
+                op.clone(),
+                start,
+                end,
+                "&".to_string(),
+            )]
         }
         _ => vec![],
     }
@@ -346,20 +460,31 @@ fn bitwise_op_replacement(
 
 fn shift_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
     let loc = expr.loc();
-    let shift_op = get_operator(expr);
-    let rs = vec!["<<", ">>"];
-    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != shift_op).collect();
-
     if let None = loc.try_file_no() {
         return vec![];
     }
     match expr {
-        Expression::ShiftLeft { left, right, .. } | Expression::ShiftRight { left, right, .. } => {
-            let (start, end) = (left.loc().end(), right.loc().start());
-            replacements
-                .iter()
-                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
-                .collect()
+        Expression::ShiftLeft { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
+            vec![Mutant::new(
+                source.clone(),
+                op.clone(),
+                start,
+                end,
+                ">>".to_string(),
+            )]
+        }
+        Expression::ShiftRight { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let (start, end) = (op_loc.start(), op_loc.end());
+            vec![Mutant::new(
+                source.clone(),
+                op.clone(),
+                start,
+                end,
+                "<<".to_string(),
+            )]
         }
         _ => vec![],
     }
@@ -395,78 +520,49 @@ fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>)
         return vec![];
     }
 
-    // We need to know two things to perform a mutation:
-    // 1. The replacement string
-    // 2. The start, stop of each replacement
-    //
-    // For true and false replacements we are replacing the full expression, and
-    // we can get bounds from `expr`. For relational replacements we need to
-    // know the bounds of the binary operator, which we get from left and right.
-    //
-    // Thus, replacements is a tuple of (replacements, (start, end)), where
-    // (start, end) are the binary operator's start and end locations (note,
-    // these are only used for replacing with another operator, otherwise the
-    // `expr.loc` values are used)
-    let (replacements, bounds) = match expr {
-        Expression::Less { left, right, .. } => (
-            vec!["<=", "!=", "false"],
-            (left.loc().end(), right.loc().start()),
-        ),
-        Expression::LessEqual { left, right, .. } => (
-            vec!["<", "==", "true"],
-            (left.loc().end(), right.loc().start()),
-        ),
-        Expression::More { left, right, .. } => (
-            vec![">=", "!=", "false"],
-            (left.loc().end(), right.loc().start()),
-        ),
-        Expression::MoreEqual { left, right, .. } => (
-            vec![">", "==", "true"],
-            (left.loc().end(), right.loc().start()),
-        ),
-        Expression::Equal { left, right, .. } => {
+    let replacements = match expr {
+        Expression::Less { .. } => vec!["<=", "!=", "false"],
+        Expression::LessEqual { .. } => vec!["<", "==", "true"],
+        Expression::More { .. } => vec![">=", "!=", "false"],
+        Expression::MoreEqual { .. } => vec![">", "==", "true"],
+        Expression::Equal { left, .. } => {
             // Assuming that we only need the left type to determine legal mutations
             match left.ty() {
                 // The following types are orderable, so we use those for better mutation operators
                 solang::sema::ast::Type::Int(_)
                 | solang::sema::ast::Type::Uint(_)
-                | solang::sema::ast::Type::Rational => (
-                    vec!["<=", ">=", "false"],
-                    (left.loc().end(), right.loc().start()),
-                ),
+                | solang::sema::ast::Type::Rational => vec!["<=", ">=", "false"],
 
                 // The following types are not orderable, so we replace with true and false
                 // TODO: Can Addresses be ordered?
-                solang::sema::ast::Type::Address(_) => (vec!["true", "false"], (0, 0)),
-                _ => (vec!["true", "false"], (0, 0)),
+                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
+                _ => vec!["true", "false"],
             }
         }
-        Expression::NotEqual { left, right, .. } => {
+        Expression::NotEqual { left, .. } => {
             // Assuming that we only need the left type to determine legal mutations
             match left.ty() {
                 // The following types are orderable, so we use those for better mutation operators
                 solang::sema::ast::Type::Int(_)
                 | solang::sema::ast::Type::Uint(_)
-                | solang::sema::ast::Type::Rational => (
-                    vec!["< ", "> ", "true"],
-                    (left.loc().end(), right.loc().start()),
-                ),
+                | solang::sema::ast::Type::Rational => vec!["< ", "> ", "true"],
 
                 // The following types are not orderable, so we replace with true and false
                 // TODO: Can Addresses be ordered?
-                solang::sema::ast::Type::Address(_) => (vec!["true", "false"], (0, 0)),
-                _ => (vec!["true", "false"], (0, 0)),
+                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
+                _ => vec!["true", "false"],
             }
         }
-        _ => (vec![], (0, 0)),
+        _ => return vec![],
     };
 
     // Now, apply the replacements
     let mut mutants = vec![];
     let expr_start = expr.loc().start();
     let expr_end = expr.loc().end();
-    let op_start = bounds.0;
-    let op_end = bounds.1;
+    let op_loc = get_op_loc(expr, source);
+    let op_start = op_loc.start();
+    let op_end = op_loc.end();
     for r in replacements {
         mutants.push(match r {
             "true" | "false" => Mutant::new(
