@@ -310,28 +310,6 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
 }
 
 pub fn mutate_expression(expr: &Expression, mutator: &mut Mutator) -> bool {
-    match expr {
-        // Special case `Not{ Equal { left, right}}`: this is how `NotEqual` is
-        // represented after a parse, and if we special case mutation of this
-        // operator the `Equal {left, right}` node is visited again later,
-        // leading to too many mutants
-        Expression::Not { loc: _, expr } => {
-            if let Expression::Equal { loc, left, right } = expr.as_ref() {
-                Expression::NotEqual {
-                    loc: *loc,
-                    left: left.clone(),
-                    right: right.clone(),
-                }
-                .recurse(mutator, mutate_expression);
-                false
-            } else {
-                mutator.apply_operators_to_expression(expr);
-                true
-            }
-        }
-        _ => {
-            mutator.apply_operators_to_expression(expr);
-            true
-        }
-    }
+    mutator.apply_operators_to_expression(expr);
+    true
 }
