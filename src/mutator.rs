@@ -1,6 +1,6 @@
 use crate::{
-    default_gambit_output_directory, mutation::MutationType, source::Source, Mutant, MutateParams,
-    Mutation, Solc,
+    default_gambit_output_directory, mutation::MutationType, normalize_mutation_operator_name,
+    source::Source, Mutant, MutateParams, Mutation, Solc,
 };
 use clap::ValueEnum;
 use solang::{
@@ -36,7 +36,7 @@ impl From<&MutateParams> for MutatorConf {
         let mutation_operators = if let Some(ops) = &mutate_params.mutations {
             ops.iter()
                 .map(|op| {
-                    MutationType::from_str(op.as_str(), true)
+                    MutationType::from_str(normalize_mutation_operator_name(op).as_str(), true)
                         .unwrap_or_else(|_| panic!("Unrecognized mutation operator {op}"))
                 })
                 .collect()

@@ -347,3 +347,22 @@ pub fn normalize_path(path: &Path) -> PathBuf {
     }
     ret
 }
+
+pub fn normalize_mutation_operator_name(op_name: &String) -> String {
+    let tmp = op_name.to_lowercase();
+    let tmp = tmp.replace("_", "-");
+    let op_name_lower = tmp.as_str();
+    match op_name_lower {
+        "aor" | "arithmetic-operator-replacement" => "logical-operator-replacement",
+        "bor" | "bitwise-operator-replacement" => "bitwise-operator-replacement",
+        "evr" | "expression-value-replacement" => "expression-value-replacement",
+        "lor" | "logical-operator-replacement" => "logical-operator-replacement",
+        "lvr" | "literal-value-replacement" => "literal-value-replacement",
+        "ror" | "relational-operator-replacement" => "relational-operator-replacement",
+        "sor" | "shift-operator-replacement" => "shift-operator-replacement",
+        "std" | "statement-deletion" => "statement-deletion",
+        "uor" | "unary-operator-replacement" => "unary-operator-replacement",
+        _ => op_name_lower,
+    }
+    .to_string()
+}
