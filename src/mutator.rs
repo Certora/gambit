@@ -52,7 +52,6 @@ impl From<&MutateParams> for MutatorConf {
 }
 
 /// The mutator performs the actual logic of mutating a program, writes
-#[derive(Debug)]
 pub struct Mutator {
     /// Configuration for this mutator
     pub conf: MutatorConf,
@@ -66,8 +65,23 @@ pub struct Mutator {
     /// The current source being mutated
     pub current_source: Option<Rc<Source>>,
 
+    /// The file resolver
+    pub file_resolver: FileResolver,
+
     /// A temporary directory to store intermediate work
     _tmp: PathBuf,
+}
+
+impl std::fmt::Debug for Mutator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Mutator")
+            .field("conf", &self.conf)
+            .field("sources", &self.sources)
+            .field("mutants", &self.mutants)
+            .field("current_source", &self.current_source)
+            .field("_tmp", &self._tmp)
+            .finish()
+    }
 }
 
 impl From<&MutateParams> for Mutator {
@@ -119,7 +133,22 @@ impl From<&MutateParams> for Mutator {
                     .unwrap_or_else(|_| panic!("Couldn't read source {}", filename)),
             ))
         }
-        Mutator::new(conf, sources, solc)
+        let mut mutator = Mutator::new(conf, sources, solc);
+        match &value.solc_base_path {
+            Some(base_path) => {
+                mutator
+                    .file_resolver
+                    .add_import_path(&PathBuf::from(base_path))
+                    .unwrap();
+            }
+            None => {
+                mutator
+                    .file_resolver
+                    .add_import_path(&PathBuf::from("."))
+                    .unwrap();
+            }
+        }
+        mutator
     }
 }
 
@@ -136,6 +165,7 @@ impl Mutator {
             sources,
             mutants: vec![],
             current_source: None,
+            file_resolver: FileResolver::new(),
             _tmp: "".into(),
         }
     }
@@ -160,9 +190,8 @@ impl Mutator {
 
         for source in sources.iter() {
             log::info!("Mutating source {}", source.filename().display());
-            self.current_source = Some(source.clone());
 
-            match self.mutate_file(source.clone()) {
+            match self.mutate_file(&source) {
                 Ok(file_mutants) => {
                     log::info!("    Generated {} mutants from source", file_mutants.len());
                 }
@@ -171,8 +200,6 @@ impl Mutator {
                     log::warn!("Encountered error: {}", e);
                 }
             }
-
-            self.current_source = None;
         }
 
         self.mutants.append(&mut mutants);
@@ -180,11 +207,13 @@ impl Mutator {
     }
 
     /// Mutate a single file.
-    fn mutate_file(&mut self, source: Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-        let mut resolver = FileResolver::new();
-        resolver.add_import_path(&PathBuf::from("."))?;
-        let target = solang::Target::EVM;
-        let ns = parse_and_resolve(&OsStr::new(source.filename()), &mut resolver, target);
+    fn mutate_file(&mut self, source: &Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+        self.current_source = Some(source.clone());
+        let ns = parse_and_resolve(
+            &OsStr::new(source.filename()),
+            &mut self.file_resolver,
+            solang::Target::EVM,
+        );
         // mutate functions
         for function in ns.functions.iter() {
             if function.has_body {
