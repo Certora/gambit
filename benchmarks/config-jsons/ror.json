@@ -1,0 +1,9 @@
+[
+    {
+        "filename": "../ROR/ROR.sol",
+        "sourceroot": "..",
+        "mutations": [
+            "relational-operator-replacement"
+        ]
+    }
+]

@@ -1,0 +1,9 @@
+[
+    {
+        "filename": "../LOR/LOR.sol",
+        "sourceroot": "..",
+        "mutations": [
+            "logical-operator-replacement"
+        ]
+    }
+]
