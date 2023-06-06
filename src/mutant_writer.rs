@@ -54,7 +54,7 @@ impl MutantWriter {
             let line_col = format!("{}:{}", lineno, colno);
             w.write_record([
                 mid.to_string().as_str(),
-                mutant.op.to_string().as_str(),
+                mutant.op.short_name().as_str(),
                 mutant.source.relative_filename()?.to_str().unwrap(),
                 line_col.as_str(),
                 mutant.orig.as_str(),

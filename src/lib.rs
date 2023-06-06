@@ -7,6 +7,7 @@ mod compile;
 pub use compile::*;
 
 mod filter;
+use csv::Writer;
 pub use filter::*;
 
 mod mutation;
@@ -134,7 +135,7 @@ pub fn run_mutate(
             let validator = Validator {
                 solc: Solc::new(params.solc.clone(), outdir_path.clone()),
             };
-            let mutants = if let Some(num_mutants) = params.num_mutants {
+            let (sampled, invalid) = if let Some(num_mutants) = params.num_mutants {
                 log::info!("Filtering down to {} mutants", num_mutants);
                 log::debug!("  seed: {:?}", params.seed);
                 log::debug!("  validating?: {}", !params.skip_validate);
@@ -144,28 +145,47 @@ pub fn run_mutate(
                     Some(params.seed)
                 };
                 let filter = RandomDownSampleFilter::new(seed, !params.skip_validate, validator);
-                let mutants = filter.filter_mutants(&mutator, num_mutants)?;
-                log::info!("Filtering resulted in {} mutants", mutants.len());
-                mutants
+                let (sampled, invalid) = filter.filter_mutants(&mutator, num_mutants)?;
+                log::info!("Filtering resulted in {} mutants", sampled.len());
+                (sampled, invalid)
             } else if params.skip_validate {
                 log::info!("Skipping validation");
-                mutants
+                (mutants, vec![])
             } else {
-                let mutants = validator.get_valid_mutants(&mutants);
-                log::info!("Validation resulted in {} mutants", mutants.len());
-                mutants
+                let (sampled, invalid) = validator.get_valid_mutants(&mutants);
+                log::info!("Validation resulted in {} mutants", sampled.len());
+                (sampled, invalid)
             };
-            total_num_mutants += mutants.len();
-            log::info!("Adding {} mutants to global mutant pool", mutants.len());
 
-            let mut mutants: Vec<(Mutant, bool)> =
-                mutants.iter().map(|m| (m.clone(), export)).collect();
+            if params.log_invalid {
+                let invalid_log = &outdir_path.join("invalid.log");
+                let mut w = Writer::from_path(invalid_log)?;
+                for (i, mutant) in invalid.iter().enumerate() {
+                    let mid = i + 1;
+                    let (lineno, colno) = mutant.get_line_column()?;
+                    let line_col = format!("{}:{}", lineno, colno);
+                    w.write_record([
+                        mid.to_string().as_str(),
+                        mutant.op.short_name().as_str(),
+                        mutant.source.relative_filename()?.to_str().unwrap(),
+                        line_col.as_str(),
+                        mutant.orig.as_str(),
+                        mutant.repl.as_str(),
+                    ])?;
+                }
+            }
+
+            total_num_mutants += sampled.len();
+            log::info!("Adding {} mutants to global mutant pool", sampled.len());
+
+            let mut sampled: Vec<(Mutant, bool)> =
+                sampled.iter().map(|m| (m.clone(), export)).collect();
 
             if !mutants_by_out_dir.contains_key(outdir) {
                 mutants_by_out_dir.insert(outdir.clone(), vec![]);
             }
             let ms: &mut Vec<(Mutant, bool)> = mutants_by_out_dir.get_mut(outdir).unwrap();
-            ms.append(&mut mutants);
+            ms.append(&mut sampled);
         }
     }
 

@@ -11,7 +11,12 @@ use solang::{
         Recurse,
     },
 };
-use std::{error, ffi::OsStr, path::PathBuf, rc::Rc};
+use std::{
+    error,
+    ffi::{OsStr, OsString},
+    path::PathBuf,
+    rc::Rc,
+};
 
 /// This module is responsible for high level logic of running mutation over
 /// Solidity programs.
@@ -133,7 +138,10 @@ impl From<&MutateParams> for Mutator {
                     .unwrap_or_else(|_| panic!("Couldn't read source {}", filename)),
             ))
         }
+
         let mut mutator = Mutator::new(conf, sources, solc);
+
+        // Add base path to file resolver
         match &value.solc_base_path {
             Some(base_path) => {
                 mutator
@@ -145,6 +153,20 @@ impl From<&MutateParams> for Mutator {
                 mutator
                     .file_resolver
                     .add_import_path(&PathBuf::from("."))
+                    .unwrap();
+            }
+        }
+
+        // Add any remappings to file resolver
+        if let Some(remappings) = &value.solc_remappings {
+            for rm in remappings {
+                let split_rm: Vec<&str> = rm.split("=").collect();
+                if split_rm.len() != 2 {
+                    panic!("Invalid remapping: {}", rm);
+                }
+                mutator
+                    .file_resolver
+                    .add_import_map(OsString::from(split_rm[0]), PathBuf::from(split_rm[1]))
                     .unwrap();
             }
         }
@@ -214,8 +236,21 @@ impl Mutator {
             &mut self.file_resolver,
             solang::Target::EVM,
         );
+        println!("All files: {:?}", ns.files);
         // mutate functions
         for function in ns.functions.iter() {
+            let file = ns.files.get(function.loc.file_no());
+            match file {
+                Some(file) => {
+                    if file.file_name() != source.filename().to_str().unwrap().to_string() {
+                        continue;
+                    }
+                }
+                None => {
+                    continue;
+                }
+            }
+            println!("Mutating function {}", function.name);
             if function.has_body {
                 for statement in function.body.iter() {
                     statement.recurse(self, mutate_statement);

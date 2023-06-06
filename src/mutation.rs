@@ -145,16 +145,7 @@ pub enum MutationType {
     StatementDeletion,
 
     // # Old Operators (Deprecated)
-    AssignmentMutation,
-    BinaryOpMutation,
-    DeleteExpressionMutation,
     ElimDelegateMutation,
-    FunctionCallMutation,
-    // IfStatementMutation,
-    RequireMutation,
-    SwapArgumentsFunctionMutation,
-    SwapArgumentsOperatorMutation,
-    UnaryOperatorMutation,
 }
 
 impl ToString for MutationType {
@@ -170,16 +161,7 @@ impl ToString for MutationType {
             MutationType::ExpressionValueReplacement => "ExpressionOperatorReplacement",
             MutationType::StatementDeletion => "StatementDeletion",
 
-            MutationType::AssignmentMutation => "AssignmentMutation",
-            MutationType::BinaryOpMutation => "BinaryOpMutation",
-            MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
             MutationType::ElimDelegateMutation => "ElimDelegateMutation",
-            MutationType::FunctionCallMutation => "FunctionCallMutation",
-            // MutationType::IfStatementMutation => "IfStatementMutation",
-            MutationType::RequireMutation => "RequireMutation",
-            MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
-            MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
-            MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
         };
         str.into()
     }
@@ -189,16 +171,11 @@ impl Mutation for MutationType {
     fn mutate_statement(&self, stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant> {
         let loc = stmt.loc();
         if let None = loc.try_file_no() {
+            println!("No file");
             return vec![];
         }
         match self {
-            MutationType::StatementDeletion => vec![Mutant::new(
-                source.clone(),
-                self.clone(),
-                stmt.loc().start(),
-                stmt.loc().end() + 1,
-                "".to_string(),
-            )],
+            MutationType::StatementDeletion => statement_deletion(self, stmt, source),
             _ => vec![],
         }
     }
@@ -214,18 +191,12 @@ impl Mutation for MutationType {
             // Other
             MutationType::LiteralValueReplacement => literal_value_replacement(self, expr, source),
             MutationType::UnaryOperatorReplacement => unary_op_replacement(self, expr, source),
-            MutationType::ExpressionValueReplacement => todo!(),
+            MutationType::ExpressionValueReplacement => {
+                expression_value_replacement(self, expr, source)
+            }
 
             // Old Operators
-            MutationType::AssignmentMutation => todo!(),
-            MutationType::BinaryOpMutation => todo!(),
-            MutationType::DeleteExpressionMutation => todo!(),
-            MutationType::ElimDelegateMutation => todo!(),
-            MutationType::FunctionCallMutation => todo!(),
-            MutationType::RequireMutation => todo!(),
-            MutationType::SwapArgumentsFunctionMutation => todo!(),
-            MutationType::SwapArgumentsOperatorMutation => todo!(),
-            MutationType::UnaryOperatorMutation => todo!(),
+            MutationType::ElimDelegateMutation => elim_delegate_mutation(self, expr, source),
             _ => vec![],
         }
     }
@@ -234,17 +205,33 @@ impl Mutation for MutationType {
 impl MutationType {
     pub fn default_mutation_operators() -> Vec<MutationType> {
         vec![
-            MutationType::AssignmentMutation,
-            MutationType::BinaryOpMutation,
-            MutationType::DeleteExpressionMutation,
+            MutationType::ArithmeticOperatorReplacement,
+            MutationType::BitwiseOperatorReplacement,
+            MutationType::ExpressionValueReplacement,
             MutationType::ElimDelegateMutation,
-            MutationType::FunctionCallMutation,
-            // MutationType::IfStatementMutation,
-            MutationType::RequireMutation,
-            // MutationType::SwapArgumentsFunctionMutation,
-            MutationType::SwapArgumentsOperatorMutation,
-            MutationType::UnaryOperatorMutation,
+            MutationType::LiteralValueReplacement,
+            MutationType::LogicalOperatorReplacement,
+            MutationType::RelationalOperatorReplacement,
+            MutationType::ShiftOperatorReplacement,
+            MutationType::StatementDeletion,
+            MutationType::UnaryOperatorReplacement,
         ]
+    }
+
+    pub fn short_name(&self) -> String {
+        match self {
+            MutationType::ArithmeticOperatorReplacement => "AOR",
+            MutationType::BitwiseOperatorReplacement => "BOR",
+            MutationType::ElimDelegateMutation => "EDM",
+            MutationType::ExpressionValueReplacement => "EVR",
+            MutationType::LiteralValueReplacement => "LOR",
+            MutationType::LogicalOperatorReplacement => "LOR",
+            MutationType::RelationalOperatorReplacement => "ROR",
+            MutationType::ShiftOperatorReplacement => "SOR",
+            MutationType::StatementDeletion => "STD",
+            MutationType::UnaryOperatorReplacement => "UOR",
+        }
+        .to_string()
     }
 }
 
@@ -277,7 +264,17 @@ fn get_op_loc(expr: &Expression, source: &Rc<Source>) -> Loc {
             let op = get_operator(expr);
             let substr = source.contents_between_offsets(start, end);
             let first_op_char = op.as_bytes().to_vec()[0];
-            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).unwrap();
+            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).expect(
+                format!(
+                    "Error finding start/end to operator {:?} in substring {}\nExpression: {:?}\nFile: {}, Pos: {:?}",
+                    op,
+                    std::str::from_utf8(substr).unwrap_or("UNREADABLE STRING"),
+                    expr,
+                    left.loc().file_no(),
+                    (start, end)
+                )
+                .as_str(),
+            );
             let op_start = start + (op_offset_in_substr as usize);
             let op_end = op_start + op.len();
             left.loc().with_start(op_start).with_end(op_end)
@@ -682,6 +679,68 @@ fn literal_value_replacement(
     mutants
 }
 
+fn statement_deletion(op: &MutationType, stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant> {
+    match stmt {
+        // Do not delete complex/nested statements
+        Statement::Block { .. }
+        | Statement::VariableDecl(..)
+        | Statement::If(..)
+        | Statement::While(..)
+        | Statement::For { .. }
+        | Statement::DoWhile(..)
+        | Statement::Assembly(..)
+        | Statement::TryCatch(..) => vec![],
+
+        // Also, do not mutate underscore statement
+        Statement::Underscore(_) => vec![],
+
+        Statement::Expression(loc, ..)
+        | Statement::Delete(loc, ..)
+        | Statement::Destructure(loc, ..)
+        | Statement::Continue(loc)
+        | Statement::Break(loc)
+        | Statement::Revert { loc, .. }
+        | Statement::Emit { loc, .. } => vec![Mutant::new(
+            source.clone(),
+            op.clone(),
+            loc.start(),
+            loc.end(),
+            "assert(true)".to_string(),
+        )],
+
+        // Returns are special: we should perform some analysis to figure out if
+        // we can delete this without making an invalid program. For now we
+        // delete and hope for the best :)
+        Statement::Return(loc, _) => vec![Mutant::new(
+            source.clone(),
+            op.clone(),
+            loc.start(),
+            loc.end(),
+            "assert(true)".to_string(),
+        )],
+    }
+}
+
+#[allow(dead_code)]
+fn elim_delegate_mutation(
+    _op: &MutationType,
+    _expr: &Expression,
+    _source: &Rc<Source>,
+) -> Vec<Mutant> {
+    // TODO: implement
+    vec![]
+}
+
+#[allow(dead_code)]
+fn expression_value_replacement(
+    _op: &MutationType,
+    _expr: &Expression,
+    _source: &Rc<Source>,
+) -> Vec<Mutant> {
+    // TODO: implement
+    vec![]
+}
+
 /// This testing module defines and uses the testing infrastructure, allowing
 /// for varying degrees of testing flexibility.
 ///
@@ -722,76 +781,6 @@ mod test {
     use std::rc::Rc;
     use std::{error, path::Path};
     use tempfile::Builder;
-
-    #[test]
-    pub fn test_assignment_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![AssignmentMutation];
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 x;", "x = 3;"],
-            &ops,
-            &vec!["(-1)", "0", "1"],
-        );
-        assert_exact_mutants_for_statements(&vec!["int256 x;", "x = 1;"], &ops, &vec!["(-1)", "0"]);
-        assert_exact_mutants_for_statements(&vec!["int256 x;", "x = 0;"], &ops, &vec!["(-1)", "1"]);
-        // FIXME: The following three test cases are BROKEN!! Currently these
-        // all get mutated to [-1, 1, 0, false, true] because they are not
-        // 'number's. Validation would strip out the true/false. We would want
-        // constant propagation to strip out the 0 in `x = -0`
-        assert_num_mutants_for_statements(
-            &vec!["int256 x;", "x = -2;"],
-            &vec![AssignmentMutation],
-            5,
-        );
-        assert_num_mutants_for_statements(
-            &vec!["int256 x;", "x = -1;"],
-            &vec![AssignmentMutation],
-            5,
-        );
-        assert_num_mutants_for_statements(
-            &vec!["int256 x;", "x = -0;"],
-            &vec![AssignmentMutation],
-            5,
-        );
-
-        assert_exact_mutants_for_statements(&vec!["bool b;", "b = true;"], &ops, &vec!["false"]);
-        assert_exact_mutants_for_statements(&vec!["bool b;", "b = false;"], &ops, &vec!["true"]);
-
-        Ok(())
-    }
-
-    #[test]
-    pub fn test_binary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![BinaryOpMutation];
-        let repls = vec!["+", "-", "*", "/", "%", "**"];
-        // Closure to drop the given operator for he set of replacements
-        let without = |s: &str| {
-            let r: Vec<&str> = repls
-                .iter()
-                .filter(|r| !s.eq(**r))
-                .map(|s| s.clone())
-                .collect();
-            r
-        };
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 + 2;"], &ops, &without("+"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 2 - 1;"], &ops, &without("-"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 * 2;"], &ops, &without("*"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 2 / 1;"], &ops, &without("/"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 % 2;"], &ops, &without("%"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 ** 2;"], &ops, &without("**"));
-        Ok(())
-    }
-
-    #[test]
-    pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![DeleteExpressionMutation];
-        assert_exact_mutants_for_statements(&vec!["gasleft();"], &ops, &vec!["/* gasleft() */"]);
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 x = 0;", "x = 3;"],
-            &ops,
-            &vec!["/* x = 3 */"],
-        );
-        Ok(())
-    }
 
     #[test]
     pub fn test_elim_delegate_mutation() -> Result<(), Box<dyn error::Error>> {
@@ -836,13 +825,6 @@ contract A {
         Ok(())
     }
 
-    #[test]
-    pub fn test_function_call_mutation() -> Result<(), Box<dyn error::Error>> {
-        let _ops = vec![FunctionCallMutation];
-        // TODO: how should I test this?
-        Ok(())
-    }
-
     // #[test]
     // pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
     //     let ops = vec![IfStatementMutation];
@@ -855,70 +837,7 @@ contract A {
     //     Ok(())
     // }
 
-    #[test]
-    pub fn test_require_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![RequireMutation];
-        assert_num_mutants_for_statements(&vec!["bool c = true;", "require(c);"], &ops, 2);
-        assert_num_mutants_for_statements(&vec!["require(true);"], &ops, 1);
-        assert_num_mutants_for_statements(
-            &vec!["bool a = true;", "bool b = false;", "require(a && b);"],
-            &ops,
-            2,
-        );
-        Ok(())
-    }
-
-    #[test]
-    pub fn test_unary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![UnaryOperatorMutation];
-        let prefix = vec!["++", "--", "~"];
-        let suffix = vec!["++", "--"];
-
-        // Closure to drop the given operator for he set of replacements
-        let without_prefix = |s: &str| {
-            let r: Vec<&str> = prefix
-                .iter()
-                .filter(|r| !s.eq(**r))
-                .map(|s| s.clone())
-                .collect();
-            r
-        };
-        let without_suffix = |s: &str| {
-            let r: Vec<&str> = suffix
-                .iter()
-                .filter(|r| !s.eq(**r))
-                .map(|s| s.clone())
-                .collect();
-            r
-        };
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = ++a;"],
-            &ops,
-            &without_prefix("++"),
-        );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = --a;"],
-            &ops,
-            &without_prefix("--"),
-        );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = ~a;"],
-            &ops,
-            &without_prefix("~"),
-        );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = a--;"],
-            &ops,
-            &without_suffix("--"),
-        );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = a++;"],
-            &ops,
-            &without_suffix("++"),
-        );
-        Ok(())
-    }
-
+    #[allow(dead_code)]
     fn assert_num_mutants_for_statements(
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
@@ -939,6 +858,7 @@ contract A {
         );
     }
 
+    #[allow(dead_code)]
     fn assert_exact_mutants_for_statements(
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,

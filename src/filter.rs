@@ -10,12 +10,13 @@ use crate::{Mutant, MutantWriter, Mutator, Solc};
 /// Implement this trait to filter mutants after they have been created.
 pub trait MutantFilter {
     /// Filter the mutants of a mutator, validating them via compilation if
-    /// `self.validate()` returns `true`.
+    /// `self.validate()` returns `true`. When successful, return an
+    /// Ok((valid-mutants, invalid-mutants))
     fn filter_mutants(
         &self,
         mutator: &Mutator,
         num_mutants: usize,
-    ) -> Result<Vec<Mutant>, Box<dyn error::Error>>;
+    ) -> Result<(Vec<Mutant>, Vec<Mutant>), Box<dyn error::Error>>;
 
     fn validate(&self) -> bool;
 }
@@ -46,13 +47,14 @@ impl MutantFilter for RandomDownSampleFilter {
         &self,
         mutator: &Mutator,
         num_mutants: usize,
-    ) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+    ) -> Result<(Vec<Mutant>, Vec<Mutant>), Box<dyn error::Error>> {
         // Make a copy that we can mutate
-        let mutants = mutator.mutants();
-        let mut mutants: Vec<(usize, Mutant)> = mutants.iter().cloned().enumerate().collect();
+        let mut mutants: Vec<(usize, Mutant)> =
+            mutator.mutants().iter().cloned().enumerate().collect();
 
         // The sampled mutants. We want to sort by the original index into
         let mut sampled: Vec<(usize, Mutant)> = vec![];
+        let mut invalid: Vec<(usize, Mutant)> = vec![];
 
         let mut r = match self.seed {
             None => ChaCha8Rng::from_entropy(),
@@ -66,6 +68,8 @@ impl MutantFilter for RandomDownSampleFilter {
             if self.validate() {
                 if let Ok(true) = self.validator.validate_mutant(&mutant.1) {
                     sampled.push(mutant)
+                } else {
+                    invalid.push(mutant)
                 }
             } else {
                 sampled.push(mutant);
@@ -74,7 +78,10 @@ impl MutantFilter for RandomDownSampleFilter {
 
         sampled.sort_by(|m1, m2| m1.0.partial_cmp(&m2.0).unwrap());
 
-        Ok(sampled.iter().map(|m| m.1.clone()).collect())
+        Ok((
+            sampled.iter().map(|m| m.1.clone()).collect(),
+            invalid.iter().map(|m| m.1.clone()).collect(),
+        ))
     }
 
     fn validate(&self) -> bool {
@@ -102,21 +109,25 @@ impl Validator {
         );
         let dir = tempdir()?;
         MutantWriter::write_mutant_to_file(mutant_file_path, mutant)?;
-        let code = match self.solc.compile(mutant_file_path, dir.path()) {
+        let was_success = match self.solc.compile(mutant_file_path, dir.path()) {
             Ok((code, _, _)) => code == 0,
             Err(_) => false,
         };
-        Ok(code)
+        Ok(was_success)
     }
 
-    pub fn get_valid_mutants(&self, mutants: &[Mutant]) -> Vec<Mutant> {
+    /// Return a tuple of (valid-mutants, invalid-mutants)
+    pub fn get_valid_mutants(&self, mutants: &[Mutant]) -> (Vec<Mutant>, Vec<Mutant>) {
         log::info!("Validating mutants...");
         let mut valid_mutants = vec![];
+        let mut invalid_mutants: Vec<Mutant> = vec![];
         for m in mutants.iter() {
             if let Ok(true) = self.validate_mutant(m) {
                 valid_mutants.push(m.clone())
+            } else {
+                invalid_mutants.push(m.clone())
             }
         }
-        valid_mutants
+        (valid_mutants, invalid_mutants)
     }
 }
