@@ -236,7 +236,6 @@ impl Mutator {
             &mut self.file_resolver,
             solang::Target::EVM,
         );
-        println!("All files: {:?}", ns.files);
         // mutate functions
         for function in ns.functions.iter() {
             let file = ns.files.get(function.loc.file_no());

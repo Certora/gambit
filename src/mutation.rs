@@ -683,6 +683,7 @@ fn statement_deletion(op: &MutationType, stmt: &Statement, source: &Rc<Source>) 
     match stmt {
         // Do not delete complex/nested statements
         Statement::Block { .. }
+        | Statement::Destructure(..)
         | Statement::VariableDecl(..)
         | Statement::If(..)
         | Statement::While(..)
@@ -696,7 +697,6 @@ fn statement_deletion(op: &MutationType, stmt: &Statement, source: &Rc<Source>) 
 
         Statement::Expression(loc, ..)
         | Statement::Delete(loc, ..)
-        | Statement::Destructure(loc, ..)
         | Statement::Continue(loc)
         | Statement::Break(loc)
         | Statement::Revert { loc, .. }

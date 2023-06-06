@@ -6,6 +6,7 @@ use std::{
 };
 
 use ansi_term::{ANSIGenericString, Color, Style};
+use solang::sema::ast::Statement;
 
 static EQUAL: &str = "=";
 pub static DEFAULT_GAMBIT_OUTPUT_DIRECTORY: &str = "gambit_out";
@@ -365,4 +366,27 @@ pub fn normalize_mutation_operator_name(op_name: &String) -> String {
         _ => op_name_lower,
     }
     .to_string()
+}
+
+/// Return a simple string representation of the type of statement
+pub fn statement_type(stmt: &Statement) -> &str {
+    match stmt {
+        Statement::Block { .. } => "Block",
+        Statement::VariableDecl(..) => "VariableDecl",
+        Statement::If(..) => "If",
+        Statement::While(..) => "While",
+        Statement::For { .. } => "For",
+        Statement::DoWhile(..) => "DoWhile",
+        Statement::Expression(..) => "Expression",
+        Statement::Delete(..) => "Delete",
+        Statement::Destructure(..) => "Destructure",
+        Statement::Continue(..) => "Continue",
+        Statement::Break(_) => "Break",
+        Statement::Return(_, _) => "Return",
+        Statement::Revert { .. } => "Revert",
+        Statement::Emit { .. } => "Emit",
+        Statement::TryCatch(_, _, _) => "TryCatch",
+        Statement::Underscore(_) => "Underscore",
+        Statement::Assembly(_, _) => "Assembly",
+    }
 }
