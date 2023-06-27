@@ -301,7 +301,7 @@ gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol
 ```
 
 To execute this using a configuration file you would write the following to
-`example-1.json` to the root of this repository and run `gambit --json
+`example-1.json` to the root of this repository and run `gambit mutate --json
 example-1.json`
 
 ```json
