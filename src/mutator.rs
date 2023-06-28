@@ -249,7 +249,6 @@ impl Mutator {
                     continue;
                 }
             }
-            println!("Mutating function {}", function.name);
             if function.has_body {
                 for statement in function.body.iter() {
                     statement.recurse(self, mutate_statement);

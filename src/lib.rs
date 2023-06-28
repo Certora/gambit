@@ -146,14 +146,23 @@ pub fn run_mutate(
                 };
                 let filter = RandomDownSampleFilter::new(seed, !params.skip_validate, validator);
                 let (sampled, invalid) = filter.filter_mutants(&mutator, num_mutants)?;
-                log::info!("Filtering resulted in {} mutants", sampled.len());
+                if !params.skip_validate {
+                    log::info!(
+                        "Filtering and Validation resulted in {} valid mutants",
+                        sampled.len()
+                    );
+                    log::info!("   and {} invalid mutants", invalid.len());
+                } else {
+                    log::info!("Filtering resulted in {} mutants", sampled.len());
+                }
                 (sampled, invalid)
             } else if params.skip_validate {
                 log::info!("Skipping validation");
                 (mutants, vec![])
             } else {
                 let (sampled, invalid) = validator.get_valid_mutants(&mutants);
-                log::info!("Validation resulted in {} mutants", sampled.len());
+                log::info!("Validation resulted in {} valid mutants", sampled.len());
+                log::info!("   and {} invalid mutants", invalid.len());
                 (sampled, invalid)
             };
 
