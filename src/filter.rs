@@ -98,7 +98,7 @@ impl Validator {
     /// validate a mutant by writing it to disk and compiling it. If compilation
     /// fails then this is an invalid mutant.
     pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
-        let source_filename = mutant.source.filename();
+        let source_filename = mutant.path();
         let source_parent_dir = source_filename.parent().unwrap();
         let mutant_file = NamedTempFile::new_in(source_parent_dir)?;
         let mutant_file_path = mutant_file.path();

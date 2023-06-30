@@ -1,31 +1,71 @@
-use crate::{get_indent, Source};
+use crate::{get_indent, Mutator};
 use clap::ValueEnum;
 use num_bigint::BigInt;
 use num_traits::{One, Zero};
 use serde::{Deserialize, Serialize};
-use solang::sema::ast::{Expression, RetrieveType, Statement, Type};
+use solang::{
+    file_resolver::FileResolver,
+    sema::ast::{Expression, Namespace, RetrieveType, Statement, Type},
+};
 use solang_parser::pt::{CodeLocation, Loc};
-use std::{error, fmt::Display, rc::Rc};
+use std::{
+    error,
+    fmt::{Debug, Display},
+    path::PathBuf,
+    rc::Rc,
+    sync::Arc,
+};
+
+/// MutantLoc describes all location-based data of a mutant, including which
+/// file the mutant mutates, the original solang Loc, and the line and column
+/// numbers
+#[derive(Clone)]
+pub struct MutantLoc {
+    pub loc: Loc,
+    pub line_no: usize,
+    pub col_no: usize,
+    pub path: PathBuf,
+}
+
+impl Debug for MutantLoc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MutantLoc")
+            .field("path", &self.path.display())
+            .field("loc", &self.loc)
+            .field("line_no", &self.line_no)
+            .field("col_no", &self.col_no)
+            .finish()
+    }
+}
+
+impl MutantLoc {
+    pub fn new(loc: Loc, resolver: &FileResolver, namespace: Rc<Namespace>) -> MutantLoc {
+        let file = namespace.files.get(loc.file_no()).unwrap();
+        let (_, line_no, col_no, _) = resolver.get_line_and_offset_from_loc(file, &loc);
+        let path = file.path.clone();
+        MutantLoc {
+            loc,
+            line_no,
+            col_no,
+            path,
+        }
+    }
+}
 
 /// This struct describes a mutant.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Mutant {
-    /// The original program's source
-    pub source: Rc<Source>,
+    /// The location of the mutant (including file number, start, and end)
+    pub mutant_loc: MutantLoc,
 
     /// The mutation operator that was applied to generate this mutant
     pub op: MutationType,
 
-    /// The string representation of the original node
+    /// Original file's source
+    pub source: Arc<str>,
+
+    /// Original text to be replaced
     pub orig: String,
-
-    /// The index into the program source marking the beginning (inclusive) of
-    /// the source to be replaced
-    pub start: usize,
-
-    /// The index into the program source marking the end (inclusive) of the
-    /// source to be replaced
-    pub end: usize,
 
     /// The string replacement
     pub repl: String,
@@ -33,21 +73,39 @@ pub struct Mutant {
 
 impl Mutant {
     pub fn new(
-        source: Rc<Source>,
+        resolver: &FileResolver,
+        namespace: Rc<Namespace>,
+        loc: Loc,
         op: MutationType,
-        start: usize,
-        end: usize,
+        orig: String,
         repl: String,
     ) -> Mutant {
-        let orig = String::from_utf8(source.contents()[start..end].to_vec()).unwrap();
-        Mutant {
-            source,
-            op,
-            orig,
-            start,
-            end,
-            repl,
+        if let Loc::File(file_no, _, _) = loc {
+            let source = resolver.get_contents_of_file_no(file_no).unwrap();
+            let mutant_loc = MutantLoc::new(loc, resolver, namespace);
+            Mutant {
+                mutant_loc,
+                op,
+                source,
+                orig,
+                repl,
+            }
+        } else {
+            panic!("Location must be Loc::File(...), but found {:?}", loc)
         }
+    }
+
+    pub fn loc(&self) -> &Loc {
+        &self.mutant_loc.loc
+    }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.mutant_loc.path
+    }
+
+    pub fn get_line_column(&self) -> (usize, usize) {
+        let mloc = &self.mutant_loc;
+        (mloc.line_no, mloc.col_no)
     }
 
     /// Render this mutant as String with the full source file contents
@@ -55,31 +113,37 @@ impl Mutant {
     /// TODO: Cache these contents: this data might be needed multiple times,
     /// and if so this should be cached as it currently involves file IO (though
     /// Source::contents() should also be cached)
-    pub fn as_source_string(&self) -> Result<String, Box<dyn error::Error>> {
-        let contents = self.source.contents();
-        let prelude = &contents[0..self.start];
-        let postlude = &contents[self.end..contents.len()];
+    pub fn mutant_source(&self) -> Result<String, Box<dyn error::Error>> {
+        let loc = self.loc();
+        let start = loc.start();
+        let end = loc.end();
 
-        let res = [prelude, self.repl.as_bytes(), postlude].concat();
-        let mut_string = String::from_utf8(res)?;
+        let contents: Arc<str> = self.source.clone();
+        let orig = &contents[start..end];
+
+        let prelude = &contents[0..start];
+        let postlude = &contents[end..contents.len()];
+
+        let (line_no, _) = self.get_line_column();
+
+        let res = [prelude, self.repl.as_str(), postlude].concat();
+        let mut_string = res;
         let mut lines = mut_string.lines();
 
-        let (line, _) = self.source.get_line_column(self.start)?;
         let mut lines2 = vec![];
-        for _ in 1..line {
+        for _ in 1..line_no {
             lines2.push(lines.next().unwrap());
         }
 
         let mut_line = lines.next().unwrap();
-        let orig_string = String::from_utf8(contents.to_vec())?;
-        let orig_line = orig_string.lines().nth(line - 1).unwrap();
+        let orig_line = contents.lines().nth(line_no - 1).unwrap();
 
         let indent = get_indent(mut_line);
         let comment = format!(
             "{}/// {}(`{}` |==> `{}`) of: `{}`",
             indent,
             self.op.to_string(),
-            self.orig.trim(),
+            orig.trim(),
             self.repl,
             orig_line.trim()
         );
@@ -91,39 +155,46 @@ impl Mutant {
         }
 
         // XXX: this is a hack to avoid trailing newline diffs
-        if contents.last().unwrap() == &b'\n' {
+        if contents.chars().last().unwrap() == '\n' {
             lines2.push("");
         }
         Ok(lines2.join("\n"))
     }
 
-    pub fn get_line_column(&self) -> Result<(usize, usize), Box<dyn error::Error>> {
-        self.source.get_line_column(self.start)
+    pub fn original_source(&self) -> Arc<str> {
+        self.source.clone()
     }
 }
 
 impl Display for Mutant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let contents = self.source.contents();
-        let (start, end) = (self.start, self.end);
-        let orig = &contents[start..end];
-        let repl = &self.repl;
         write!(
             f,
             "{}: {} |==> {}",
             self.op.to_string(),
-            String::from_utf8_lossy(orig),
-            repl
+            &self.orig,
+            &self.repl
         )
+    }
+}
+
+impl Debug for Mutant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Mutant")
+            .field("op", &self.op)
+            .field("orig", &self.orig)
+            .field("repl", &self.repl)
+            .field("mutant_loc", &self.mutant_loc)
+            .finish()
     }
 }
 
 /// Every kind of mutation implements this trait. A mutation can check if it
 /// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
-    fn mutate_statement(&self, _stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant>;
+    fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant>;
 
-    fn mutate_expression(&self, _expr: &Expression, source: &Rc<Source>) -> Vec<Mutant>;
+    fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
 }
 
 /// Kinds of mutations.
@@ -168,35 +239,69 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
-    fn mutate_statement(&self, stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant> {
+    fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant> {
+        let file_no = stmt.loc().file_no();
+        let resolver = &mutator.file_resolver;
+        let ns = mutator
+            .namespace
+            .as_ref()
+            .expect("Cannot mutate an expression without a set namespace")
+            .clone();
+        let contents = resolver.get_contents_of_file_no(file_no).unwrap();
         let loc = stmt.loc();
         if let None = loc.try_file_no() {
             println!("No file");
             return vec![];
         }
         match self {
-            MutationType::StatementDeletion => statement_deletion(self, stmt, source),
+            MutationType::StatementDeletion => {
+                statement_deletion(self, resolver, ns, stmt, &contents)
+            }
             _ => vec![],
         }
     }
 
-    fn mutate_expression(&self, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+    fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
+        let file_no = expr.loc().file_no();
+        let resolver = &mutator.file_resolver;
+        let contents = &resolver.get_contents_of_file_no(file_no).unwrap();
+        let ns = mutator
+            .namespace
+            .as_ref()
+            .expect("Cannot mutate an expression without a set namespace")
+            .clone();
         match self {
             // Binary Operators
-            MutationType::ArithmeticOperatorReplacement => arith_op_replacement(self, expr, source),
-            MutationType::ShiftOperatorReplacement => shift_op_replacement(self, expr, source),
-            MutationType::BitwiseOperatorReplacement => bitwise_op_replacement(self, expr, source),
-            MutationType::RelationalOperatorReplacement => rel_op_replacement(self, expr, source),
-            MutationType::LogicalOperatorReplacement => logical_op_replacement(self, expr, source),
+            MutationType::ArithmeticOperatorReplacement => {
+                arith_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::ShiftOperatorReplacement => {
+                shift_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::BitwiseOperatorReplacement => {
+                bitwise_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::RelationalOperatorReplacement => {
+                rel_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::LogicalOperatorReplacement => {
+                logical_op_replacement(self, resolver, ns, expr, contents)
+            }
             // Other
-            MutationType::LiteralValueReplacement => literal_value_replacement(self, expr, source),
-            MutationType::UnaryOperatorReplacement => unary_op_replacement(self, expr, source),
+            MutationType::LiteralValueReplacement => {
+                literal_value_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::UnaryOperatorReplacement => {
+                unary_op_replacement(self, resolver, ns, expr, contents)
+            }
             MutationType::ExpressionValueReplacement => {
-                expression_value_replacement(self, expr, source)
+                expression_value_replacement(self, resolver, ns, expr, contents)
             }
 
             // Old Operators
-            MutationType::ElimDelegateMutation => elim_delegate_mutation(self, expr, source),
+            MutationType::ElimDelegateMutation => {
+                elim_delegate_mutation(self, resolver, ns, expr, contents)
+            }
             _ => vec![],
         }
     }
@@ -237,7 +342,7 @@ impl MutationType {
 
 /// Find the location of an operator. This is not explicitly represented in an
 /// AST node, so we have to do some digging.
-fn get_op_loc(expr: &Expression, source: &Rc<Source>) -> Loc {
+fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Loc {
     match expr {
         // Regular Binary operator
         Expression::Add { left, right, .. }
@@ -262,13 +367,13 @@ fn get_op_loc(expr: &Expression, source: &Rc<Source>) -> Loc {
             let start = left.loc().end();
             let end = right.loc().start();
             let op = get_operator(expr);
-            let substr = source.contents_between_offsets(start, end);
-            let first_op_char = op.as_bytes().to_vec()[0];
-            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).expect(
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).expect(
                 format!(
                     "Error finding start/end to operator {:?} in substring {}\nExpression: {:?}\nFile: {}, Pos: {:?}",
                     op,
-                    std::str::from_utf8(substr).unwrap_or("UNREADABLE STRING"),
+                    substr,
                     expr,
                     left.loc().file_no(),
                     (start, end)
@@ -285,9 +390,9 @@ fn get_op_loc(expr: &Expression, source: &Rc<Source>) -> Loc {
             let start = base.loc().end();
             let end = exp.loc().start();
             let op = get_operator(expr);
-            let substr = source.contents_between_offsets(start, end);
-            let first_op_char = op.as_bytes().to_vec()[0];
-            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).unwrap();
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
             let op_start = start + (op_offset_in_substr as usize);
             let op_end = op_start + op.len();
             base.loc().with_start(op_start).with_end(op_end)
@@ -312,9 +417,9 @@ fn get_op_loc(expr: &Expression, source: &Rc<Source>) -> Loc {
             let start = cond.loc().end();
             let end = true_option.loc().start();
             let op = get_operator(expr);
-            let substr = source.contents_between_offsets(start, end);
-            let first_op_char = op.as_bytes().to_vec()[0];
-            let op_offset_in_substr = substr.iter().position(|c| *c == first_op_char).unwrap();
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
             let op_start = start + (op_offset_in_substr as usize);
             let op_end = op_start + op.len();
             cond.loc().with_start(op_start).with_end(op_end)
@@ -358,7 +463,13 @@ fn get_operator(expr: &Expression) -> &str {
     }
 }
 
-fn arith_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+fn arith_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    contents: &Arc<str>,
+) -> Vec<Mutant> {
     let loc = expr.loc();
     let arith_op = get_operator(expr);
     let rs = vec!["+", "-", "*", "/", "**", "%"];
@@ -389,19 +500,35 @@ fn arith_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
                     .collect();
             }
 
-            let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
+            let op_loc = get_op_loc(expr, contents);
             replacements
                 .iter()
-                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!("{}", r)))
+                .map(|r| {
+                    Mutant::new(
+                        file_resolver,
+                        namespace.clone(),
+                        op_loc,
+                        op.clone(),
+                        arith_op.to_string(),
+                        format!("{}", r),
+                    )
+                })
                 .collect()
         }
         Expression::Power { .. } => {
-            let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
+            let op_loc = get_op_loc(expr, contents);
             replacements
                 .iter()
-                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .map(|r| {
+                    Mutant::new(
+                        file_resolver,
+                        namespace.clone(),
+                        op_loc,
+                        op.clone(),
+                        arith_op.to_string(),
+                        format!(" {} ", r),
+                    )
+                })
                 .collect()
         }
         _ => vec![],
@@ -410,8 +537,10 @@ fn arith_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
 
 fn bitwise_op_replacement(
     op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
     expr: &Expression,
-    source: &Rc<Source>,
+    source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
     if let None = loc.try_file_no() {
@@ -420,34 +549,34 @@ fn bitwise_op_replacement(
     match expr {
         Expression::BitwiseOr { .. } => {
             let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
             vec![Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace,
+                op_loc,
                 op.clone(),
-                start,
-                end,
+                "|".to_string(),
                 "&".to_string(),
             )]
         }
         Expression::BitwiseAnd { .. } => {
             let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
             vec![Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace,
+                op_loc,
                 op.clone(),
-                start,
-                end,
+                "&".to_string(),
                 "|".to_string(),
             )]
         }
         Expression::BitwiseXor { .. } => {
             let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
             vec![Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace,
+                op_loc,
                 op.clone(),
-                start,
-                end,
+                "^".to_string(),
                 "&".to_string(),
             )]
         }
@@ -455,7 +584,13 @@ fn bitwise_op_replacement(
     }
 }
 
-fn shift_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+fn shift_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
     let loc = expr.loc();
     if let None = loc.try_file_no() {
         return vec![];
@@ -463,23 +598,23 @@ fn shift_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
     match expr {
         Expression::ShiftLeft { .. } => {
             let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
             vec![Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace,
+                op_loc,
                 op.clone(),
-                start,
-                end,
+                "<<".to_string(),
                 ">>".to_string(),
             )]
         }
         Expression::ShiftRight { .. } => {
             let op_loc = get_op_loc(expr, source);
-            let (start, end) = (op_loc.start(), op_loc.end());
             vec![Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace,
+                op_loc,
                 op.clone(),
-                start,
-                end,
+                ">>".to_string(),
                 "<<".to_string(),
             )]
         }
@@ -487,7 +622,13 @@ fn shift_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
     }
 }
 
-fn unary_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+fn unary_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
     let loc = expr.loc();
     let bitwise_op = get_operator(expr);
     let rs = vec!["-", "~"];
@@ -497,12 +638,20 @@ fn unary_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
         return vec![];
     }
     let muts = match expr {
-        Expression::BitwiseNot { expr: rand, .. } | Expression::Negate { expr: rand, .. } => {
-            let start = expr.loc().start();
-            let end = rand.loc().start();
+        Expression::BitwiseNot { expr, .. } | Expression::Negate { expr, .. } => {
+            let op_loc = get_op_loc(expr, source);
             let muts = replacements
                 .iter()
-                .map(|r| Mutant::new(source.clone(), op.clone(), start, end, format!(" {} ", r)))
+                .map(|r| {
+                    Mutant::new(
+                        file_resolver,
+                        namespace.clone(),
+                        op_loc,
+                        op.clone(),
+                        "~".to_string(),
+                        format!(" {} ", r),
+                    )
+                })
                 .collect();
             muts
         }
@@ -511,7 +660,13 @@ fn unary_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source
     muts
 }
 
-fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>) -> Vec<Mutant> {
+fn rel_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
     let loc = expr.loc();
     if let None = loc.try_file_no() {
         return vec![];
@@ -553,23 +708,41 @@ fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>)
         _ => return vec![],
     };
 
-    // Now, apply the replacements
+    // Now, apply the replacements. Some replacements will replace the entire
+    // expression, while others will replace only the operator.
     let mut mutants = vec![];
-    let expr_start = expr.loc().start();
-    let expr_end = expr.loc().end();
-    let op_loc = get_op_loc(expr, source);
-    let op_start = op_loc.start();
-    let op_end = op_loc.end();
+    let expr_start = loc.start();
+    let expr_end = loc.end();
+    let expr_string = &source[expr_start..expr_end].to_string();
+
+    let rel_op_loc = get_op_loc(expr, source);
+    let rel_op_start = rel_op_loc.start();
+    let rel_op_end = rel_op_loc.end();
+    let rel_op_string = source[rel_op_start..rel_op_end].to_string();
     for r in replacements {
         mutants.push(match r {
+            // true and false replacements replace the entire expression, so use
+            // the expression's location (`loc`) and the expression's raw strin
+            // (`expr_string`)
             "true" | "false" => Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace.clone(),
+                loc,
                 op.clone(),
-                expr_start,
-                expr_end,
+                expr_string.to_string(),
                 r.to_string(),
             ),
-            _ => Mutant::new(source.clone(), op.clone(), op_start, op_end, r.to_string()),
+            // other replacements replace only the relational operator, so use
+            // the rel op location (`rel_op_loc`) and the rel op's raw string
+            // (`expr_string`)
+            _ => Mutant::new(
+                file_resolver,
+                namespace.clone(),
+                rel_op_loc,
+                op.clone(),
+                rel_op_string.clone(),
+                r.to_string(),
+            ),
         });
     }
     mutants
@@ -577,45 +750,54 @@ fn rel_op_replacement(op: &MutationType, expr: &Expression, source: &Rc<Source>)
 
 fn logical_op_replacement(
     op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
     expr: &Expression,
-    source: &Rc<Source>,
+    source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
     if let None = loc.try_file_no() {
         return vec![];
     }
 
+    // First, compile a list of replacements for this logical operator. Each replacement is either
+    // LHS, RHS, true, or false, as well as the location of the replacing
+    // expression (this is only used for RHS and LHS, since we need to compute
+    // the replacement value)
     let replacements = match expr {
-        Expression::And { left, right, .. } => vec![
-            ("LHS", left.loc().start(), left.loc().end()),
-            ("RHS", right.loc().start(), right.loc().end()),
-            ("false", 0, 0),
-        ],
-        Expression::Or { left, right, .. } => vec![
-            ("LHS", left.loc().start(), left.loc().end()),
-            ("RHS", right.loc().start(), right.loc().end()),
-            ("true", 0, 0),
-        ],
-        _ => vec![],
+        Expression::And { left, right, .. } => {
+            vec![("LHS", left.loc()), ("RHS", right.loc()), ("false", loc)]
+        }
+        Expression::Or { left, right, .. } => {
+            vec![("LHS", left.loc()), ("RHS", right.loc()), ("true", loc)]
+        }
+        _ => {
+            return vec![];
+        }
     };
 
-    // Now, apply the replacements
+    // Now, apply each replacement to create a mutant
     let mut mutants = vec![];
-    let expr_start = expr.loc().start();
-    let expr_end = expr.loc().end();
-    for (r, s, e) in replacements {
+    let orig = source[loc.start()..loc.end()].to_string();
+    for (r, sub_loc) in replacements {
         mutants.push(match r {
             "LHS" | "RHS" => {
-                let repl = std::str::from_utf8(source.contents_between_offsets(s, e))
-                    .unwrap()
-                    .to_string();
-                Mutant::new(source.clone(), op.clone(), expr_start, expr_end, repl)
+                let repl = source[sub_loc.start()..sub_loc.end()].to_string();
+                Mutant::new(
+                    file_resolver,
+                    namespace.clone(),
+                    loc,
+                    op.clone(),
+                    orig.clone(),
+                    repl,
+                )
             }
             "true" | "false" => Mutant::new(
-                source.clone(),
+                file_resolver,
+                namespace.clone(),
+                loc,
                 op.clone(),
-                expr_start,
-                expr_end,
+                orig.clone(),
                 r.to_string(),
             ),
             _ => panic!("Illegal State"),
@@ -626,10 +808,13 @@ fn logical_op_replacement(
 
 fn literal_value_replacement(
     op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
     expr: &Expression,
-    source: &Rc<Source>,
+    source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
+    let orig = source[loc.start()..loc.end()].to_string();
     if let None = loc.try_file_no() {
         return vec![];
     }
@@ -665,21 +850,28 @@ fn literal_value_replacement(
         _ => vec![],
     };
     let mut mutants = vec![];
-    let expr_start = expr.loc().start();
-    let expr_end = expr.loc().end();
     for r in replacements {
         mutants.push(Mutant::new(
-            source.clone(),
+            file_resolver,
+            namespace.clone(),
+            loc,
             op.clone(),
-            expr_start,
-            expr_end,
+            orig.clone(),
             r.clone(),
         ));
     }
     mutants
 }
 
-fn statement_deletion(op: &MutationType, stmt: &Statement, source: &Rc<Source>) -> Vec<Mutant> {
+fn statement_deletion(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    stmt: &Statement,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = stmt.loc();
+    let orig = source[loc.start()..loc.end()].to_string();
     match stmt {
         // Do not delete complex/nested statements
         Statement::Block { .. }
@@ -695,27 +887,29 @@ fn statement_deletion(op: &MutationType, stmt: &Statement, source: &Rc<Source>) 
         // Also, do not mutate underscore statement
         Statement::Underscore(_) => vec![],
 
-        Statement::Expression(loc, ..)
-        | Statement::Delete(loc, ..)
-        | Statement::Continue(loc)
-        | Statement::Break(loc)
-        | Statement::Revert { loc, .. }
-        | Statement::Emit { loc, .. } => vec![Mutant::new(
-            source.clone(),
+        Statement::Expression(..)
+        | Statement::Delete(..)
+        | Statement::Continue(..)
+        | Statement::Break(..)
+        | Statement::Revert { .. }
+        | Statement::Emit { .. } => vec![Mutant::new(
+            file_resolver,
+            namespace,
+            loc,
             op.clone(),
-            loc.start(),
-            loc.end(),
+            orig,
             "assert(true)".to_string(),
         )],
 
         // Returns are special: we should perform some analysis to figure out if
         // we can delete this without making an invalid program. For now we
         // delete and hope for the best :)
-        Statement::Return(loc, _) => vec![Mutant::new(
-            source.clone(),
+        Statement::Return(..) => vec![Mutant::new(
+            file_resolver,
+            namespace,
+            loc,
             op.clone(),
-            loc.start(),
-            loc.end(),
+            orig,
             "assert(true)".to_string(),
         )],
     }
@@ -724,8 +918,10 @@ fn statement_deletion(op: &MutationType, stmt: &Statement, source: &Rc<Source>) 
 #[allow(dead_code)]
 fn elim_delegate_mutation(
     _op: &MutationType,
+    _file_resolver: &FileResolver,
+    _namespace: Rc<Namespace>,
     _expr: &Expression,
-    _source: &Rc<Source>,
+    _source: &Arc<str>,
 ) -> Vec<Mutant> {
     // TODO: implement
     vec![]
@@ -734,8 +930,10 @@ fn elim_delegate_mutation(
 #[allow(dead_code)]
 fn expression_value_replacement(
     _op: &MutationType,
+    _file_resolver: &FileResolver,
+    _namespace: Rc<Namespace>,
     _expr: &Expression,
-    _source: &Rc<Source>,
+    _source: &Arc<str>,
 ) -> Vec<Mutant> {
     // TODO: implement
     vec![]
@@ -775,11 +973,11 @@ fn expression_value_replacement(
 #[cfg(test)]
 mod test {
     use crate::test_util::*;
-    use crate::{MutationType, MutationType::*, Mutator, MutatorConf, Solc, Source};
+    use crate::{MutationType, MutationType::*, Mutator, MutatorConf, Solc};
+    use solang::file_resolver::FileResolver;
     use std::collections::HashSet;
+    use std::error;
     use std::path::PathBuf;
-    use std::rc::Rc;
-    use std::{error, path::Path};
     use tempfile::Builder;
 
     #[test]
@@ -841,21 +1039,22 @@ contract A {
     fn assert_num_mutants_for_statements(
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
-        expected: usize,
+        _expected: usize,
     ) {
-        let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
-        assert_eq!(
-            expected,
-            mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-            ops,
-            statements.join("   "),
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
-        );
+        let _mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
+        panic!();
+        // assert_eq!(
+        //     expected,
+        //     mutator.mutants().len(),
+        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+        //     ops,
+        //     statements.join("   "),
+        //     mutator
+        //         .filenames()
+        //         .iter()
+        //         .map(|s| PathBuf::from(s).as_path())
+        //         .collect::<Vec<&Path>>()
+        // );
     }
 
     #[allow(dead_code)]
@@ -865,22 +1064,23 @@ contract A {
         expected: &Vec<&str>,
     ) {
         let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
-        assert_eq!(
-            expected.len(),
-            mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-            ops,
-            statements.join("   "),
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
-        );
+        panic!();
+        // assert_eq!(
+        //     expected.len(),
+        //     mutator.mutants().len(),
+        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+        //     ops,
+        //     statements.join("   "),
+        //     mutator
+        //         .filenames()
+        //         .iter()
+        //         .map(|s| PathBuf::from(s).as_path())
+        //         .collect::<Vec<&Path>>()
+        // );
 
-        let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
-        let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
-        assert_eq!(actuals, expected);
+        // let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
+        // let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
+        // assert_eq!(actuals, expected);
     }
 
     fn apply_mutation_to_statements(
@@ -894,7 +1094,7 @@ contract A {
             .rand_bytes(5)
             .tempdir()?;
         let mut mutator = make_mutator(ops, source, outdir.into_path());
-        let sources = mutator.sources().clone();
+        let sources = mutator.filenames().clone();
         mutator.mutate(sources)?;
 
         Ok(mutator)
@@ -902,18 +1102,19 @@ contract A {
 
     fn _assert_num_mutants_for_source(source: &str, ops: &Vec<MutationType>, expected: usize) {
         let mutator = apply_mutation_to_source(source, ops).unwrap();
-        assert_eq!(
-            expected,
-            mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
-            ops,
-            source,
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
-        );
+        panic!();
+        // assert_eq!(
+        //     expected,
+        //     mutator.mutants().len(),
+        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
+        //     ops,
+        //     source,
+        //     mutator
+        //         .filenames()
+        //         .iter()
+        //         .map(|s| PathBuf::from(s).as_path())
+        //         .collect::<Vec<&Path>>()
+        // );
     }
 
     fn assert_exact_mutants_for_source(
@@ -922,18 +1123,19 @@ contract A {
         expected: &Vec<&str>,
     ) {
         let mutator = apply_mutation_to_source(source, ops).unwrap();
-        assert_eq!(
-            expected.len(),
-            mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-            ops,
-            source,
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
-        );
+        panic!();
+        // assert_eq!(
+        //     expected.len(),
+        //     mutator.mutants().len(),
+        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+        //     ops,
+        //     source,
+        //     mutator
+        //         .filenames()
+        //         .iter()
+        //         .map(|s| PathBuf::from(s).as_path())
+        //         .collect::<Vec<&Path>>()
+        // );
 
         let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
         let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
@@ -950,7 +1152,7 @@ contract A {
             .rand_bytes(5)
             .tempdir()?;
         let mut mutator = make_mutator(ops, source, outdir.into_path());
-        let sources = mutator.sources().clone();
+        let sources = mutator.filenames().clone();
         mutator.mutate(sources)?;
 
         Ok(mutator)
@@ -966,10 +1168,8 @@ contract A {
         };
         let sourceroot = filename.parent().unwrap();
 
-        let source = Source::new(filename.clone(), sourceroot.to_path_buf())
-            .expect(format!("Could not build source from {}", filename.display()).as_str());
-        let sources = vec![Rc::new(source)];
+        let sources = vec![filename.to_str().unwrap().to_string()];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
-        Mutator::new(conf, sources, solc)
+        Mutator::new(conf, FileResolver::new(), sources, solc)
     }
 }

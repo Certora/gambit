@@ -19,10 +19,8 @@ pub use mutant_writer::*;
 mod mutator;
 pub use mutator::*;
 
-mod source;
-pub use source::*;
-
 mod summary;
+use solang_parser::pt::Loc;
 pub use summary::*;
 
 mod test_util;
@@ -117,7 +115,7 @@ pub fn run_mutate(
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);
             log::info!("Generating mutants");
-            let sources = mutator.sources().clone();
+            let sources = mutator.filenames().clone();
             let mutants = mutator.mutate(sources)?.clone();
             log::info!(
                 "(pre filter/validate) Generated {} mutants for {}",
@@ -170,13 +168,20 @@ pub fn run_mutate(
                 let invalid_log = &outdir_path.join("invalid.log");
                 let mut w = Writer::from_path(invalid_log)?;
                 for (i, mutant) in invalid.iter().enumerate() {
+                    let mutant_loc = &mutant.mutant_loc;
+                    let file_no = match mutant_loc.loc {
+                        Loc::File(file_no, _, _) => file_no,
+                        _ => panic!(),
+                    };
+                    let ns = &mutator.namespace.clone().unwrap();
+                    let file = ns.files.get(file_no).unwrap();
+                    let (line_no, col_no) = mutant.get_line_column();
                     let mid = i + 1;
-                    let (lineno, colno) = mutant.get_line_column()?;
-                    let line_col = format!("{}:{}", lineno, colno);
+                    let line_col = format!("{}:{}", line_no, col_no);
                     w.write_record([
                         mid.to_string().as_str(),
                         mutant.op.short_name().as_str(),
-                        mutant.source.relative_filename()?.to_str().unwrap(),
+                        file.path.to_str().unwrap(),
                         line_col.as_str(),
                         mutant.orig.as_str(),
                         mutant.repl.as_str(),

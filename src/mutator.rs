@@ -1,16 +1,17 @@
 use crate::{
     default_gambit_output_directory, mutation::MutationType, normalize_mutation_operator_name,
-    source::Source, Mutant, MutateParams, Mutation, Solc,
+    Mutant, MutateParams, Mutation, Solc,
 };
 use clap::ValueEnum;
 use solang::{
     file_resolver::FileResolver,
     parse_and_resolve,
     sema::{
-        ast::{Expression, Statement},
+        ast::{Expression, Namespace, Statement},
         Recurse,
     },
 };
+use solang_parser::pt::CodeLocation;
 use std::{
     error,
     ffi::{OsStr, OsString},
@@ -62,16 +63,16 @@ pub struct Mutator {
     pub conf: MutatorConf,
 
     /// The original sources
-    pub sources: Vec<Rc<Source>>,
+    pub filenames: Vec<String>,
 
     /// The mutants, in order of generation
     pub mutants: Vec<Mutant>,
 
-    /// The current source being mutated
-    pub current_source: Option<Rc<Source>>,
-
     /// The file resolver
     pub file_resolver: FileResolver,
+
+    /// The namespace being mutated
+    pub namespace: Option<Rc<Namespace>>,
 
     /// A temporary directory to store intermediate work
     _tmp: PathBuf,
@@ -81,9 +82,8 @@ impl std::fmt::Debug for Mutator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Mutator")
             .field("conf", &self.conf)
-            .field("sources", &self.sources)
+            .field("file_names", &self.filenames)
             .field("mutants", &self.mutants)
-            .field("current_source", &self.current_source)
             .field("_tmp", &self._tmp)
             .finish()
     }
@@ -111,49 +111,42 @@ impl From<&MutateParams> for Mutator {
             solc.with_remappings(remappings);
         }
 
-        let sourceroot = match &value.sourceroot {
-            Some(sourceroot) => PathBuf::from(sourceroot),
-            None => {
-                // Attempt to use CWD as the sourceroot. Ensuer that the
-                // filename belongs to (is prefixed by) the sourceroot
-                let sourceroot = PathBuf::from(".").canonicalize().unwrap();
-                let filename = &value
-                    .filename
-                    .as_ref()
-                    .unwrap_or_else(|| panic!("Found unresolved filename in params: {:?}", value));
-                let filepath = PathBuf::from(filename).canonicalize().unwrap();
-                if !&filepath.starts_with(&sourceroot) {
-                    panic!("Unresolved sourceroot! Attempted to use the current working directory {} but filename {} was not a descendent.", sourceroot.display(), filepath.display());
-                }
+        // let sourceroot = match &value.sourceroot {
+        //     Some(sourceroot) => PathBuf::from(sourceroot),
+        //     None => {
+        //         // Attempt to use CWD as the sourceroot. Ensuer that the
+        //         // filename belongs to (is prefixed by) the sourceroot
+        //         let sourceroot = PathBuf::from(".").canonicalize().unwrap();
+        //         let filename = &value
+        //             .filename
+        //             .as_ref()
+        //             .unwrap_or_else(|| panic!("Found unresolved filename in params: {:?}", value));
+        //         let filepath = PathBuf::from(filename).canonicalize().unwrap();
+        //         if !&filepath.starts_with(&sourceroot) {
+        //             panic!("Unresolved sourceroot! Attempted to use the current working directory {} but filename {} was not a descendent.", sourceroot.display(), filepath.display());
+        //         }
 
-                sourceroot
-            }
-        };
+        //         sourceroot
+        //     }
+        // };
 
-        let mut sources: Vec<Rc<Source>> = vec![];
+        let mut filenames: Vec<String> = vec![];
         if let Some(filename) = &value.filename {
             log::info!("Creating Source from filename: {}", filename);
-            sources.push(Rc::new(
-                Source::new(filename.into(), sourceroot)
-                    .unwrap_or_else(|_| panic!("Couldn't read source {}", filename)),
-            ))
+            filenames.push(filename.clone());
         }
 
-        let mut mutator = Mutator::new(conf, sources, solc);
+        let mut file_resolver = FileResolver::new();
 
         // Add base path to file resolver
         match &value.solc_base_path {
             Some(base_path) => {
-                mutator
-                    .file_resolver
+                file_resolver
                     .add_import_path(&PathBuf::from(base_path))
                     .unwrap();
             }
             None => {
-                mutator
-                    .file_resolver
-                    .add_import_path(&PathBuf::from("."))
-                    .unwrap();
+                file_resolver.add_import_path(&PathBuf::from(".")).unwrap();
             }
         }
 
@@ -164,30 +157,35 @@ impl From<&MutateParams> for Mutator {
                 if split_rm.len() != 2 {
                     panic!("Invalid remapping: {}", rm);
                 }
-                mutator
-                    .file_resolver
+                file_resolver
                     .add_import_map(OsString::from(split_rm[0]), PathBuf::from(split_rm[1]))
                     .unwrap();
             }
         }
+        let mutator = Mutator::new(conf, file_resolver, filenames, solc);
         mutator
     }
 }
 
 impl Mutator {
-    pub fn new(conf: MutatorConf, sources: Vec<Rc<Source>>, solc: Solc) -> Mutator {
+    pub fn new(
+        conf: MutatorConf,
+        file_resolver: FileResolver,
+        filenames: Vec<String>,
+        solc: Solc,
+    ) -> Mutator {
         log::info!(
             "Creating mutator:\n   conf: {:#?}\n    sources: {:?}\n    solc: {:#?}",
             conf,
-            sources,
+            filenames,
             solc
         );
         Mutator {
             conf,
-            sources,
+            filenames,
             mutants: vec![],
-            current_source: None,
-            file_resolver: FileResolver::new(),
+            file_resolver,
+            namespace: None,
             _tmp: "".into(),
         }
     }
@@ -206,19 +204,19 @@ impl Mutator {
     /// be further validated, suppressed, and downsampled as desired.
     pub fn mutate(
         &mut self,
-        sources: Vec<Rc<Source>>,
+        filenames: Vec<String>,
     ) -> Result<&Vec<Mutant>, Box<dyn error::Error>> {
         let mut mutants: Vec<Mutant> = vec![];
 
-        for source in sources.iter() {
-            log::info!("Mutating source {}", source.filename().display());
+        for filename in filenames.iter() {
+            log::info!("Mutating file {}", filename);
 
-            match self.mutate_file(&source) {
+            match self.mutate_file(&filename) {
                 Ok(file_mutants) => {
-                    log::info!("    Generated {} mutants from source", file_mutants.len());
+                    log::info!("    Generated {} mutants from file", file_mutants.len());
                 }
                 Err(e) => {
-                    log::warn!("Couldn't mutate source {}", source.filename().display());
+                    log::warn!("Couldn't mutate file {}", filename);
                     log::warn!("Encountered error: {}", e);
                 }
             }
@@ -229,19 +227,19 @@ impl Mutator {
     }
 
     /// Mutate a single file.
-    fn mutate_file(&mut self, source: &Rc<Source>) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
-        self.current_source = Some(source.clone());
-        let ns = parse_and_resolve(
-            &OsStr::new(source.filename()),
+    fn mutate_file(&mut self, filename: &String) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+        let ns = Rc::new(parse_and_resolve(
+            &OsStr::new(filename),
             &mut self.file_resolver,
             solang::Target::EVM,
-        );
+        ));
+        self.namespace = Some(ns.clone());
         // mutate functions
         for function in ns.functions.iter() {
             let file = ns.files.get(function.loc.file_no());
             match file {
                 Some(file) => {
-                    if file.file_name() != source.filename().to_str().unwrap().to_string() {
+                    if &file.file_name() != filename {
                         continue;
                     }
                 }
@@ -255,6 +253,7 @@ impl Mutator {
                 }
             }
         }
+        self.namespace = None;
         Ok(self.mutants.clone())
     }
 
@@ -263,26 +262,25 @@ impl Mutator {
         &self.mutants
     }
 
-    pub fn sources(&self) -> &Vec<Rc<Source>> {
-        &self.sources
+    pub fn filenames(&self) -> &Vec<String> {
+        &self.filenames
     }
 
     pub fn apply_operators_to_expression(&mut self, expr: &Expression) {
-        if let Some(source) = &self.current_source {
+        if let Some(_) = expr.loc().try_file_no() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
-                mutants.append(&mut op.mutate_expression(expr, source));
+                mutants.append(&mut op.mutate_expression(self, expr));
             }
             self.mutants.append(&mut mutants);
         }
     }
 
     pub fn apply_operators_to_statement(&mut self, stmt: &Statement) {
-        log::debug!("applying ops {:?} to {:?}", self.mutation_operators(), stmt);
-        if let Some(source) = &self.current_source {
+        if let Some(_) = stmt.loc().try_file_no() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
-                mutants.append(&mut op.mutate_statement(stmt, source));
+                mutants.append(&mut op.mutate_statement(self, stmt));
             }
             self.mutants.append(&mut mutants);
         }

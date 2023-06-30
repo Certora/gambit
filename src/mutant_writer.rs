@@ -50,12 +50,12 @@ impl MutantWriter {
 
         for (i, (mutant, _)) in mutants.iter().enumerate() {
             let mid = i + 1;
-            let (lineno, colno) = mutant.get_line_column()?;
+            let (lineno, colno) = mutant.get_line_column();
             let line_col = format!("{}:{}", lineno, colno);
             w.write_record([
                 mid.to_string().as_str(),
                 mutant.op.short_name().as_str(),
-                mutant.source.relative_filename()?.to_str().unwrap(),
+                mutant.path().to_str().unwrap(),
                 line_col.as_str(),
                 mutant.orig.as_str(),
                 mutant.repl.as_str(),
@@ -75,14 +75,14 @@ impl MutantWriter {
         let mut json: Vec<serde_json::Value> = Vec::new();
         for (i, ((mutant, _), diff)) in mutants.iter().zip(diffs).enumerate() {
             let mid = i + 1;
-            let sourceroot = mutant.source.sourceroot().to_str().unwrap().to_string();
+            let sourceroot = ""; // mutant.source.sourceroot().to_str().unwrap().to_string();
             json.push(serde_json::json!({
                 "name": Self::get_mutant_filename(&PathBuf::from("mutants"), mid, mutant),
                 "description": mutant.op.to_string(),
                 "id": mid.to_string(),
                 "diff": diff,
                 "sourceroot": sourceroot,
-                "original": mutant.source.relative_filename()?,
+                "original": mutant.path(),
             }));
         }
 
@@ -110,8 +110,8 @@ impl MutantWriter {
         mutants_dir: &Path,
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
-        let filename = mutants_dir.join(mutant.source.filename().file_name().unwrap());
-        let mutant_contents = mutant.as_source_string()?;
+        let filename = mutants_dir.join(mutant.path().to_str().unwrap());
+        let mutant_contents = mutant.mutant_source()?;
 
         log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
 
@@ -131,7 +131,7 @@ impl MutantWriter {
         filename: &Path,
         mutant: &Mutant,
     ) -> Result<(), Box<dyn error::Error>> {
-        let mutant_contents = mutant.as_source_string()?;
+        let mutant_contents = mutant.mutant_source()?;
 
         log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
 
@@ -160,7 +160,7 @@ impl MutantWriter {
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
         let filename = Self::get_mutant_filename(mutants_dir, mid, mutant);
-        let mutant_contents = mutant.as_source_string()?;
+        let mutant_contents = mutant.mutant_source()?;
 
         log::debug!(
             "Writing mutant (mid={}) {:?} to {}",
@@ -180,13 +180,8 @@ impl MutantWriter {
     /// This is computed from the relative path of the original sourcefile, relative to
     /// the specified `sourceroot`, and is computed with `Source.relative_filename()`
     fn get_mutant_filename(mutants_dir: &Path, mid: usize, mutant: &Mutant) -> PathBuf {
-        let rel_filename = match mutant.source.relative_filename() {
-            Ok(rel_fn) => rel_fn,
-            Err(e) => panic!(
-                "Error getting relative filename from {:?}\n\nError:{:?}",
-                &mutant.source, e
-            ),
-        };
+        // TODO: Make this a relative file name
+        let rel_filename = mutant.path();
         mutants_dir
             .join(Path::new(&mid.to_string()))
             .join(rel_filename)
@@ -194,8 +189,8 @@ impl MutantWriter {
 
     /// Get the diff of the mutant and the original file
     fn diff_mutant(mutant: &Mutant) -> Result<String, Box<dyn error::Error>> {
-        let orig_contents: String = String::from_utf8_lossy(mutant.source.contents()).into();
-        let mutant_contents = mutant.as_source_string().unwrap();
+        let orig_contents = mutant.original_source().to_string();
+        let mutant_contents = mutant.mutant_source().unwrap();
 
         let diff = TextDiff::from_lines(&orig_contents, &mutant_contents)
             .unified_diff()
