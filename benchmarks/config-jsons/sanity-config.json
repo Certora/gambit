@@ -2,7 +2,7 @@
     {
         "filename": "../BinaryOpMutation/BinaryOpMutation.sol",
         "solc": "solc",
-        "num-mutants": 1,
+        "num_mutants": 1,
         "mutations": [
             "binary-op-mutation"
         ],

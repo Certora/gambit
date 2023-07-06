@@ -5,5 +5,5 @@
         "swap-arguments-operator-mutation"
     ],
     "sourceroot": "..",
-    "solc-optimize": true
+    "solc_optimize": true
 }

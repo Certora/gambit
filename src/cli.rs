@@ -59,8 +59,8 @@ fn default_num_mutants() -> Option<usize> {
 /// Only one filename can be specified from command line at a time, but multiple
 /// files can be specified in a configuration.
 #[derive(Debug, Clone, Parser, Deserialize, Serialize)]
-#[command(rename_all = "kebab-case")]
-#[serde(rename_all = "kebab-case", deny_unknown_fields)]
+#[command(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
 pub struct MutateParams {
     /// Json file with config
     #[arg(long, short, conflicts_with = "filename")]

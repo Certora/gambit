@@ -99,7 +99,7 @@ use the `--sourceroot` option._
 
 The above command produced 34 mutants which may be more than you need. Gambit
 provides a way to randomly downsample the number of mutants with the
-`--num-mutants` or `-n` option:
+`--num_mutants` or `-n` option:
 
 ```bash
 gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
@@ -152,29 +152,29 @@ For projects that have complex dependencies and imports, you may need to:
   argument, use `--solc-base-path`:
 
   ```bash
-  cargo gambit path/to/file.sol --solc-base-path base/path/dir/.
+  cargo gambit path/to/file.sol --solc_base_path base/path/dir/.
   ```
 
 * **Specify remappings:** To indicate where Solidity should find libraries,
-  use solc's [import remapping][remapping] syntax with `--solc-remappings`:
+  use solc's [import remapping][remapping] syntax with `--solc_remappings`:
 
   ```bash
   gambit mutate path/to/file.sol \
-    --solc-remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
+    --solc_remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
 * **Specify allow-paths:** To include additional allowed paths via solc's
-  [--allow-paths][allowed] argument, use `--solc-allow-paths`:
+  [--allow-paths][allowed] argument, use `--solc_allow_paths`:
 
   ```bash
-  gambit mutatepath/to/file.sol --solc-allowpaths PATH1 --solc-allowpaths PATH2 ...
+  gambit mutatepath/to/file.sol --solc_allowpaths PATH1 --solc_allowpaths PATH2 ...
   ```
 
 * **Use optimization:** To run the solidity compiler with optimizations (solc's
-  `--optimize` argument), use `--solc-optimize`:
+  `--optimize` argument), use `--solc_optimize`:
 
   ```bash
-  gambit mutate path/to/file.sol --solc-optimize
+  gambit mutate path/to/file.sol --solc_optimize
   ```
 
 [remapping]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#import-remapping
@@ -272,7 +272,7 @@ The configuration file is a JSON file containing the command line arguments for
 {
     "filename": "../10Power/TenPower.sol",
     "sourceroot": "..",
-    "solc-remappings": [
+    "solc_remappings": [
         "@openzeppelin=node_modules/@openzeppelin"
     ],
 }
@@ -292,7 +292,7 @@ multiple mutations at once. Gambit uses a simple JSON object format to store
 mutation options, where each `--option VALUE` specified on the CLI is
 represented as a `"option": VALUE` key/value pair in the JSON object.  Boolean
 `--flag`s are enabled by storing them as true: `"flag": true`. For instance,
-`--no-overwrite` would be written as `"no-overwrite": true"`.
+`--no_overwrite` would be written as `"no_overwrite": true"`.
 
 As an example, consider the command from Example 1:
 
@@ -320,7 +320,7 @@ a single JSON object, your configuration file should contain an array of objects
         "contract": "C",
         "functions": ["bar", "baz"],
         "solc": "solc8.12",
-        "solc-optimize": true
+        "solc_optimize": true
     },
     {
         "filename": "Blip.sol",
@@ -390,10 +390,10 @@ This has the following structure:
 | Option                | Description                                                                                                                  |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
 | `-o`, `--outdir`      | specify Gambit's output directory (defaults to `gambit_out`)                                                                 |
-| `--no-overwrite`      | do not overwrite an output directory; if the output directory exists, print an error and exit                                |
-| `-n`, `--num-mutants` | randomly downsample to a given number of mutants.                                                                            |
+| `--no_overwrite`      | do not overwrite an output directory; if the output directory exists, print an error and exit                                |
+| `-n`, `--num_mutants` | randomly downsample to a given number of mutants.                                                                            |
 | `-s`, `--seed`        | specify a random seed. For reproducability, Gambit defaults to using the seed `0`. To randomize the seed use `--random-seed` |
-| `--random-seed`       | use a random seed. Note this overrides any value specified by `--seed`                                                       |
+| `--random_seed`       | use a random seed. Note this overrides any value specified by `--seed`                                                       |
 | `--contract`          | specify a specific contract name to mutate; by default mutate all contracts                                                  |
 | `--functions`         | specify one or more functions to mutate; by default mutate all functions                                                     |
 | `--mutations`         | specify one or more mutation operators to use; only generates mutants that are created using the specified operators         |
@@ -403,9 +403,9 @@ passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 
 | Option               | Description                                                                   |
 | :------------------- | :---------------------------------------------------------------------------- |
-| `--solc-base-path`   | passes a value to solc's `--base-path` argument                               |
-| `--solc-allow-paths` | passes a value to solc's `--allow-paths` argument                             |
-| `--solc-remapping`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
+| `--solc_base_path`   | passes a value to solc's `--base-path` argument                               |
+| `--solc_allow_paths` | passes a value to solc's `--allow-paths` argument                             |
+| `--solc_remapping`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
