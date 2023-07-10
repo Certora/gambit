@@ -228,18 +228,25 @@ impl Mutator {
 
     /// Mutate a single file.
     fn mutate_file(&mut self, filename: &String) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+        log::info!("Parsing file {}", filename);
         let ns = Rc::new(parse_and_resolve(
             &OsStr::new(filename),
             &mut self.file_resolver,
             solang::Target::EVM,
         ));
+        log::info!("Parsed namespace with:");
+        log::info!("    {} files", ns.files.len());
+        log::info!("    {} contracts", ns.contracts.len());
+        log::info!("    {} functions", ns.functions.len());
         self.namespace = Some(ns.clone());
+
+        let file_path = PathBuf::from(filename);
         // mutate functions
         for function in ns.functions.iter() {
             let file = ns.files.get(function.loc.file_no());
             match file {
                 Some(file) => {
-                    if &file.file_name() != filename {
+                    if &file.path != &file_path {
                         continue;
                     }
                 }
@@ -248,6 +255,7 @@ impl Mutator {
                 }
             }
             if function.has_body {
+                log::info!("Processing function body");
                 for statement in function.body.iter() {
                     statement.recurse(self, mutate_statement);
                 }
