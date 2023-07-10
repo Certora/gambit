@@ -49,7 +49,7 @@ jobs:
 
       - name: Rename gambit binary
         # if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
-        run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
+        run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-2004
 
       - name: Upload artifact to action
         uses: actions/upload-artifact@v3
