@@ -4,6 +4,6 @@
         "binary-op-mutation",
         "swap-arguments-operator-mutation"
     ],
-    "solc-optimize": true,
+    "solc_optimize": true,
     "sourceroot": ".."
 }

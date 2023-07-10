@@ -40,7 +40,7 @@
         "mutations": [
             "if-statement-mutation"
         ],
-        "solc-optimize": true
+        "solc_optimize": true
     },
     {
         "filename": "../SwapArgumentsFunctionMutation/SwapArgumentsFunctionMutation.sol",
