@@ -416,7 +416,7 @@ Gambit implements the following mutation operators
 | **unary-operator-mutation**          | Replace a unary operator with another                    | `~a` -> `-a`                                   |
 | **require-mutation**                 | Alter the condition of a `require` statement             | `require(some_condition())` -> `require(true)` |
 | **assignment-mutation**              | Replaces the rhs of a mutation                           | `x = foo();` -> `x = -1;`                      |
-| **delete-expression-mutation**       | Comment out an expression statement                      | `foo();` -> `/* foo() */;`                     |
+| **delete-expression-mutation**       | Replace an expression statement with `assert(true)`      | `foo();` -> `assert(true);`                    |
 | **if-cond-mutation**                 | Mutate the conditional of an `if` statement              | `if (C) {...}` -> `if (true) {...}`            |
 | **swap-arguments-operator-mutation** | Swap the order of non-commutative operators              | `a - b` -> `b - a`                             |
 | **elim-delegate-mutation**           | Change a `delegatecall()` to a `call()`                  | `_c.delegatecall(...)` -> `_c.call(...)`       |

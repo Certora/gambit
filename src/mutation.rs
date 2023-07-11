@@ -297,8 +297,14 @@ impl Mutation for MutationType {
 
             MutationType::DeleteExpressionMutation => {
                 let (start, end) = node.get_bounds();
-                let commented = format!("/* {} */", node.expression().get_text(source.contents()));
-                vec![Mutant::new(source, *self, start, end, commented)]
+                let empty_expression_statement = "assert(true)".to_string();
+                vec![Mutant::new(
+                    source,
+                    *self,
+                    start,
+                    end,
+                    empty_expression_statement,
+                )]
             }
             MutationType::ElimDelegateMutation => {
                 let (_, endl) = node.expression().expression().get_bounds();
@@ -552,7 +558,7 @@ mod test {
         assert_exact_mutants_for_statements(
             &vec!["uint256 x = 0;", "x = 3;"],
             &ops,
-            &vec!["/* x = 3 */"],
+            &vec!["assert(true)"],
         );
         Ok(())
     }
