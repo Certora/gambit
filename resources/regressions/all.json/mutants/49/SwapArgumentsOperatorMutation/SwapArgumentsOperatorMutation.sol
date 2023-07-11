@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 
 contract SwapArgumentsOperatorMutation {
     function mySubtraction(uint256 x, uint256 y) public pure returns (uint256) {
-	return x - y;
+	/// SwapArgumentsOperatorMutation(`x - y` |==> `y - x`) of: `return x - y;`
+	return y - x;
     }
     
     function myDivision(uint256 x, uint256 y) public pure returns (uint256) {
-	/// SwapArgumentsOperatorMutation(`x / y` |==> `y / x`) of: `return x / y;`
-	return y / x;
+	return x / y;
     }
     
     function myModulo(uint256 x, uint256 y) public pure returns (uint256) {

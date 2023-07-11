@@ -554,7 +554,7 @@ mod test {
     #[test]
     pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
         let ops = vec![DeleteExpressionMutation];
-        assert_exact_mutants_for_statements(&vec!["gasleft();"], &ops, &vec!["/* gasleft() */"]);
+        assert_exact_mutants_for_statements(&vec!["gasleft();"], &ops, &vec!["assert(true)"]);
         assert_exact_mutants_for_statements(
             &vec!["uint256 x = 0;", "x = 3;"],
             &ops,

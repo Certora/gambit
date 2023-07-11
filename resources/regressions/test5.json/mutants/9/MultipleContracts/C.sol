@@ -8,8 +8,8 @@ library Utils {
     }
 
     function add(int8 a, int8 b) public pure returns (int8) {
-        /// BinaryOpMutation(`+` |==> `/`) of: `return a + b;`
-        return a/b;
+        /// BinaryOpMutation(`+` |==> `*`) of: `return a + b;`
+        return a*b;
     }
 }
 

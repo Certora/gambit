@@ -4,7 +4,8 @@ pragma solidity ^0.8.13;
 
 library Utils {
     function getarray(address[] memory c, address e) internal pure {
-        assert(c[0] == e);
+        /// DeleteExpressionMutation(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
+        assert(true);
     }
 
     function add(int8 a, int8 b) public pure returns (int8) {
@@ -21,8 +22,7 @@ contract C {
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
         uint256 a = 10;
-        /// BinaryOpMutation(`**` |==> `+`) of: `uint256 res = a ** decimals;`
-        uint256 res = a+decimals;
+        uint256 res = a ** decimals;
         return res;
     }
 

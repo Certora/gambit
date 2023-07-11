@@ -4,7 +4,8 @@
 4,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,/
 5,BinaryOpMutation,10Power/TenPower.sol,8:24, ** ,%
 6,SwapArgumentsOperatorMutation,10Power/TenPower.sol,8:23,a ** decimals,decimals ** a
-7,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,-
-8,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
-9,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
-10,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%
+7,DeleteExpressionMutation,MultipleContracts/C.sol,7:9,assert(c[0] == e),assert(true)
+8,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,-
+9,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
+10,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
+11,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%

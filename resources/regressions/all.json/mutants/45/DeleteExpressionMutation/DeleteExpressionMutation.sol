@@ -6,9 +6,9 @@ contract DeleteExpressionMutation {
 
     function myIdentity(uint256 x) public pure returns (uint256) {
 	uint256 result = 0;
-	/// DeleteExpressionMutation(`i++` |==> `/* i++ */`) of: `for (uint256 i = 0; i < x; i++) {`
-	for (uint256 i = 0; i < x; /* i++ */) {
-	    result ++;
+	for (uint256 i = 0; i < x; i++) {
+	    /// DeleteExpressionMutation(`result ++` |==> `assert(true)`) of: `result ++;`
+	    assert(true);
 	}
 	return result;
     }

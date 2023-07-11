@@ -31,11 +31,11 @@ contract C {
 
     function callmyself() external view {
         address[] memory b = this.foo();
-        Utils.getarray(b, address(this));
+        /// DeleteExpressionMutation(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`
+        assert(true);
     }
 
     function add(int8 c, int8 d) public pure returns (int8) {
-        /// BinaryOpMutation(`+` |==> `%`) of: `return c + d;`
-        return c%d;
+        return c + d;
     }
 }

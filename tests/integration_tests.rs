@@ -56,7 +56,8 @@ fn test_all() {
             ("AssignmentMutation", "3110", "1", (15, 6)),
             ("AssignmentMutation", "true", "false", (16, 6)),
             ("AssignmentMutation", "false", "true", (17, 6)),
-            ("DeleteExpressionMutation", "i++", "/* i++ */", (9, 29)),
+	    ("DeleteExpressionMutation", "result ++", "assert(true)", (10,6)),
+            ("DeleteExpressionMutation", "i++", "assert(true)", (9, 29)),
             ("IfStatementMutation", "a", "true", (7, 6)),
             ("IfStatementMutation", "a", "false", (7, 6)),
             ("SwapArgumentsOperatorMutation", "x - y", "y - x", (7, 9)),
@@ -88,6 +89,7 @@ fn multiple_contracts_1() {
         "multiple-contracts-1.json",
         &vec![
             //C.get10PowerDecimals
+	    ("DeleteExpressionMutation", "assert(c[0] == e)", "assert(true)", (7, 9)),
             ("BinaryOpMutation", "**", "+", (24, 24)),
             ("BinaryOpMutation", "**", "-", (24, 24)),
             ("BinaryOpMutation", "**", "*", (24, 24)),
@@ -99,6 +101,7 @@ fn multiple_contracts_1() {
                 "decimals ** a",
                 (24, 23),
             ),
+	    ("DeleteExpressionMutation", "assert(c[0] == e)", "assert(true)", (29, 9)),
         ],
     )
 }
@@ -136,10 +139,12 @@ fn multiple_contracts_3() {
         &vec![
             /* Utils.getarray */
             /* Utils.add */
+	    ("DeleteExpressionMutation", "assert(c[0] == e)", "assert(true)", (7, 9)),
             ("BinaryOpMutation", "+", "-", (11, 17)),
             ("BinaryOpMutation", "+", "*", (11, 17)),
             ("BinaryOpMutation", "+", "/", (11, 17)),
             ("BinaryOpMutation", "+", "%", (11, 17)),
+	    ("DeleteExpressionMutation", "a[0] = msg.sender", "assert(true)", (18, 9)),
             /* C.get10PowerDecimals */
             ("BinaryOpMutation", "**", "+", (24, 24)),
             ("BinaryOpMutation", "**", "-", (24, 24)),
@@ -152,6 +157,8 @@ fn multiple_contracts_3() {
                 "decimals ** a",
                 (24, 23),
             ),
+	    ("DeleteExpressionMutation", "assert(c[0] == e)", "assert(true)", (29,9)),
+	    ("DeleteExpressionMutation", "Utils.getarray(b, address(this))", "assert(true)", (34, 9)),
             /* C.getarray */
             /* C.callmyself */
             /* C.add */

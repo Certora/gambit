@@ -16,13 +16,13 @@ contract UnaryOperatorMutation {
     }
 
     function mySuffixIncr(uint256 x) public pure returns (uint256) {
-	x++;
+	/// UnaryOperatorMutation(`++` |==> `--`) of: `x++;`
+	x--;
 	return x;
     }
 
     function mySuffixDecr(uint256 x) public pure returns (uint256) {
-	/// UnaryOperatorMutation(`--` |==> `++`) of: `x--;`
-	x++;
+	x--;
 	return x;
     }
 }
