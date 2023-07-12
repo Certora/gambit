@@ -15,14 +15,14 @@ library Utils {
 contract C {
     function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
-        a[0] = msg.sender;
+        /// DeleteExpressionMutation(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`
+        assert(true);
         return a;
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
         uint256 a = 10;
-        /// BinaryOpMutation(`**` |==> `-`) of: `uint256 res = a ** decimals;`
-        uint256 res = a-decimals;
+        uint256 res = a ** decimals;
         return res;
     }
 

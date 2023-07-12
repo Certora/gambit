@@ -36,11 +36,11 @@ contract SwapArgumentsOperatorMutation {
     }
 
     function mySAL(uint256 x, uint256 y) public pure returns (uint256) {
-	return x << y;
+	/// SwapArgumentsOperatorMutation(`x << y` |==> `y << x`) of: `return x << y;`
+	return y << x;
     }
 
     function mySAR(uint256 x, uint256 y) public pure returns (uint256) {
-	/// SwapArgumentsOperatorMutation(`x >> y` |==> `y >> x`) of: `return x >> y;`
-	return y >> x;
+	return x >> y;
     }
 }

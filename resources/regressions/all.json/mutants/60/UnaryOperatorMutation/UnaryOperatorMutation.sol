@@ -4,12 +4,12 @@ pragma experimental ABIEncoderV2;
 
 contract UnaryOperatorMutation {
     function myBitwiseNeg(uint256 x) public pure returns (uint256) {
-	return ~ x;
+	/// UnaryOperatorMutation(`~` |==> `--`) of: `return ~ x;`
+	return -- x;
     }
 
     function myPrefixIncr(uint256 x) public pure returns (uint256) {
-	/// UnaryOperatorMutation(`++` |==> `--`) of: `return ++x;`
-	return --x;
+	return ++x;
     }
 
     function myPrefixDecr(uint256 x) public pure returns (uint256) {

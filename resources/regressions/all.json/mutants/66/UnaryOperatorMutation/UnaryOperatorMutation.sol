@@ -4,8 +4,7 @@ pragma experimental ABIEncoderV2;
 
 contract UnaryOperatorMutation {
     function myBitwiseNeg(uint256 x) public pure returns (uint256) {
-	/// UnaryOperatorMutation(`~` |==> `++`) of: `return ~ x;`
-	return ++ x;
+	return ~ x;
     }
 
     function myPrefixIncr(uint256 x) public pure returns (uint256) {
@@ -22,7 +21,8 @@ contract UnaryOperatorMutation {
     }
 
     function mySuffixDecr(uint256 x) public pure returns (uint256) {
-	x--;
+	/// UnaryOperatorMutation(`--` |==> `++`) of: `x--;`
+	x++;
 	return x;
     }
 }

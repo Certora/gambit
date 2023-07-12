@@ -1,6 +1,8 @@
-1,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,+
-2,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,-
-3,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,*
-4,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,/
-5,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,%
-6,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,24:23,a ** decimals,decimals ** a
+1,DeleteExpressionMutation,MultipleContracts/C.sol,7:9,assert(c[0] == e),assert(true)
+2,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,+
+3,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,-
+4,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,*
+5,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,/
+6,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,%
+7,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,24:23,a ** decimals,decimals ** a
+8,DeleteExpressionMutation,MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)

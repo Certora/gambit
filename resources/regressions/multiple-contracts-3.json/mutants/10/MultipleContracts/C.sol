@@ -21,8 +21,8 @@ contract C {
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
         uint256 a = 10;
-        /// SwapArgumentsOperatorMutation(`a ** decimals` |==> `decimals ** a`) of: `uint256 res = a ** decimals;`
-        uint256 res = decimals ** a;
+        /// BinaryOpMutation(`**` |==> `/`) of: `uint256 res = a ** decimals;`
+        uint256 res = a/decimals;
         return res;
     }
 

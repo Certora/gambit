@@ -16,12 +16,12 @@ contract SwapArgumentsOperatorMutation {
     }
     
     function myExponentiation(uint256 x, uint256 y) public pure returns (uint256) {
-	return x ** y;
+	/// SwapArgumentsOperatorMutation(`x ** y` |==> `y ** x`) of: `return x ** y;`
+	return y ** x;
     }
     
     function myGT(uint256 x, uint256 y) public pure returns (bool) {
-	/// SwapArgumentsOperatorMutation(`x > y` |==> `y > x`) of: `return x > y;`
-	return y > x;
+	return x > y;
     }
     
     function myLT(uint256 x, uint256 y) public pure returns (bool) {

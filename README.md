@@ -61,7 +61,7 @@ parameters, we recommend using a configuration file via the `--json` option
 instead:
 
 ```bash
-gambit mutate --json gambit-conf.json
+gambit mutate --json gambit_conf.json
 ``` 
 
 Run `gambit --help` for more information.
@@ -149,32 +149,41 @@ are passed directly through to the solc compiler.
 
 For projects that have complex dependencies and imports, you may need to:
 * **Specify base-paths**: To specify the Solidity [--base-path][basepath]
-  argument, use `--solc-base-path`:
+  argument, use `--solc_base_path`:
 
   ```bash
-  cargo gambit path/to/file.sol --solc_base_path base/path/dir/.
+  gambit mutate --filename path/to/file.sol --solc_base_path base/path/dir/.
   ```
 
 * **Specify remappings:** To indicate where Solidity should find libraries,
   use solc's [import remapping][remapping] syntax with `--solc_remappings`:
 
   ```bash
-  gambit mutate path/to/file.sol \
-    --solc_remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
+  gambit mutate --filename path/to/file.sol \
+    --solc_remappings @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
 * **Specify allow-paths:** To include additional allowed paths via solc's
   [--allow-paths][allowed] argument, use `--solc_allow_paths`:
 
   ```bash
-  gambit mutatepath/to/file.sol --solc_allowpaths PATH1 --solc_allowpaths PATH2 ...
+  gambit mutate --filename path/to/file.sol \
+  --solc_allow_paths PATH1 --solc_allow_paths PATH2 ...
+  ```
+
+* **Specify include-path:** To make an additional source directory available
+  to the default import callback via solc's [--include-path][included] argument, use
+  `--solc_include_path`:
+
+  ```bash
+  gambit mutate --filename path/to/file.sol --solc_include_path PATH
   ```
 
 * **Use optimization:** To run the solidity compiler with optimizations (solc's
   `--optimize` argument), use `--solc_optimize`:
 
   ```bash
-  gambit mutate path/to/file.sol --solc_optimize
+  gambit mutate --filename path/to/file.sol --solc_optimize
   ```
 
 [remapping]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#import-remapping
@@ -401,11 +410,12 @@ This has the following structure:
 Gambit also supports _pass-through arguments_, which are arguments that are
 passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 
-| Option               | Description                                                                   |
-| :------------------- | :---------------------------------------------------------------------------- |
-| `--solc_base_path`   | passes a value to solc's `--base-path` argument                               |
-| `--solc_allow_paths` | passes a value to solc's `--allow-paths` argument                             |
-| `--solc_remapping`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
+| Option                | Description                                                                   |
+| :-------------------- | :---------------------------------------------------------------------------- |
+| `--solc_base_path`    | passes a value to solc's `--base-path` argument                               |
+| `--solc_allow_paths`  | passes a value to solc's `--allow-paths` argument                             |
+| `--solc_include_path` | passes a value to solc's `--include-path` argument                           |
+| `--solc_remappings`    | passes a value to directly to solc: this should be of the form `prefix=path`. |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
@@ -416,7 +426,7 @@ Gambit implements the following mutation operators
 | **unary-operator-mutation**          | Replace a unary operator with another                    | `~a` -> `-a`                                   |
 | **require-mutation**                 | Alter the condition of a `require` statement             | `require(some_condition())` -> `require(true)` |
 | **assignment-mutation**              | Replaces the rhs of a mutation                           | `x = foo();` -> `x = -1;`                      |
-| **delete-expression-mutation**       | Comment out an expression statement                      | `foo();` -> `/* foo() */;`                     |
+| **delete-expression-mutation**       | Replace an expression statement with `assert(true)`      | `foo();` -> `assert(true);`                    |
 | **if-cond-mutation**                 | Mutate the conditional of an `if` statement              | `if (C) {...}` -> `if (true) {...}`            |
 | **swap-arguments-operator-mutation** | Swap the order of non-commutative operators              | `a - b` -> `b - a`                             |
 | **elim-delegate-mutation**           | Change a `delegatecall()` to a `call()`                  | `_c.delegatecall(...)` -> `_c.call(...)`       |

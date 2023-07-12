@@ -8,8 +8,8 @@ contract UnaryOperatorMutation {
     }
 
     function myPrefixIncr(uint256 x) public pure returns (uint256) {
-	/// UnaryOperatorMutation(`++` |==> `~`) of: `return ++x;`
-	return ~x;
+	/// UnaryOperatorMutation(`++` |==> `--`) of: `return ++x;`
+	return --x;
     }
 
     function myPrefixDecr(uint256 x) public pure returns (uint256) {

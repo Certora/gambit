@@ -12,12 +12,12 @@ contract UnaryOperatorMutation {
     }
 
     function myPrefixDecr(uint256 x) public pure returns (uint256) {
-	return --x;
+	/// UnaryOperatorMutation(`--` |==> `~`) of: `return --x;`
+	return ~x;
     }
 
     function mySuffixIncr(uint256 x) public pure returns (uint256) {
-	/// UnaryOperatorMutation(`++` |==> `--`) of: `x++;`
-	x--;
+	x++;
 	return x;
     }
 

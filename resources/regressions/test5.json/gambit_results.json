@@ -42,31 +42,38 @@
     "original": "10Power/TenPower.sol",
   },
   {
-    "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `-`) of: `return a + b;`\n+        return a-b;\n     }\n }\n \n",
+    "description": "DeleteExpressionMutation",
+    "diff": "--- original\n+++ mutant\n@@ -4,7 +4,8 @@\n \n library Utils {\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        /// DeleteExpressionMutation(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n+        assert(true);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "7",
     "name": "mutants/7/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
   },
   {
     "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `*`) of: `return a + b;`\n+        return a*b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `-`) of: `return a + b;`\n+        return a-b;\n     }\n }\n \n",
     "id": "8",
     "name": "mutants/8/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
   },
   {
     "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `/`) of: `return a + b;`\n+        return a/b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `*`) of: `return a + b;`\n+        return a*b;\n     }\n }\n \n",
     "id": "9",
     "name": "mutants/9/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
   },
   {
     "description": "BinaryOpMutation",
-    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `%`) of: `return a + b;`\n+        return a%b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `/`) of: `return a + b;`\n+        return a/b;\n     }\n }\n \n",
     "id": "10",
     "name": "mutants/10/MultipleContracts/C.sol",
+    "original": "MultipleContracts/C.sol",
+  },
+  {
+    "description": "BinaryOpMutation",
+    "diff": "--- original\n+++ mutant\n@@ -8,7 +8,8 @@\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        /// BinaryOpMutation(`+` |==> `%`) of: `return a + b;`\n+        return a%b;\n     }\n }\n \n",
+    "id": "11",
+    "name": "mutants/11/MultipleContracts/C.sol",
     "original": "MultipleContracts/C.sol",
   }
 ]
