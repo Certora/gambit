@@ -27,6 +27,7 @@ pub struct Solc {
     output_directory: PathBuf,
     basepath: Option<String>,
     allow_paths: Option<Vec<String>>,
+    include_path: Option<String>,
     remappings: Option<Vec<String>>,
     optimize: bool,
 }
@@ -38,6 +39,7 @@ impl Solc {
             output_directory,
             basepath: None,
             allow_paths: None,
+            include_path: None,
             remappings: None,
             optimize: false,
         }
@@ -61,6 +63,11 @@ impl Solc {
 
     pub fn with_allow_paths(&mut self, allow_paths: Vec<String>) -> &Self {
         self.allow_paths = Some(allow_paths);
+        self
+    }
+
+    pub fn with_include_path(&mut self, include_path: String) -> &Self {
+        self.include_path = Some(include_path);
         self
     }
 
@@ -293,6 +300,11 @@ impl Solc {
             for r in allow_paths {
                 flags.push(r.clone());
             }
+        }
+
+        if let Some(include_path) = &self.include_path {
+            flags.push("--include-path".into());
+            flags.push(include_path.clone());
         }
 
         if let Some(remaps) = &self.remappings {

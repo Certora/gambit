@@ -146,13 +146,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // We need to check for the following filenames to resolve
                     // with respect to the config file's parent directory:
                     //
-                    // | Parameter       | Resolve WRT Conf? | Sourceroot Inclusion? |
-                    // | --------------- | ----------------- | --------------------- |
-                    // | filename        | Yes               | Yes                   |
-                    // | outdir          | If not None       | No                    |
-                    // | solc_allowpaths | Yes               | No                    |
-                    // | solc_basepath   | Yes               | No                    |
-                    // | solc_remapping  | Yes               | No                    |
+                    // | Parameter         | Resolve WRT Conf? | Sourceroot Inclusion? |
+                    // | ----------------- | ----------------- | --------------------- |
+                    // | filename          | Yes               | Yes                   |
+                    // | outdir            | If not None       | No                    |
+                    // | solc_allow_paths  | Yes               | No                    |
+                    // | solc_include_path | Yes               | No                    |
+                    // | solc_base_path    | Yes               | No                    |
+                    // | solc_remappings   | Yes               | No                    |
                     log::info!("    Performing Filename Resolution");
 
                     // PARAM: Filename
@@ -216,7 +217,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         &outdir,
                     );
 
-                    // PARAM: solc_allowpaths
+                    // PARAM: solc_allow_paths
                     log::info!("    [.] Resolving params.allow_paths");
                     let allow_paths = if let Some(allow_paths) = &params.solc_allow_paths {
                         Some(resolve_config_file_paths(
@@ -227,7 +228,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         None
                     };
 
-                    // PARAM: solc_basepath
+                    // PARAM: solc_include_path
+                    log::info!("    [.] Resolving params.include_path");
+                    let include_path = if let Some(include_path) = &params.solc_include_path {
+                        Some(resolve_config_file_path(
+                            include_path,
+                            &json_parent_directory,
+                        )?)
+                        .map(|ip| ip.to_str().unwrap().to_string())
+                    } else {
+                        None
+                    };
+
+                    // PARAM: solc_base_path
                     log::info!("    [.] Resolving params.solc_basepath");
                     let basepath = if let Some(basepaths) = &params.solc_base_path {
                         Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
@@ -260,6 +273,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     params.filename = Some(filename_string.clone());
                     params.outdir = Some(outdir);
                     params.solc_allow_paths = allow_paths;
+                    params.solc_include_path = include_path;
                     params.solc_base_path = basepath;
                     params.solc_remappings = remapping;
                 }
@@ -340,13 +354,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // We need to canonicalize the following files, possibly
                 // checking for sourceroot inclusion.
                 //
-                // | Parameter       | Sourceroot Inclusion? |
-                // | --------------- | --------------------- |
-                // | filename        | Yes                   |
-                // | outdir          | No                    |
-                // | solc_allowpaths | No                    |
-                // | solc_basepath   | No                    |
-                // | solc_remapping  | No                    |
+                // | Parameter         | Sourceroot Inclusion? |
+                // | ----------------- | --------------------- |
+                // | filename          | Yes                   |
+                // | outdir            | No                    |
+                // | solc_allow_paths  | No                    |
+                // | solc_include_path | No                    |
+                // | solc_base_path    | No                    |
+                // | solc_remappings   | No                    |
                 log::info!("    Performing Filename Resolution");
 
                 log::info!("    [.] Resolving params.filename");
@@ -396,7 +411,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap()
                 .to_string();
 
-                log::info!("    [.] Resolving params.solc_allowpaths");
+                log::info!("    [.] Resolving params.solc_allow_paths");
                 let solc_allowpaths = params.solc_allow_paths.map(|aps| {
                     aps.iter()
                         .map(|p| {
@@ -410,7 +425,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .collect()
                 });
 
-                log::info!("    [.] Resolving params.solc_basepath");
+                log::info!("    [.] Resolving params.solc_include_path");
+                let solc_include_path = params.solc_include_path.map(|ip| {
+                    PathBuf::from(ip)
+                        .canonicalize()
+                        .unwrap()
+                        .to_str()
+                        .unwrap()
+                        .to_string()
+                });
+
+                log::info!("    [.] Resolving params.solc_base_path");
                 let solc_basepath = params.solc_base_path.map(|bp| {
                     PathBuf::from(bp)
                         .canonicalize()
@@ -427,7 +452,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .collect()
                 });
                 log::info!(
-                    "    [->] Resolved solc-remapping:\n    {:#?} to \n    {:#?}",
+                    "    [->] Resolved solc_remapping:\n    {:#?} to \n    {:#?}",
                     &params.solc_remappings,
                     &solc_remapping
                 );
@@ -441,6 +466,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.filename = Some(filename_string);
                 params.outdir = Some(outdir);
                 params.solc_allow_paths = solc_allowpaths;
+                params.solc_include_path = solc_include_path;
                 params.solc_base_path = solc_basepath;
                 params.solc_remappings = solc_remapping;
 
