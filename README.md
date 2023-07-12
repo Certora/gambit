@@ -61,7 +61,7 @@ parameters, we recommend using a configuration file via the `--json` option
 instead:
 
 ```bash
-gambit mutate --json gambit-conf.json
+gambit mutate --json gambit_conf.json
 ``` 
 
 Run `gambit --help` for more information.
@@ -149,17 +149,17 @@ are passed directly through to the solc compiler.
 
 For projects that have complex dependencies and imports, you may need to:
 * **Specify base-paths**: To specify the Solidity [--base-path][basepath]
-  argument, use `--solc-base-path`:
+  argument, use `--solc_base_path`:
 
   ```bash
-  cargo gambit path/to/file.sol --solc_base_path base/path/dir/.
+  gambit mutate --filename path/to/file.sol --solc_base_path base/path/dir/.
   ```
 
 * **Specify remappings:** To indicate where Solidity should find libraries,
   use solc's [import remapping][remapping] syntax with `--solc_remappings`:
 
   ```bash
-  gambit mutate path/to/file.sol \
+  gambit mutate --filename path/to/file.sol \
     --solc_remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
@@ -167,14 +167,15 @@ For projects that have complex dependencies and imports, you may need to:
   [--allow-paths][allowed] argument, use `--solc_allow_paths`:
 
   ```bash
-  gambit mutatepath/to/file.sol --solc_allowpaths PATH1 --solc_allowpaths PATH2 ...
+  gambit mutate --filename path/to/file.sol \
+  --solc_allow_paths PATH1 --solc_allow_paths PATH2 ...
   ```
 
 * **Use optimization:** To run the solidity compiler with optimizations (solc's
   `--optimize` argument), use `--solc_optimize`:
 
   ```bash
-  gambit mutate path/to/file.sol --solc_optimize
+  gambit mutate --filename path/to/file.sol --solc_optimize
   ```
 
 [remapping]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#import-remapping
@@ -401,11 +402,12 @@ This has the following structure:
 Gambit also supports _pass-through arguments_, which are arguments that are
 passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 
-| Option               | Description                                                                   |
-| :------------------- | :---------------------------------------------------------------------------- |
-| `--solc_base_path`   | passes a value to solc's `--base-path` argument                               |
-| `--solc_allow_paths` | passes a value to solc's `--allow-paths` argument                             |
-| `--solc_remapping`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
+| Option                | Description                                                                   |
+| :-------------------- | :---------------------------------------------------------------------------- |
+| `--solc_base_path`    | passes a value to solc's `--base-path` argument                               |
+| `--solc_allow_paths`  | passes a value to solc's `--allow-paths` argument                             |
+| `--solc_include_path` | passes a value to solc's `--include-path` argument                           |
+| `--solc_remapping`    | passes a value to directly to solc: this should be of the form `prefix=path`. |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
