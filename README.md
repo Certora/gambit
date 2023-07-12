@@ -160,7 +160,7 @@ For projects that have complex dependencies and imports, you may need to:
 
   ```bash
   gambit mutate --filename path/to/file.sol \
-    --solc_remapping @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
+    --solc_remappings @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
 * **Specify allow-paths:** To include additional allowed paths via solc's
@@ -169,6 +169,14 @@ For projects that have complex dependencies and imports, you may need to:
   ```bash
   gambit mutate --filename path/to/file.sol \
   --solc_allow_paths PATH1 --solc_allow_paths PATH2 ...
+  ```
+
+* **Specify include-path:** To make an additional source directory available
+  to the default import callback via solc's [--include-path][included] argument, use
+  `--solc_include_path`:
+
+  ```bash
+  gambit mutate --filename path/to/file.sol --solc_include_path PATH
   ```
 
 * **Use optimization:** To run the solidity compiler with optimizations (solc's
@@ -407,7 +415,7 @@ passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 | `--solc_base_path`    | passes a value to solc's `--base-path` argument                               |
 | `--solc_allow_paths`  | passes a value to solc's `--allow-paths` argument                             |
 | `--solc_include_path` | passes a value to solc's `--include-path` argument                           |
-| `--solc_remapping`    | passes a value to directly to solc: this should be of the form `prefix=path`. |
+| `--solc_remappings`    | passes a value to directly to solc: this should be of the form `prefix=path`. |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
