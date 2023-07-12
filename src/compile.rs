@@ -14,7 +14,9 @@ type CompilerRet = (i32, Vec<u8>, Vec<u8>);
 
 /// compilation constants
 static INPUT_JSON: &str = "input_json";
-static ALLOWPATH: &str = "--allow-paths";
+static ALLOWPATHS: &str = "--allow-paths";
+static INCLUDEPATH: &str = "--include-path";
+static BASEPATH: &str = "--base-path";
 static OPTIMIZE: &str = "--optimize";
 static DOT_JSON: &str = ".json";
 
@@ -291,19 +293,19 @@ impl Solc {
         }
 
         if let Some(basepath) = &self.basepath {
-            flags.push("--base-path".into());
+            flags.push(BASEPATH.into());
             flags.push(basepath.clone());
         }
 
         if let Some(allow_paths) = &self.allow_paths {
-            flags.push(ALLOWPATH.into());
+            flags.push(ALLOWPATHS.into());
             for r in allow_paths {
                 flags.push(r.clone());
             }
         }
 
         if let Some(include_path) = &self.include_path {
-            flags.push("--include-path".into());
+            flags.push(INCLUDEPATH.into());
             flags.push(include_path.clone());
         }
 

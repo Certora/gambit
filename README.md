@@ -46,6 +46,9 @@ sure it is visible on your `PATH`. Alternatively, you can specify where Gambit c
 find the Solidity compiler with the option `--solc path/to/solc`, or specify a
 version of solc (e.g., solc8.12) with the option `--solc solc8.12`.
 
+_NOTE_ All tests (`cargo test`) are currently run using solc8.13. Your tests may fail if your `solc` points at
+  a different version of the compiler._
+
 ### Running  `gambit mutate` 
 
 The `gambit mutate` command expects either a `--filename` argument or a `--json`
