@@ -35,18 +35,6 @@ jobs:
       - name: Build and Test
         run: make all_linux
 
-      - name: Set AWS credentials
-        if: github.ref == 'refs/heads/master' # only on master branch
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      - name: Upload to S3
-        if: github.ref == 'refs/heads/master' # only on master branch
-        run: aws s3 cp ./target/x86_64-unknown-linux-gnu/release/gambit s3://gambit-artifacts/gambit-linux
-
       - name: Rename gambit binary
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
@@ -108,18 +96,6 @@ jobs:
         run: |
           xcrun notarytool store-credentials --apple-id shelly@certora.com --password "${{ secrets.APPLE_CRED }}" --team-id "${{ secrets.APPLE_TEAMID }}" altool
           xcrun notarytool submit gambit-macos.zip --keychain-profile altool --wait
-
-      - name: Set AWS credentials
-        if: github.ref == 'refs/heads/master' # only on master branch
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      - name: Upload to S3
-        if: github.ref == 'refs/heads/master' # only on master branch
-        run: aws s3 cp ./gambit-macos s3://gambit-artifacts/gambit-macos
 
       - name: Rename gambit binary
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
