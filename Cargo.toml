@@ -11,7 +11,7 @@ authors = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-solang = { git = "https://github.com/hyperledger/solang.git", rev = "940ca3ce682091c1c8f25803705483e75f900ae0", default-features = false }
+solang = { git = "https://github.com/hyperledger/solang.git", rev = "08128dffcb4ce18e7de2cfc61c84a75e1650c061", default-features = false }
 ansi_term = "0.12"
 clap = { version = "4.0.29", features = ["derive"] }
 clap_complete = "4.0.6"
@@ -30,7 +30,7 @@ scanner-rust = "2.0.16"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 similar = "2"
-solang-parser = { git = "https://github.com/hyperledger/solang.git", rev = "940ca3ce682091c1c8f25803705483e75f900ae0" }
+solang-parser = { git = "https://github.com/hyperledger/solang.git", rev = "08128dffcb4ce18e7de2cfc61c84a75e1650c061" }
 strum = "0.24.1"
 strum_macros = "0.24.3"
 tempfile = "3"
