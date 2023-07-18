@@ -180,8 +180,11 @@ impl MutantWriter {
     /// This is computed from the relative path of the original sourcefile, relative to
     /// the specified `sourceroot`, and is computed with `Source.relative_filename()`
     fn get_mutant_filename(mutants_dir: &Path, mid: usize, mutant: &Mutant) -> PathBuf {
-        // TODO: Make this a relative file name
-        let rel_filename = mutant.path();
+        let rel_filename = match mutant.sol_path() {
+            Some(sol_path) => sol_path,
+            None => mutant.path().strip_prefix("/").unwrap(),
+        };
+        println!("Mutant filename: {:?} => {:?}", mutant.path(), rel_filename);
         mutants_dir
             .join(Path::new(&mid.to_string()))
             .join(rel_filename)

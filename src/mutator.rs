@@ -143,7 +143,9 @@ impl From<&MutateParams> for Mutator {
             Some(base_path) => {
                 file_resolver
                     .add_import_path(&PathBuf::from(base_path))
-                    .unwrap();
+                    .expect(
+                        format!("Failed to add base_path as import path: {}", base_path).as_str(),
+                    );
             }
             None => {
                 file_resolver.add_import_path(&PathBuf::from(".")).unwrap();
@@ -162,6 +164,17 @@ impl From<&MutateParams> for Mutator {
                     .unwrap();
             }
         }
+
+        if let Some(allow_paths) = &value.solc_allow_paths {
+            for allow_path in allow_paths.iter() {
+                file_resolver
+                    .add_import_path(&PathBuf::from(allow_path))
+                    .expect(
+                        format!("Failed to add allow_path as import path: {}", allow_path).as_str(),
+                    )
+            }
+        }
+
         let mutator = Mutator::new(conf, file_resolver, filenames, solc);
         mutator
     }
@@ -240,7 +253,18 @@ impl Mutator {
         log::info!("    {} functions", ns.functions.len());
         self.namespace = Some(ns.clone());
 
-        let file_path = PathBuf::from(filename);
+        let resolved = self
+            .file_resolver
+            .resolve_file(None, OsStr::new(filename))
+            .expect(format!("Unable to resolve filename {}", filename).as_str());
+
+        let file_path = resolved.full_path.clone();
+        log::info!(
+            "Resolved {} to {:?} with import path {:?}",
+            filename,
+            resolved,
+            self.file_resolver.get_import_path(resolved.get_import_no())
+        );
         // mutate functions
         for function in ns.functions.iter() {
             let file = ns.files.get(function.loc.file_no());

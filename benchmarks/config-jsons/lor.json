@@ -1,7 +1,7 @@
 [
     {
         "filename": "../LOR/LOR.sol",
-        "sourceroot": "..",
+        "solc-base-path": "..",
         "mutations": [
             "logical-operator-replacement"
         ]

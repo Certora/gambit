@@ -1,4 +1,4 @@
-use crate::{get_indent, Mutator};
+use crate::{get_import_path, get_indent, Mutator};
 use clap::ValueEnum;
 use num_bigint::BigInt;
 use num_traits::{One, Zero};
@@ -21,10 +21,17 @@ use std::{
 /// numbers
 #[derive(Clone)]
 pub struct MutantLoc {
+    /// The location of the node that is mutated
     pub loc: Loc,
+    /// The (starting) line number of the mode being mutated
     pub line_no: usize,
+    /// The column number of the node being mutated
     pub col_no: usize,
+    /// The full path to the original source file
     pub path: PathBuf,
+    /// The solidity path, relative to its import root, to the original source
+    /// file; if a file path is specified absolutely then this is None
+    pub sol_path: Option<PathBuf>,
 }
 
 impl Debug for MutantLoc {
@@ -43,11 +50,20 @@ impl MutantLoc {
         let file = namespace.files.get(loc.file_no()).unwrap();
         let (_, line_no, col_no, _) = resolver.get_line_and_offset_from_loc(file, &loc);
         let path = file.path.clone();
+        let import_path = get_import_path(
+            resolver,
+            file.import_no
+                .expect("Expected an import no but found None"),
+        )
+        .expect("Expected an import path but found None");
+        let sol_path = path.strip_prefix(import_path).unwrap().to_path_buf();
+
         MutantLoc {
             loc,
             line_no,
             col_no,
             path,
+            sol_path: Some(sol_path),
         }
     }
 }
@@ -101,6 +117,10 @@ impl Mutant {
 
     pub fn path(&self) -> &PathBuf {
         &self.mutant_loc.path
+    }
+
+    pub fn sol_path(&self) -> Option<&PathBuf> {
+        self.mutant_loc.sol_path.as_ref()
     }
 
     pub fn get_line_column(&self) -> (usize, usize) {

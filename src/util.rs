@@ -6,7 +6,7 @@ use std::{
 };
 
 use ansi_term::{ANSIGenericString, Color, Style};
-use solang::sema::ast::Statement;
+use solang::{file_resolver::FileResolver, sema::ast::Statement};
 
 static EQUAL: &str = "=";
 pub static DEFAULT_GAMBIT_OUTPUT_DIRECTORY: &str = "gambit_out";
@@ -388,5 +388,13 @@ pub fn statement_type(stmt: &Statement) -> &str {
         Statement::TryCatch(_, _, _) => "TryCatch",
         Statement::Underscore(_) => "Underscore",
         Statement::Assembly(_, _) => "Assembly",
+    }
+}
+
+/// Get the import path, if available, from resolver for the import_no
+pub fn get_import_path(resolver: &FileResolver, import_no: usize) -> Option<PathBuf> {
+    match resolver.get_import_path(import_no) {
+        Some(&(_, ref b)) => Some(b.clone()),
+        _ => None,
     }
 }

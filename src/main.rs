@@ -51,56 +51,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 };
                 log::debug!("Deserialized JSON into MutateParams: {:#?}", &mutate_params);
 
-                // # Path Resolutions in Configuration Files
-                //
-                // All paths specified _in a configuration file_ are relative to
-                // the parent directory of the configuration file. This means
-                // that they will always resolve to the same canonical path,
-                // regardless of which directory Gambit is called from.
-                //
-                // ## Source Root Resolution
-                //
-                // The _source root_ describes where the conceptual root of the
-                // file source tree is. This is used for outputting relative
-                // paths when Gambit reports on a mutation run and exports
-                // mutants to disk.
-                //
-                // If a "sourceroot" field is provided in the configration file,
-                // Gambit resolves it according to the following rules:
-                //
-                // 1. A **relative** source root path is resolved with respect to
-                //    the parent directory of the configuration file and
-                //    canonicalized.
-                //
-                // 2. An **absolute** source root path resolves to itself
-                //
-                // If no source root is provided in the configuration file,
-                // Gambit uses the current working directory as the source root.
-                //
-                // ## Filename Resolution
-                //
-                // After Source Root Resolution is performed, Gambit performs
-                // Filename Resolution. First, Gambit resolves each filename
-                // according to the following rules:
-                //
-                // 1. A **relative** filename is resolved with respect to the
-                //    parent directory of the configuration file.
-                //
-                // 2. An **absolute** filename resolves to itself
-                //
-                // After Filename Resolution, Gambit ensures that each
-                // parameter's `filename` value is prefixed by (or belongs to)
-                // it's source root.
-                //
-                // NOTE: not all files need to belong to `sourceroot`! Only the
-                // `param.filename`, since this is written to logs. In
-                // particular, compiler arguments (e.g., specified by the
-                // `--solc-allowpaths` flag) will not be checked for inclusion
-                // in `sourceroot`.
                 let config_pb = PathBuf::from(&json_path);
-                log::info!("config: {}", config_pb.display());
+                log::info!("config: {:?}", config_pb);
                 let config_pb = config_pb.canonicalize()?;
-                log::info!("canonical config: {}", config_pb.display());
+                log::info!("canonical config: {:?}", config_pb);
                 let config_parent_pb = config_pb.parent().unwrap();
                 log::info!("config parent: {}", config_parent_pb.display());
                 let json_parent_directory = config_parent_pb.canonicalize()?;
@@ -111,86 +65,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 for (i, params) in mutate_params.iter_mut().enumerate() {
                     // Source Root Resolution
                     log::info!("Configuration {}", i + 1);
-                    log::info!("    Performing Source Root Resolution");
-                    let source_root_path: PathBuf = match params.sourceroot.clone() {
-                        Some(sr) => {
-                            let raw_source_root_path = PathBuf::from(&sr);
-                            let resolved_source_root_path = if raw_source_root_path.is_absolute() {
-                                raw_source_root_path.canonicalize()?
-                            } else {
-                                json_parent_directory
-                                    .join(raw_source_root_path)
-                                    .canonicalize()?
-                            };
-                            log::info!(
-                                "    [->] Resolved sourceroot `{}` to `{}`",
-                                &sr,
-                                resolved_source_root_path.display()
-                            );
-                            resolved_source_root_path
-                        }
-                        None => {
-                            let resolved_source_root_path = PathBuf::from(".").canonicalize()?;
-                            log::info!("    No sourceroot provided in configration");
-                            log::info!(
-                                "    [->] Resolved sourceroot to current working directory `{}`",
-                                resolved_source_root_path.display()
-                            );
-                            resolved_source_root_path
-                        }
-                    };
-                    let source_root_string = source_root_path.to_str().unwrap().to_string();
-
-                    // Filename Resolution
-                    //
-                    // We need to check for the following filenames to resolve
-                    // with respect to the config file's parent directory:
-                    //
-                    // | Parameter       | Resolve WRT Conf? | Sourceroot Inclusion? |
-                    // | --------------- | ----------------- | --------------------- |
-                    // | filename        | Yes               | Yes                   |
-                    // | outdir          | If not None       | No                    |
-                    // | solc_allowpaths | Yes               | No                    |
-                    // | solc_basepath   | Yes               | No                    |
-                    // | solc_remapping  | Yes               | No                    |
-                    log::info!("    Performing Filename Resolution");
 
                     // PARAM: Filename
                     log::info!("    [.] Resolving params.filename");
-                    let filename_path: PathBuf = match params.filename.clone() {
-                        Some(filename) => {
-                            resolve_config_file_path(&filename, &json_parent_directory)?
-                        }
-                        None => {
-                            log::error!("[!!] Found a configuration without a filename!");
-                            log::error!("[!!] Parameters: {:#?}", params);
-                            log::error!("[!!] Exiting.");
-                            // TODO: Replace exit with an error
-                            std::process::exit(1);
-                        }
+                    let filename = params
+                        .filename
+                        .clone()
+                        .expect("No filename in configuration");
+                    let filepath = PathBuf::from(&filename);
+                    println!("filepath: {:?}", filepath);
+                    let filepath = if filepath.is_absolute() {
+                        filepath
+                    } else {
+                        let joined = config_parent_pb.join(filepath);
+                        println!("joined: {:?}", &joined);
+                        joined.canonicalize().unwrap()
                     };
-                    let filename_string = filename_path.to_str().unwrap().to_string();
-
-                    // Check that filename is a member of sourceroot
-                    if !filename_path.starts_with(&source_root_path) {
-                        log::error!( "[!!] Illegal Configuration: Resolved filename `{}` is not prefixed by the derived sourceroot {}",
-                            &filename_string,
-                            &source_root_string,
-                        );
-                        log::error!("[!!] Parameters:\n{:#?}", params);
-                        log::error!("[!!] Exiting.");
-                        // TODO: Replace exit with an error
-                        std::process::exit(1);
-                    }
-                    log::info!(
-                        "    [->] Resolved filename `{}` belongs to sourceroot `{}`",
-                        &filename_string,
-                        &source_root_string
-                    );
 
                     // PARAM: Outdir
-                    // We can't use `resolve_config_file_path` because it might
-                    // not exist yet, so we can't canonicalize
+                    // + If an absolute `outdir` is specified, normalize it
+                    // + If a relative (non-absolute) `outdir` is specified,
+                    //   normalize it with respect to the JSON parent directory
+                    // + If no `outdir` is specified, use `$CWD/gambit_out`
+                    //
+                    // Note: we cannot use `resolve_config_file_path` because
+                    // `outdir` might not exist yet
 
                     log::info!("    [.] Resolving params.outdir");
                     let outdir_path = match &params.outdir {
@@ -208,16 +107,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
                     let outdir = outdir_path.to_str().unwrap().to_string();
                     log::info!(
-                        "    [->] Resolved path `{}` to `{}`",
-                        &params
-                            .outdir
-                            .clone()
-                            .unwrap_or(default_gambit_output_directory()),
+                        "    [->] Resolved path `{:?}` to `{}`",
+                        &params.outdir.clone(),
                         &outdir,
                     );
 
                     // PARAM: solc_allowpaths
-                    log::info!("    [.] Resolving params.allow_paths");
+                    log::info!("    [.] Resolving params.solc_allow_paths");
                     let allow_paths = if let Some(allow_paths) = &params.solc_allow_paths {
                         Some(resolve_config_file_paths(
                             allow_paths,
@@ -228,7 +124,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
 
                     // PARAM: solc_basepath
-                    log::info!("    [.] Resolving params.solc_basepath");
+                    log::info!("    [.] Resolving params.solc_base_path");
                     let basepath = if let Some(basepaths) = &params.solc_base_path {
                         Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
                             .map(|bp| bp.to_str().unwrap().to_string())
@@ -256,8 +152,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // for error reporting: reporting the parsed in value of
                     // `params` will be more helpful to the end user than
                     // reporting the modified value of params).
-                    params.sourceroot = Some(source_root_string.clone());
-                    params.filename = Some(filename_string.clone());
+                    params.filename = Some(filepath.to_str().unwrap().to_string());
                     params.outdir = Some(outdir);
                     params.solc_allow_paths = allow_paths;
                     params.solc_base_path = basepath;
@@ -266,137 +161,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 run_mutate(mutate_params)?;
             } else {
                 log::debug!("Running CLI MutateParams: {:#?}", &params);
+
                 // # Path Resolution for CLI Provided Parameters
-                //
-                // All relative paths specified _from the CLI_ are relative to
-                // the current working directory. This means that relative paths
-                // will resolve to different canonical paths depending on where
-                // they are called from.
-                //
-                // ## Source Root Resolution
-                //
-                // The _source root_ describes where the conceptual root of the
-                // file source tree is. This is used for outputting relative
-                // paths when Gambit reports on a mutation run and exports
-                // mutants to disk.
-                //
-                // If the `--sourceroot` parameter is provided by the user,
-                // Gambit resolves it according to the following rules:
-                //
-                // 1. A **relative** source root path is resolved with respect to
-                //    the current working directory
-                //
-                // 2. An **absolute** source root path resolves to itself
-                //
-                // If no source root is provided, Gambit uses the current
-                // working directory as the source root.
-                //
-                // ## Filename Resolution
-                //
-                // After Source Root Resolution is performed, Gambit performs
-                // Filename Resolution. First, Gambit resolves each filename
-                // according to the following rules:
-                //
-                // 1. A **relative** filename is resolved with respect to the
-                //    current working directory.
-                //
-                // 2. An **absolute** filename resolves to itself
-                //
-                // If no filename is provided, Gambit reports an error and
-                // exits.
-                //
-                // After Filename Resolution, Gambit ensures that each
-                // parameter's filename is prefixed by (or belongs to) it's
-                // source root. If not, Gambit reports an error and exits.
-
-                // Source Root Resolution
-                log::info!("Performing Path Resolution for CLI");
-                log::info!("    Performing Source Root Resolution");
-                let source_root_path: PathBuf = match params.sourceroot.clone() {
-                    Some(sr) => {
-                        let raw_source_root_path = PathBuf::from(&sr);
-                        let resolved_source_root_path = raw_source_root_path.canonicalize()?;
-                        log::info!(
-                            "    [->] Resolved sourceroot `{}` to `{}`",
-                            &sr,
-                            resolved_source_root_path.display()
-                        );
-                        resolved_source_root_path
-                    }
-                    None => {
-                        let resolved_source_root_path = PathBuf::from(".").canonicalize()?;
-                        log::info!("    No sourceroot provided in configration");
-                        log::info!(
-                            "    [->] Resolved sourceroot to current working directory `{}`",
-                            resolved_source_root_path.display()
-                        );
-                        resolved_source_root_path
-                    }
-                };
-                let source_root_string = source_root_path.to_str().unwrap().to_string();
-
-                // Filename Resolution
-                //
-                // We need to canonicalize the following files, possibly
-                // checking for sourceroot inclusion.
-                //
-                // | Parameter       | Sourceroot Inclusion? |
-                // | --------------- | --------------------- |
-                // | filename        | Yes                   |
-                // | outdir          | No                    |
-                // | solc_allowpaths | No                    |
-                // | solc_basepath   | No                    |
-                // | solc_remapping  | No                    |
                 log::info!("    Performing Filename Resolution");
+                //                let filename = params.filename.expect("No provided filename");
 
                 log::info!("    [.] Resolving params.filename");
-                let filename_path: PathBuf = match params.filename.clone() {
-                    Some(filename) => {
-                        let raw_filename_path = PathBuf::from(&filename);
-                        let resolved_filename_path = raw_filename_path.canonicalize()?;
-                        log::info!(
-                            "    [->] Resolved filename `{}` to `{}`",
-                            &filename,
-                            resolved_filename_path.display()
-                        );
-                        resolved_filename_path
-                    }
-                    None => {
-                        log::error!("[!!] Found a configuration without a filename!");
-                        log::error!("[!!] Parameters: {:#?}", params);
-                        log::error!("[!!] Exiting.");
-                        // TODO: Replace exit with an error
-                        std::process::exit(1);
-                    }
-                };
-                let filename_string = filename_path.to_str().unwrap().to_string();
-
-                // Check that filename is a member of sourceroot
-                if !filename_path.starts_with(&source_root_path) {
-                    log::error!( "[!!] Illegal Configuration: Resolved filename `{}` is not prefixed by the derived sourceroot {}",
-                            &filename_string,
-                            &source_root_string,
-                        );
-                    log::error!("[!!] Parameters:\n{:#?}", params);
-                    log::error!("[!!] Exiting.");
-                    // TODO: Replace exit with an error
-                    std::process::exit(1);
-                }
-                log::info!(
-                    "    [->] Resolved filename `{}` belongs to sourceroot `{}`",
-                    &filename_string,
-                    &source_root_string
-                );
+                let filename = params
+                    .filename
+                    .clone()
+                    .expect("No filename in configuration");
+                let filepath = PathBuf::from(&filename).canonicalize().unwrap();
+                println!("filepath: {:?}", filepath);
 
                 log::info!("    [.] Resolving params.outdir {:?}", &params.outdir);
+
                 let outdir = normalize_path(&PathBuf::from(
                     &params.outdir.unwrap_or(default_gambit_output_directory()),
                 ))
                 .to_str()
                 .unwrap()
                 .to_string();
+                log::info!("    [.] Resolved params.outdir to {}", outdir);
 
-                log::info!("    [.] Resolving params.solc_allowpaths");
+                log::info!(
+                    "    [.] Resolving params.solc_allowpaths: {:?}",
+                    params.solc_allow_paths
+                );
                 let solc_allowpaths = params.solc_allow_paths.map(|aps| {
                     aps.iter()
                         .map(|p| {
@@ -409,9 +200,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         })
                         .collect()
                 });
+                log::info!(
+                    "    [.] Resolved params.solc_allowpaths to {:?}",
+                    solc_allowpaths
+                );
 
-                log::info!("    [.] Resolving params.solc_basepath");
-                let solc_basepath = params.solc_base_path.map(|bp| {
+                log::info!(
+                    "    [.] Resolving params.solc_base_path: {:?}",
+                    params.solc_base_path
+                );
+                let solc_base_path = params.solc_base_path.map(|bp| {
                     PathBuf::from(bp)
                         .canonicalize()
                         .unwrap()
@@ -419,6 +217,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .unwrap()
                         .to_string()
                 });
+                log::info!(
+                    "    [.] Resolved params.solc_base_path to {:?}",
+                    solc_base_path
+                );
 
                 log::info!("    [.] Resolving params.solc_remapping");
                 let solc_remapping = params.solc_remappings.as_ref().map(|rms| {
@@ -427,7 +229,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .collect()
                 });
                 log::info!(
-                    "    [->] Resolved solc-remapping:\n    {:#?} to \n    {:#?}",
+                    "    [->] Resolved params.solc_remapping:\n    {:#?} to \n    {:#?}",
                     &params.solc_remappings,
                     &solc_remapping
                 );
@@ -437,11 +239,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // for error reporting: reporting the parsed in value of
                 // `params` will be more helpful to the end user than
                 // reporting the modified value of params).
-                params.sourceroot = Some(source_root_string);
-                params.filename = Some(filename_string);
+                params.filename = Some(filepath.to_str().unwrap().to_string());
                 params.outdir = Some(outdir);
                 params.solc_allow_paths = solc_allowpaths;
-                params.solc_base_path = solc_basepath;
+                params.solc_base_path = solc_base_path;
                 params.solc_remappings = solc_remapping;
 
                 run_mutate(vec![*params])?;
@@ -455,6 +256,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Resolve a filename with respect to the directory containing the config file
+/// and canonicalize
 fn resolve_config_file_path(
     path: &String,
     json_parent_directory: &Path,
@@ -465,7 +267,7 @@ fn resolve_config_file_path(
     } else {
         json_parent_directory.join(&path).canonicalize()?
     };
-    log::info!(
+    log::debug!(
         "    [->] Resolved path `{}` to `{}`",
         path.display(),
         result.display()
