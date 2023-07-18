@@ -60,12 +60,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .clone()
                         .expect("No filename in configuration");
                     let filepath = PathBuf::from(&filename);
-                    println!("filepath: {:?}", filepath);
                     let filepath = if filepath.is_absolute() {
                         filepath
                     } else {
                         let joined = config_parent_pb.join(filepath);
-                        println!("joined: {:?}", &joined);
                         joined.canonicalize().unwrap()
                     };
 
