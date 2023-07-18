@@ -6,7 +6,6 @@ use gambit::{
     Command, MutateParams,
 };
 
-/// Entry point
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = env_logger::builder().try_init();
     match Command::parse() {
