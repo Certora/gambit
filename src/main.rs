@@ -29,22 +29,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 log::info!("Read configuration json: {:#?}", json);
 
                 let mut mutate_params: Vec<MutateParams> = if json.is_array() {
-                    match serde_json::from_str(&json_contents) {
-                        Ok(xs) => xs,
-                        Err(msg) => {
-                            println!("{}", &msg);
-                            std::process::exit(1);
-                        }
-                    }
+                    serde_json::from_str(&json_contents)?
                 } else if json.is_object() {
-                    let single_param: MutateParams = match serde_json::from_str(&json_contents) {
-                        Ok(xs) => xs,
-                        Err(msg) => {
-                            println!("{}", &msg);
-                            std::process::exit(1);
-                        }
-                    };
-                    vec![single_param]
+                    vec![serde_json::from_str(&json_contents)?]
                 } else {
                     panic!("Invalid configuration file: must be an array or an object")
                 };
