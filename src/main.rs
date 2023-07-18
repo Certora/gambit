@@ -38,12 +38,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 log::debug!("Deserialized JSON into MutateParams: {:#?}", &mutate_params);
 
                 let config_pb = PathBuf::from(&json_path);
-                log::info!("config: {:?}", config_pb);
                 let config_pb = config_pb.canonicalize()?;
-                log::info!("canonical config: {:?}", config_pb);
                 let config_parent_pb = config_pb.parent().unwrap();
-                log::info!("config parent: {}", config_parent_pb.display());
                 let json_parent_directory = config_parent_pb.canonicalize()?;
+
+                log::info!("config: {:?}", config_pb);
+                log::info!("canonical config: {:?}", config_pb);
+                log::info!("config parent: {}", config_parent_pb.display());
 
                 log::info!("Performing Path Resolution for Configurations");
                 log::info!("Found {} configurations", mutate_params.len());
