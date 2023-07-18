@@ -29,8 +29,13 @@ pub use test_util::*;
 mod util;
 pub use util::*;
 
-/// Execute the `mutate` command. This returns a mapping from output directories
+/// Execute the `mutate` command and return a mapping from output directories
 /// to generated mutants.
+///
+/// `gambit mutate` runs on a vector of mutate parameters. Each mutate parameter
+/// specifies an output directory. Parameters with the same output directory are
+/// grouped and run together, and will have unique mutant ids between them.
+/// Mutant ids may be shared between mutants with different output directories.
 pub fn run_mutate(
     mutate_params: Vec<MutateParams>,
 ) -> Result<HashMap<String, Vec<Mutant>>, Box<dyn std::error::Error>> {
