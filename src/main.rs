@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // Note: we cannot use `resolve_config_file_path` because
                     // `outdir` might not exist yet
 
-                    log::info!("    [.] Resolving params.outdir");
+                    log::debug!("    [.] Resolving params.outdir");
                     let outdir_path = match &params.outdir {
                         Some(outdir) => {
                             let outdir_path = PathBuf::from(outdir);
@@ -91,14 +91,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         ),
                     };
                     let outdir = outdir_path.to_str().unwrap().to_string();
-                    log::info!(
+                    log::debug!(
                         "    [->] Resolved path `{:?}` to `{}`",
                         &params.outdir.clone(),
                         &outdir,
                     );
 
                     // PARAM: solc_allowpaths
-                    log::info!("    [.] Resolving params.solc_allow_paths");
+                    log::debug!("    [.] Resolving params.solc_allow_paths");
                     let allow_paths = if let Some(allow_paths) = &params.solc_allow_paths {
                         Some(resolve_config_file_paths(
                             allow_paths,
@@ -109,7 +109,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
 
                     // PARAM: solc_basepath
-                    log::info!("    [.] Resolving params.solc_base_path");
+                    log::debug!("    [.] Resolving params.solc_base_path");
                     let basepath = if let Some(basepaths) = &params.solc_base_path {
                         Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
                             .map(|bp| bp.to_str().unwrap().to_string())
@@ -118,7 +118,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
 
                     // PARAM: solc_remappings
-                    log::info!("    [.] Resolving params.solc_remapping");
+                    log::debug!("    [.] Resolving params.solc_remapping");
                     let remapping: Option<Vec<String>> =
                         params.solc_remappings.as_ref().map(|remapping| {
                             remapping
@@ -145,21 +145,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 run_mutate(mutate_params)?;
             } else {
-                log::debug!("Running CLI MutateParams: {:#?}", &params);
+                log::info!("Running CLI MutateParams: {:#?}", &params);
 
                 // # Path Resolution for CLI Provided Parameters
-                log::info!("    Performing Filename Resolution");
+                log::info!("    Performing File Resolution");
                 //                let filename = params.filename.expect("No provided filename");
 
-                log::info!("    [.] Resolving params.filename");
+                log::debug!("    [.] Resolving params.filename");
                 let filename = params
                     .filename
                     .clone()
                     .expect("No filename in configuration");
                 let filepath = PathBuf::from(&filename).canonicalize().unwrap();
-                println!("filepath: {:?}", filepath);
 
-                log::info!("    [.] Resolving params.outdir {:?}", &params.outdir);
+                log::debug!("    [.] Resolving params.outdir {:?}", &params.outdir);
 
                 let outdir = normalize_path(&PathBuf::from(
                     &params.outdir.unwrap_or(default_gambit_output_directory()),
@@ -167,9 +166,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .to_str()
                 .unwrap()
                 .to_string();
-                log::info!("    [.] Resolved params.outdir to {}", outdir);
+                log::debug!("    [.] Resolved params.outdir to {}", outdir);
 
-                log::info!(
+                log::debug!(
                     "    [.] Resolving params.solc_allowpaths: {:?}",
                     params.solc_allow_paths
                 );
@@ -185,12 +184,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         })
                         .collect()
                 });
-                log::info!(
+                log::debug!(
                     "    [.] Resolved params.solc_allowpaths to {:?}",
                     solc_allowpaths
                 );
 
-                log::info!(
+                log::debug!(
                     "    [.] Resolving params.solc_base_path: {:?}",
                     params.solc_base_path
                 );
@@ -202,18 +201,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .unwrap()
                         .to_string()
                 });
-                log::info!(
+                log::debug!(
                     "    [.] Resolved params.solc_base_path to {:?}",
                     solc_base_path
                 );
 
-                log::info!("    [.] Resolving params.solc_remapping");
+                log::debug!("    [.] Resolving params.solc_remapping");
                 let solc_remapping = params.solc_remappings.as_ref().map(|rms| {
                     rms.iter()
                         .map(|rm| repair_remapping(rm.as_str(), None))
                         .collect()
                 });
-                log::info!(
+                log::debug!(
                     "    [->] Resolved params.solc_remapping:\n    {:#?} to \n    {:#?}",
                     &params.solc_remappings,
                     &solc_remapping
