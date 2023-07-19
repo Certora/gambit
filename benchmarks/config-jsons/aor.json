@@ -1,9 +1,9 @@
 [
     {
         "filename": "../AOR/AOR.sol",
-        "sourceroot": "..",
+        "solc-base-path": "..",
         "mutations": [
-            "arithmetic-operator-replacement"
+            "aor"
         ]
     }
 ]
