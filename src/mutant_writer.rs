@@ -184,7 +184,6 @@ impl MutantWriter {
             Some(sol_path) => sol_path,
             None => mutant.path().strip_prefix("/").unwrap(),
         };
-        println!("Mutant filename: {:?} => {:?}", mutant.path(), rel_filename);
         mutants_dir
             .join(Path::new(&mid.to_string()))
             .join(rel_filename)

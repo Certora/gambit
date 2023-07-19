@@ -354,7 +354,7 @@ pub fn normalize_mutation_operator_name(op_name: &String) -> String {
     let tmp = tmp.replace("_", "-");
     let op_name_lower = tmp.as_str();
     match op_name_lower {
-        "aor" | "arithmetic-operator-replacement" => "logical-operator-replacement",
+        "aor" | "arithmetic-operator-replacement" => "arithmetic-operator-replacement",
         "bor" | "bitwise-operator-replacement" => "bitwise-operator-replacement",
         "evr" | "expression-value-replacement" => "expression-value-replacement",
         "lor" | "logical-operator-replacement" => "logical-operator-replacement",

@@ -267,6 +267,7 @@ impl Mutator {
         );
         // mutate functions
         for function in ns.functions.iter() {
+            let start_no_mutants = self.mutants.len();
             let file = ns.files.get(function.loc.file_no());
             match file {
                 Some(file) => {
@@ -279,10 +280,25 @@ impl Mutator {
                 }
             }
             if function.has_body {
-                log::info!("Processing function body");
+                let contract_name = if let Some(contract_no) = function.contract_no {
+                    let contract = ns.contracts.get(contract_no).unwrap();
+                    format!("{}::", &contract.name)
+                } else {
+                    "".to_string()
+                };
+                log::info!(
+                    "Processing function body for {}{}...",
+                    contract_name,
+                    &function.signature
+                );
                 for statement in function.body.iter() {
                     statement.recurse(self, mutate_statement);
                 }
+                let end_no_mutants = self.mutants.len();
+                log::info!(
+                    "    ...generated {} mutants",
+                    end_no_mutants - start_no_mutants
+                );
             }
         }
         self.namespace = None;

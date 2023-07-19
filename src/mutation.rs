@@ -349,7 +349,7 @@ impl MutationType {
             MutationType::BitwiseOperatorReplacement => "BOR",
             MutationType::ElimDelegateMutation => "EDM",
             MutationType::ExpressionValueReplacement => "EVR",
-            MutationType::LiteralValueReplacement => "LOR",
+            MutationType::LiteralValueReplacement => "LVR",
             MutationType::LogicalOperatorReplacement => "LOR",
             MutationType::RelationalOperatorReplacement => "ROR",
             MutationType::ShiftOperatorReplacement => "SOR",
