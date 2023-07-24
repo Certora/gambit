@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
                             .map(|bp| bp.to_str().unwrap().to_string())
                     } else {
-                        None
+                        Some(json_parent_directory.to_str().unwrap().to_string())
                     };
 
                     // PARAM: solc_remappings

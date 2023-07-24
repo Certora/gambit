@@ -56,7 +56,16 @@ impl MutantLoc {
                 .expect("Expected an import no but found None"),
         )
         .expect("Expected an import path but found None");
-        let sol_path = path.strip_prefix(import_path).unwrap().to_path_buf();
+        let sol_path = path
+            .strip_prefix(&import_path)
+            .expect(
+                format!(
+                    "Could not strip prefix {:?} from path {:?}",
+                    &import_path, &path
+                )
+                .as_str(),
+            )
+            .to_path_buf();
 
         MutantLoc {
             loc,
