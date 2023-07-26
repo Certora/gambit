@@ -1,6 +1,6 @@
 [package]
 name = "gambit"
-version = "0.2.1"
+version = "1.0.0"
 edition = "2021"
 authors = [
     "Chandrakana Nandi <chandra@certora.com>",
