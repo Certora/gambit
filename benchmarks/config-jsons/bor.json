@@ -1,6 +1,6 @@
 [
     {
-        "filename": "../BOR/BOR.sol",
+        "filename": "../Ops/BOR/BOR.sol",
         "solc-base-path": "..",
         "mutations": [
             "bor"

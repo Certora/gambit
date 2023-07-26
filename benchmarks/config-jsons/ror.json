@@ -1,6 +1,6 @@
 [
     {
-        "filename": "../ROR/ROR.sol",
+        "filename": "../Ops/ROR/ROR.sol",
         "solc-base-path": "..",
         "mutations": [
             "relational-operator-replacement"

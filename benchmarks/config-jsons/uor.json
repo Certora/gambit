@@ -1,9 +1,9 @@
 [
     {
-        "filename": "../Ops/LVR/LVR.sol",
+        "filename": "../Ops/UOR/UOR.sol",
         "solc-base-path": "..",
         "mutations": [
-            "lvr"
+            "uor"
         ]
     }
 ]

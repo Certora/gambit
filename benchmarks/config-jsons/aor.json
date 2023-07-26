@@ -1,6 +1,6 @@
 [
     {
-        "filename": "../AOR/AOR.sol",
+        "filename": "../Ops/AOR/AOR.sol",
         "solc-base-path": "..",
         "mutations": [
             "aor"

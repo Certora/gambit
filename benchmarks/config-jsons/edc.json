@@ -1,9 +1,9 @@
 [
     {
-        "filename": "../EDM/EDM.sol",
+        "filename": "../Ops/EDC/EDC.sol",
         "solc-base-path": "..",
         "mutations": [
-            "edm"
+            "edc"
         ]
     }
 ]
