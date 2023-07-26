@@ -10,9 +10,6 @@
         "contract": "C",
         "functions": [
             "getarray"
-        ],
-        "mutations": [
-            "function-call-mutation"
         ]
     }
 ]
