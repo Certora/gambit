@@ -1,6 +1,0 @@
-1,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,+
-2,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,-
-3,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,*
-4,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,/
-5,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,%
-6,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,24:23,a ** decimals,decimals ** a
