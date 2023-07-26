@@ -35,6 +35,31 @@ print_vars() {
 
 }
 
+double_check_make_regressions() {
+    printf "\033[33m[!!!] WARNING!\033[0m You are about to remake all regression tests!!\n"
+    printf "      This will overwrite the \033[44;37;1m%s\033[0m directory!\n" "$REGRESSIONS"
+    printf "      (\033[1mNote:\033[0m regressions are tracked by Git, so you can recover to a previous state)\n"
+    while true; do
+        printf "Do you wish to proceed? [Y/n] "
+        read -n 1 user_response
+        echo
+
+        case $user_response in
+        y | Y)
+            printf "Continuing with make_regressions.sh...\n"
+            return 0
+            ;;
+        n | N)
+            printf "Exiting without continuing\n"
+            exit 0
+            ;;
+        *)
+            printf "Unrecognized response: '%s'\n" $user_response
+            ;;
+        esac
+    done
+}
+
 build_release() {
     old_dir=$(pwd)
     cd "$GAMBIT" || exit 1
@@ -114,12 +139,16 @@ summary() {
             echo "Removing old regressions"
             rm -rf "$REGRESSIONS"
         }
-        echo "Moving Temporary regessions to regressions location"
-        echo "  $TMP_REGRESSIONS -> $REGRESSIONS"
+        echo
+        echo "[+] Moving Temporary regessions to regressions location"
+        echo "    $TMP_REGRESSIONS -> $REGRESSIONS"
+        echo
+        mv "$TMP_REGRESSIONS" "$REGRESSIONS"
         clean_state
     fi
 }
 
+double_check_make_regressions
 print_vars
 build_release
 clean_state
