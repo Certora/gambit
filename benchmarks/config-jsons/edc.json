@@ -1,0 +1,9 @@
+[
+    {
+        "filename": "../EDM/EDM.sol",
+        "solc-base-path": "..",
+        "mutations": [
+            "edm"
+        ]
+    }
+]
