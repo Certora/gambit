@@ -1,25 +1,27 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
-        "sourceroot": "..",
+        "solc-base-path": "..",
         "contract": "Utils",
         "functions": [
             "add"
         ],
         "mutations": [
-            "binary-op-mutation"
+            "aor",
+            "lor"
         ],
         "solc": "solc"
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "sourceroot": "..",
+        "solc-base-path": "..",
         "contract": "C",
         "functions": [
             "add"
         ],
         "mutations": [
-            "binary-op-mutation"
+            "aor",
+            "lor"
         ],
         "solc": "solc"
     }
