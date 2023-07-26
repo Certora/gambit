@@ -1,12 +1,12 @@
 [
     {
-        "filename": "../10Power/TenPower.sol",
-        "sourceroot": "..",
-        "contract": "TenPower"
+        "filename": "../Ops/AOR/AOR.sol",
+        "solc-base-path": "..",
+        "contract": "AOR"
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "sourceroot": "..",
+        "solc-base-path": "..",
         "contract": "C",
         "functions": [
             "getarray"

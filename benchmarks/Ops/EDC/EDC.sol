@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.13;
 
-contract B {
+contract Helper {
     function setVars(uint _num) public payable {}
 }
 
-contract A {
+contract EDC {
     uint public num;
     address public sender;
     uint public value;
