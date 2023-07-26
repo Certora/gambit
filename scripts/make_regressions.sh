@@ -19,41 +19,110 @@
 
 SCRIPTS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 GAMBIT="$SCRIPTS/.."
+GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
 REGRESSIONS="$GAMBIT"/resources/regressions
-echo "scripts: $SCRIPTS"
-echo "gambit: $GAMBIT"
-echo "configs: $CONFIGS"
-echo "regressions: $REGRESSIONS"
+TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
 
-[ -e "$REGRESSIONS" ] && {
-    echo "Removing old regressions"
-    rm -rf "$REGRESSIONS"
+NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
+
+print_vars() {
+    echo "scripts: $SCRIPTS"
+    echo "gambit: $GAMBIT"
+    echo "configs: $CONFIGS"
+    echo "regressions: $REGRESSIONS"
+    echo "temporary regressions: $TMP_REGRESSIONS"
+
 }
-echo "Making regressions directory at $REGRESSIONS"
-mkdir -p "$REGRESSIONS"
 
-echo "Running conf files"
-for conf_path in "$CONFIGS"/*; do
-    echo
-    echo
-    printf "\033[1m- Conf path: %s\033[0m\n" "$conf_path"
+build_release() {
+    old_dir=$(pwd)
+    cd "$GAMBIT" || exit 1
+    cargo build --release
 
-    conf=$(basename "$conf_path")
-    outdir="$REGRESSIONS"/"$conf"
+    cd "$old_dir" || exit 1
+}
 
-    (
+clean_state() {
+    [ -e "$TMP_REGRESSIONS" ] && {
+        echo "Removing temporary regressions directory $TMP_REGRESSIONS"
+        rm -rf "$TMP_REGRESSIONS"
+    }
+}
+
+setup() {
+    echo "Making temporary regressions directory at $TMP_REGRESSIONS"
+    mkdir -p "$TMP_REGRESSIONS"
+}
+
+run_regressions() {
+    echo "Running on $NUM_CONFIGS configurations"
+    starting_dir=$(pwd)
+    failed_confs=()
+    conf_idx=0
+    failed=false
+    for conf_path in "$CONFIGS"/*; do
+        conf_idx=$((conf_idx + 1))
+        echo
+        echo
+        printf "\033[1mConfiguration %s/%s: %s\033[0m\n" "$conf_idx" "$NUM_CONFIGS" "$conf_path"
+
+        conf=$(basename "$conf_path")
+        outdir="$TMP_REGRESSIONS"/"$conf"
+
         cd "$GAMBIT" || {
             echo "Error: couldn't cd $GAMBIT"
             exit 1
         }
         printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
-        stdout="$(cargo run -- mutate --json "$conf_path")"
+        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
+        exit_code=$?
+        if [ $exit_code -ne 0 ]; then
+            printf "\033[31;1m[!] Failed to run config %s\n" "$conf_path"
+            failed=true
+            failed_confs+=("$conf_path")
+        fi
         printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
         mv gambit_out "$outdir"
         printf "  \033[1mMoving Outdir:\033[0m to %s\n" "$outdir"
         bash "$SCRIPTS"/remove_sourceroots.sh "$outdir/gambit_results.json"
-    )
-    printf "  \033[1mWrote regression:\033[0m %s\n" "$outdir"
+        cd "$starting_dir" || exit 1
 
-done
+    done
+
+}
+
+summary() {
+    printf "\n\n\033[1m                         SUMMARY OF make_regressions.sh\n\n\033[0m"
+
+    if $failed; then
+
+        printf "[✘] \033[31;1m%s/%s configurations failed to run:\033[0m\n" "${#failed_confs[@]}" "$NUM_CONFIGS"
+        idx=0
+        for conf in "${failed_confs[@]}"; do
+            idx=$((idx + 1))
+            echo "   ($idx) $conf"
+        done
+
+        printf "\n\nRegression tests were not updated\n"
+        printf "Temporary regression tests were cleaned up"
+        clean_state
+        exit 101
+    else
+        printf "[✔] \033[32;1m All %s configurations ran successfully\033[0m\n" "$NUM_CONFIGS"
+        [ -e "$REGRESSIONS" ] && {
+            echo "Removing old regressions"
+            rm -rf "$REGRESSIONS"
+        }
+        echo "Moving Temporary regessions to regressions location"
+        echo "  $TMP_REGRESSIONS -> $REGRESSIONS"
+        clean_state
+    fi
+}
+
+print_vars
+build_release
+clean_state
+setup
+run_regressions
+summary
