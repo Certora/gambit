@@ -5,7 +5,7 @@ use num_traits::{One, Zero};
 use serde::{Deserialize, Serialize};
 use solang::{
     file_resolver::FileResolver,
-    sema::ast::{Expression, Namespace, RetrieveType, Statement, Type},
+    sema::ast::{CallTy, Expression, Namespace, RetrieveType, Statement, Type},
 };
 use solang_parser::pt::{CodeLocation, Loc};
 use std::{
@@ -522,6 +522,7 @@ fn arith_op_replacement(
                 false
             };
             if is_signed_int {
+                // When we're signed, filter out `**`, which is illegal
                 replacements = replacements
                     .iter()
                     .filter(|x| **x != "**")
@@ -555,7 +556,7 @@ fn arith_op_replacement(
                         op_loc,
                         op.clone(),
                         arith_op.to_string(),
-                        format!(" {} ", r),
+                        format!("{}", r),
                     )
                 })
                 .collect()
@@ -613,7 +614,7 @@ fn bitwise_op_replacement(
     }
 }
 
-fn shift_op_replacement(
+fn literal_value_replacement(
     op: &MutationType,
     file_resolver: &FileResolver,
     namespace: Rc<Namespace>,
@@ -621,158 +622,55 @@ fn shift_op_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
+    let orig = source[loc.start()..loc.end()].to_string();
     if let None = loc.try_file_no() {
         return vec![];
     }
-    match expr {
-        Expression::ShiftLeft { .. } => {
-            let op_loc = get_op_loc(expr, source);
-            vec![Mutant::new(
-                file_resolver,
-                namespace,
-                op_loc,
-                op.clone(),
-                "<<".to_string(),
-                ">>".to_string(),
-            )]
-        }
-        Expression::ShiftRight { .. } => {
-            let op_loc = get_op_loc(expr, source);
-            vec![Mutant::new(
-                file_resolver,
-                namespace,
-                op_loc,
-                op.clone(),
-                ">>".to_string(),
-                "<<".to_string(),
-            )]
-        }
-        _ => vec![],
-    }
-}
-
-fn unary_op_replacement(
-    op: &MutationType,
-    file_resolver: &FileResolver,
-    namespace: Rc<Namespace>,
-    expr: &Expression,
-    source: &Arc<str>,
-) -> Vec<Mutant> {
-    let loc = expr.loc();
-    let bitwise_op = get_operator(expr);
-    let rs = vec!["-", "~"];
-    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != bitwise_op).collect();
-
-    if let None = loc.try_file_no() {
-        return vec![];
-    }
-    let muts = match expr {
-        Expression::BitwiseNot { expr, .. } | Expression::Negate { expr, .. } => {
-            let op_loc = get_op_loc(expr, source);
-            let muts = replacements
-                .iter()
-                .map(|r| {
-                    Mutant::new(
-                        file_resolver,
-                        namespace.clone(),
-                        op_loc,
-                        op.clone(),
-                        "~".to_string(),
-                        format!(" {} ", r),
-                    )
-                })
-                .collect();
-            muts
-        }
-        _ => vec![],
-    };
-    muts
-}
-
-fn rel_op_replacement(
-    op: &MutationType,
-    file_resolver: &FileResolver,
-    namespace: Rc<Namespace>,
-    expr: &Expression,
-    source: &Arc<str>,
-) -> Vec<Mutant> {
-    let loc = expr.loc();
-    if let None = loc.try_file_no() {
-        return vec![];
-    }
-
+    // We are only replacing BoolLiterals, NumberLiterals, and
+    // RationalNumberLiterals. It's not clear what other literals we should
+    // replace
     let replacements = match expr {
-        Expression::Less { .. } => vec!["<=", "!=", "false"],
-        Expression::LessEqual { .. } => vec!["<", "==", "true"],
-        Expression::More { .. } => vec![">=", "!=", "false"],
-        Expression::MoreEqual { .. } => vec![">", "==", "true"],
-        Expression::Equal { left, .. } => {
-            // Assuming that we only need the left type to determine legal mutations
-            match left.ty() {
-                // The following types are orderable, so we use those for better mutation operators
-                solang::sema::ast::Type::Int(_)
-                | solang::sema::ast::Type::Uint(_)
-                | solang::sema::ast::Type::Rational => vec!["<=", ">=", "false"],
-
-                // The following types are not orderable, so we replace with true and false
-                // TODO: Can Addresses be ordered?
-                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
-                _ => vec!["true", "false"],
+        Expression::BoolLiteral { value, .. } => vec![(!value).to_string()],
+        Expression::NumberLiteral { ty, value, .. } => match ty {
+            solang::sema::ast::Type::Address(_) => todo!(),
+            solang::sema::ast::Type::Int(_) => {
+                if value.is_zero() {
+                    vec!["-1".to_string(), "1".to_string()]
+                } else {
+                    vec![
+                        "0".to_string(),
+                        (-value).to_string(),
+                        (value + BigInt::one()).to_string(),
+                    ]
+                }
             }
-        }
-        Expression::NotEqual { left, .. } => {
-            // Assuming that we only need the left type to determine legal mutations
-            match left.ty() {
-                // The following types are orderable, so we use those for better mutation operators
-                solang::sema::ast::Type::Int(_)
-                | solang::sema::ast::Type::Uint(_)
-                | solang::sema::ast::Type::Rational => vec!["< ", "> ", "true"],
-
-                // The following types are not orderable, so we replace with true and false
-                // TODO: Can Addresses be ordered?
-                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
-                _ => vec!["true", "false"],
+            solang::sema::ast::Type::Uint(_) => {
+                if value.is_zero() {
+                    vec!["1".to_string()]
+                } else {
+                    vec!["0".to_string(), (value + BigInt::one()).to_string()]
+                }
             }
-        }
-        _ => return vec![],
+            _ => vec![],
+        },
+        Expression::RationalNumberLiteral { value: _, .. } => vec![],
+        Expression::BytesLiteral { .. } => vec![],
+        Expression::CodeLiteral { .. } => vec![],
+        Expression::StructLiteral { .. } => vec![],
+        Expression::ArrayLiteral { .. } => vec![],
+        Expression::ConstArrayLiteral { .. } => vec![],
+        _ => vec![],
     };
-
-    // Now, apply the replacements. Some replacements will replace the entire
-    // expression, while others will replace only the operator.
     let mut mutants = vec![];
-    let expr_start = loc.start();
-    let expr_end = loc.end();
-    let expr_string = &source[expr_start..expr_end].to_string();
-
-    let rel_op_loc = get_op_loc(expr, source);
-    let rel_op_start = rel_op_loc.start();
-    let rel_op_end = rel_op_loc.end();
-    let rel_op_string = source[rel_op_start..rel_op_end].to_string();
     for r in replacements {
-        mutants.push(match r {
-            // true and false replacements replace the entire expression, so use
-            // the expression's location (`loc`) and the expression's raw strin
-            // (`expr_string`)
-            "true" | "false" => Mutant::new(
-                file_resolver,
-                namespace.clone(),
-                loc,
-                op.clone(),
-                expr_string.to_string(),
-                r.to_string(),
-            ),
-            // other replacements replace only the relational operator, so use
-            // the rel op location (`rel_op_loc`) and the rel op's raw string
-            // (`expr_string`)
-            _ => Mutant::new(
-                file_resolver,
-                namespace.clone(),
-                rel_op_loc,
-                op.clone(),
-                rel_op_string.clone(),
-                r.to_string(),
-            ),
-        });
+        mutants.push(Mutant::new(
+            file_resolver,
+            namespace.clone(),
+            loc,
+            op.clone(),
+            orig.clone(),
+            r.clone(),
+        ));
     }
     mutants
 }
@@ -835,7 +733,7 @@ fn logical_op_replacement(
     mutants
 }
 
-fn literal_value_replacement(
+fn rel_op_replacement(
     op: &MutationType,
     file_resolver: &FileResolver,
     namespace: Rc<Namespace>,
@@ -843,53 +741,122 @@ fn literal_value_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    let orig = source[loc.start()..loc.end()].to_string();
     if let None = loc.try_file_no() {
         return vec![];
     }
-    // We are only replacing BoolLiterals, NumberLiterals, and
-    // RationalNumberLiterals. It's not clear what other literals we should
-    // replace
+
     let replacements = match expr {
-        Expression::BoolLiteral { value, .. } => vec![(!value).to_string()],
-        Expression::NumberLiteral { ty, value, .. } => match ty {
-            solang::sema::ast::Type::Address(_) => todo!(),
-            solang::sema::ast::Type::Int(_) => {
-                if value.is_zero() {
-                    vec!["-1".to_string(), "1".to_string()]
-                } else {
-                    vec!["0".to_string(), (-value).to_string()]
-                }
+        Expression::Less { .. } => vec!["<=", "!=", "false"],
+        Expression::LessEqual { .. } => vec!["<", "==", "true"],
+        Expression::More { .. } => vec![">=", "!=", "false"],
+        Expression::MoreEqual { .. } => vec![">", "==", "true"],
+        Expression::Equal { left, .. } => {
+            // Assuming that we only need the left type to determine legal mutations
+            match left.ty() {
+                // The following types are orderable, so we use those for better mutation operators
+                solang::sema::ast::Type::Int(_)
+                | solang::sema::ast::Type::Uint(_)
+                | solang::sema::ast::Type::Rational => vec!["<=", ">=", "false"],
+
+                // The following types are not orderable, so we replace with true and false
+                // TODO: Can Addresses be ordered?
+                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
+                _ => vec!["true", "false"],
             }
-            solang::sema::ast::Type::Uint(_) => {
-                if value.is_zero() {
-                    vec!["1".to_string()]
-                } else {
-                    vec!["0".to_string(), (value + BigInt::one()).to_string()]
-                }
+        }
+        Expression::NotEqual { left, .. } => {
+            // Assuming that we only need the left type to determine legal mutations
+            match left.ty() {
+                // The following types are orderable, so we use those for better mutation operators
+                solang::sema::ast::Type::Int(_)
+                | solang::sema::ast::Type::Uint(_)
+                | solang::sema::ast::Type::Rational => vec!["<", ">", "true"],
+
+                // The following types are not orderable, so we replace with true and false
+                // TODO: Can Addresses be ordered?
+                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
+                _ => vec!["true", "false"],
             }
-            _ => vec![],
-        },
-        Expression::RationalNumberLiteral { value: _, .. } => vec![],
-        Expression::BytesLiteral { .. } => vec![],
-        Expression::CodeLiteral { .. } => vec![],
-        Expression::StructLiteral { .. } => vec![],
-        Expression::ArrayLiteral { .. } => vec![],
-        Expression::ConstArrayLiteral { .. } => vec![],
-        _ => vec![],
+        }
+        _ => return vec![],
     };
+
+    // Now, apply the replacements. Some replacements will replace the entire
+    // expression, while others will replace only the operator.
     let mut mutants = vec![];
+    let expr_start = loc.start();
+    let expr_end = loc.end();
+    let expr_string = &source[expr_start..expr_end].to_string();
+
+    let rel_op_loc = get_op_loc(expr, source);
+    let rel_op_start = rel_op_loc.start();
+    let rel_op_end = rel_op_loc.end();
+    let rel_op_string = source[rel_op_start..rel_op_end].to_string();
     for r in replacements {
-        mutants.push(Mutant::new(
-            file_resolver,
-            namespace.clone(),
-            loc,
-            op.clone(),
-            orig.clone(),
-            r.clone(),
-        ));
+        mutants.push(match r {
+            // true and false replacements replace the entire expression, so use
+            // the expression's location (`loc`) and the expression's raw strin
+            // (`expr_string`)
+            "true" | "false" => Mutant::new(
+                file_resolver,
+                namespace.clone(),
+                loc,
+                op.clone(),
+                expr_string.to_string(),
+                r.to_string(),
+            ),
+            // other replacements replace only the relational operator, so use
+            // the rel op location (`rel_op_loc`) and the rel op's raw string
+            // (`expr_string`)
+            _ => Mutant::new(
+                file_resolver,
+                namespace.clone(),
+                rel_op_loc,
+                op.clone(),
+                rel_op_string.clone(),
+                r.to_string(),
+            ),
+        });
     }
     mutants
+}
+
+fn shift_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    match expr {
+        Expression::ShiftLeft { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            vec![Mutant::new(
+                file_resolver,
+                namespace,
+                op_loc,
+                op.clone(),
+                "<<".to_string(),
+                ">>".to_string(),
+            )]
+        }
+        Expression::ShiftRight { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            vec![Mutant::new(
+                file_resolver,
+                namespace,
+                op_loc,
+                op.clone(),
+                ">>".to_string(),
+                "<<".to_string(),
+            )]
+        }
+        _ => vec![],
+    }
 }
 
 fn statement_deletion(
@@ -944,16 +911,87 @@ fn statement_deletion(
     }
 }
 
+fn unary_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let unary_op = get_operator(expr);
+    let rs = vec!["-", "~"];
+    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != unary_op).collect();
+
+    if let None = loc.try_file_no() {
+        return vec![];
+    }
+    let muts = match expr {
+        Expression::BitwiseNot { .. } | Expression::Negate { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            let muts = replacements
+                .iter()
+                .map(|r| {
+                    Mutant::new(
+                        file_resolver,
+                        namespace.clone(),
+                        op_loc,
+                        op.clone(),
+                        "~".to_string(),
+                        format!(" {} ", r),
+                    )
+                })
+                .collect();
+            muts
+        }
+        _ => vec![],
+    };
+    muts
+}
+
 #[allow(dead_code)]
 fn elim_delegate_mutation(
-    _op: &MutationType,
-    _file_resolver: &FileResolver,
-    _namespace: Rc<Namespace>,
-    _expr: &Expression,
-    _source: &Arc<str>,
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
 ) -> Vec<Mutant> {
     // TODO: implement
-    vec![]
+    match expr {
+        Expression::ExternalFunctionCallRaw {
+            loc,
+            ty: CallTy::Delegate,
+            address,
+            ..
+        } => {
+            // Ugh, okay, so we need to do messy string manipulation to get the
+            // location of the function name because that isn't tracked in the
+            // AST. The idea is that we start scanning from the right of the
+            // address (e.g., `foo` in `foo.bar()`), and look for the first
+            // index of `delegatecall`. We then add an offset of 12 (length of
+            // "delegatecall").
+            let addr_loc = address.loc();
+            let idx = addr_loc.end() + 1;
+            let no_address = &source[idx..loc.end()];
+            let delegate_call_start = idx + no_address.find("delegatecall").unwrap();
+            let delegate_call_end = delegate_call_start + 12;
+            println!(
+                "Delegate call: `{}`",
+                &source[delegate_call_start..delegate_call_end]
+            );
+
+            vec![Mutant::new(
+                &file_resolver,
+                namespace,
+                Loc::File(loc.file_no(), delegate_call_start, delegate_call_end),
+                op.clone(),
+                "delegatecall".to_string(),
+                "call".to_string(),
+            )]
+        }
+        _ => vec![],
+    }
 }
 
 #[allow(dead_code)]
@@ -1002,7 +1040,7 @@ fn expression_value_replacement(
 #[cfg(test)]
 mod test {
     use crate::test_util::*;
-    use crate::{MutationType, MutationType::*, Mutator, MutatorConf, Solc};
+    use crate::{MutationType, Mutator, MutatorConf, Solc};
     use solang::file_resolver::FileResolver;
     use std::collections::HashSet;
     use std::error;
@@ -1011,7 +1049,10 @@ mod test {
 
     #[test]
     pub fn test_elim_delegate_mutation() -> Result<(), Box<dyn error::Error>> {
-        let _ops = vec![ElimDelegateMutation];
+        let ops = vec![
+            MutationType::ElimDelegateMutation,
+            MutationType::ArithmeticOperatorReplacement,
+        ];
         // TODO: how should I test this?
         let code = "\
 // SPDX-License-Identifier: GPL-3.0-only
@@ -1023,6 +1064,8 @@ contract B {
     uint public value;
 
     function setVars(uint _num) public payable {
+        usize c = 1 + 2;
+
         num = _num;
         sender = msg.sender;
         value = msg.value;
@@ -1046,83 +1089,360 @@ contract A {
     }
 }
 ";
-        let ops = vec![MutationType::ElimDelegateMutation];
         let expected = vec!["call"];
         assert_exact_mutants_for_source(code, &ops, &expected);
         Ok(())
     }
 
-    // #[test]
-    // pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
-    //     let ops = vec![IfStatementMutation];
-    //     assert_num_mutants_for_statements(
-    //         &vec!["uint256 x;", "if (true) { x = 1; } else { x = 2 ;}"],
-    //         &ops,
-    //         1,
-    //     );
-    //     assert_num_mutants_for_statements(&vec!["if (true) {}"], &ops, 1);
-    //     Ok(())
-    // }
+    #[test]
+    fn test_aor() {
+        let ops = vec![MutationType::ArithmeticOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a + b;"],
+            &ops,
+            &vec!["-", "*", "/", "**", "%"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a", "int256 b"],
+            &vec!["int256 c = a + b;"],
+            &ops,
+            &vec!["-", "*", "/", "%"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a - b;"],
+            &ops,
+            &vec!["+", "*", "/", "**", "%"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a * b;"],
+            &ops,
+            &vec!["+", "-", "/", "**", "%"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a ** b;"],
+            &ops,
+            &vec!["+", "-", "/", "*", "%"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a % b;"],
+            &ops,
+            &vec!["+", "-", "/", "*", "**"],
+        );
+    }
+
+    #[test]
+    fn test_bor() {
+        let ops = vec![MutationType::BitwiseOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a | b;"],
+            &ops,
+            &vec!["&"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a & b;"],
+            &ops,
+            &vec!["|"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a ^ b;"],
+            &ops,
+            &vec!["&"],
+        );
+    }
+
+    #[test]
+    fn test_lvr() {
+        let ops = vec![MutationType::LiteralValueReplacement];
+        // Numbers
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a * b + 11;"],
+            &ops,
+            &vec!["0", "12"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a * b + 0;"],
+            &ops,
+            &vec!["1"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a", "int256 b"],
+            &vec!["int256 c = a * b + 11;"],
+            &ops,
+            &vec!["0", "-11", "12"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a", "int256 b"],
+            &vec!["int256 c = a * b + 0;"],
+            &ops,
+            &vec!["1", "-1"],
+        );
+
+        // Booleans
+        assert_exact_mutants_for_statements(&vec![], &vec!["bool b = true;"], &ops, &vec!["false"]);
+        assert_exact_mutants_for_statements(&vec![], &vec!["bool b = false;"], &ops, &vec!["true"]);
+    }
+
+    #[test]
+    fn test_lor() {
+        let ops = vec![MutationType::LogicalOperatorReplacement];
+
+        assert_exact_mutants_for_statements(
+            &vec!["bool a", "bool b"],
+            &vec!["bool c = a || b;"],
+            &ops,
+            &vec!["a", "b", "true"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["bool a", "bool b"],
+            &vec!["bool c = a && b;"],
+            &ops,
+            &vec!["a", "b", "false"],
+        );
+    }
+
+    #[test]
+    fn test_ror() {
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a < b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<=", "false", "!="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a == b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<=", "false", ">="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a > b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["!=", "false", ">="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a <= b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<", "true", "=="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a != b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<", "true", ">"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a >= b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["==", "true", ">"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["bool a", "bool b"],
+            &vec!["if (a != b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["true", "false"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["bool a", "bool b"],
+            &vec!["if (a == b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["true", "false"],
+        );
+    }
+
+    #[test]
+    fn test_std() {
+        let ops = vec![MutationType::StatementDeletion];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a + b;"],
+            &ops,
+            &vec![],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c;", "c = a + b;"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["bool a"],
+            &vec!["while (a) { continue; }"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["bool a"],
+            &vec!["while (a) { break; }"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["bool a"],
+            &vec!["revert();"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        // TODO: add a test for `delete expr`
+        // TODO: add a test for `emit ...`
+    }
+
+    #[test]
+    fn test_sor() {
+        let ops = vec![MutationType::ShiftOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a << b;"],
+            &ops,
+            &vec![">>"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a >> b;"],
+            &ops,
+            &vec!["<<"],
+        );
+    }
+
+    #[test]
+    fn test_uor() {
+        let ops = vec![MutationType::UnaryOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a"],
+            &vec!["int256 b = -a;"],
+            &ops,
+            &vec!["~"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a"],
+            &vec!["int256 b = ~a;"],
+            &ops,
+            &vec!["-"],
+        );
+    }
 
     #[allow(dead_code)]
     fn assert_num_mutants_for_statements(
+        params: &Vec<&str>,
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
-        _expected: usize,
+        expected: usize,
     ) {
-        let _mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
-        panic!();
-        // assert_eq!(
-        //     expected,
-        //     mutator.mutants().len(),
-        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-        //     ops,
-        //     statements.join("   "),
-        //     mutator
-        //         .filenames()
-        //         .iter()
-        //         .map(|s| PathBuf::from(s).as_path())
-        //         .collect::<Vec<&Path>>()
-        // );
+        let mutator = apply_mutation_to_statements(statements, params, None, ops).unwrap();
+        assert_eq!(
+            expected,
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+            ops,
+            statements.join("   "),
+            mutator.filenames().join(" ")
+        );
     }
 
     #[allow(dead_code)]
     fn assert_exact_mutants_for_statements(
+        params: &Vec<&str>,
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
         expected: &Vec<&str>,
     ) {
-        let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
-        panic!();
-        // assert_eq!(
-        //     expected.len(),
-        //     mutator.mutants().len(),
-        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-        //     ops,
-        //     statements.join("   "),
-        //     mutator
-        //         .filenames()
-        //         .iter()
-        //         .map(|s| PathBuf::from(s).as_path())
-        //         .collect::<Vec<&Path>>()
-        // );
+        let mutator = apply_mutation_to_statements(statements, params, None, ops).unwrap();
+        let expected_set: HashSet<&str> = expected.iter().map(|s| s.trim()).collect();
+        let actuals_set: HashSet<&str> = mutator
+            .mutants()
+            .iter()
+            .map(|m| m.repl.as_str().trim())
+            .collect();
+        let expected_str = expected_set
+            .iter()
+            .cloned()
+            .collect::<Vec<&str>>()
+            .join(", ");
+        let actuals_str = actuals_set
+            .iter()
+            .cloned()
+            .collect::<Vec<&str>>()
+            .join(", ");
+        let program =
+            ansi_term::Color::Yellow.paint(format!("```\n{}\n```", statements.join(";\n")));
+        assert_eq!(
+            expected.len(),
+            mutator.mutants().len(),
+            "Error: applied ops:
+               -> {:?}
+            to program:\n{}\n
+            [+] Expected mutants: {}
+            [X] Actual mutants: {}
+            See {} for more info",
+            ops,
+            program,
+            ansi_term::Color::Green.paint(expected_str),
+            ansi_term::Color::Red.paint(actuals_str),
+            mutator.filenames().join(" ")
+        );
 
-        // let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
-        // let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
-        // assert_eq!(actuals, expected);
+        assert_eq!(
+            actuals_set,
+            expected_set,
+            "Error: applied ops:
+               -> {:?}
+            to program:\n{}\n
+            [+] Expected mutants: {}
+            [X]   Actual mutants: {}
+            See {} for more info",
+            ops,
+            program,
+            ansi_term::Color::Green.paint(expected_str),
+            ansi_term::Color::Red.paint(actuals_str),
+            mutator.filenames().join(" ")
+        );
     }
 
     fn apply_mutation_to_statements(
         statements: &Vec<&str>,
+        params: &Vec<&str>,
         returns: Option<&str>,
         ops: &Vec<MutationType>,
     ) -> Result<Mutator, Box<dyn error::Error>> {
-        let source = wrap_and_write_solidity_to_temp_file(statements, returns).unwrap();
+        let source = wrap_and_write_solidity_to_temp_file(statements, params, returns).unwrap();
+        let prefix = format!(
+            "gambit-compile-dir-{}",
+            source.file_name().unwrap().to_str().unwrap()
+        );
         let outdir = Builder::new()
-            .prefix("gambit-compile-dir")
+            .prefix(prefix.as_str())
             .rand_bytes(5)
-            .tempdir()?;
+            .tempdir_in(source.parent().unwrap())?;
         let mut mutator = make_mutator(ops, source, outdir.into_path());
+        mutator
+            .file_resolver
+            .add_import_path(&PathBuf::from("/"))
+            .unwrap();
         let sources = mutator.filenames().clone();
         mutator.mutate(sources)?;
 
@@ -1131,19 +1451,14 @@ contract A {
 
     fn _assert_num_mutants_for_source(source: &str, ops: &Vec<MutationType>, expected: usize) {
         let mutator = apply_mutation_to_source(source, ops).unwrap();
-        panic!();
-        // assert_eq!(
-        //     expected,
-        //     mutator.mutants().len(),
-        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
-        //     ops,
-        //     source,
-        //     mutator
-        //         .filenames()
-        //         .iter()
-        //         .map(|s| PathBuf::from(s).as_path())
-        //         .collect::<Vec<&Path>>()
-        // );
+        assert_eq!(
+            expected,
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
+            ops,
+            source,
+            mutator.filenames().join(" ")
+        );
     }
 
     fn assert_exact_mutants_for_source(
@@ -1152,19 +1467,14 @@ contract A {
         expected: &Vec<&str>,
     ) {
         let mutator = apply_mutation_to_source(source, ops).unwrap();
-        panic!();
-        // assert_eq!(
-        //     expected.len(),
-        //     mutator.mutants().len(),
-        //     "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
-        //     ops,
-        //     source,
-        //     mutator
-        //         .filenames()
-        //         .iter()
-        //         .map(|s| PathBuf::from(s).as_path())
-        //         .collect::<Vec<&Path>>()
-        // );
+        assert_eq!(
+            expected.len(),
+            mutator.mutants().len(),
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {} for more info",
+            ops,
+            source,
+            mutator.filenames().join(" ")
+        );
 
         let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
         let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
@@ -1180,7 +1490,26 @@ contract A {
             .prefix("gambit-compile-dir")
             .rand_bytes(5)
             .tempdir()?;
-        let mut mutator = make_mutator(ops, source, outdir.into_path());
+        let mut mutator = make_mutator(ops, source.clone(), outdir.into_path());
+        // let source_os_str = source.as_os_str();
+        // println!("source: {:?}", source_os_str);
+        // let ns = parse_and_resolve(
+        //     source_os_str,
+        //     &mut mutator.file_resolver,
+        //     solang::Target::EVM,
+        // );
+        // println!("FUNCTIONS");
+        // println!("ns: {:?}", ns.files);
+        // for function in ns.functions {
+        //     println!("[{}]:\n", function.name);
+        //     for (i, s) in function.body.iter().enumerate() {
+        //         println!("  {}: {:?}", i + 1, &s);
+        //     }
+        // }
+        mutator
+            .file_resolver
+            .add_import_path(&PathBuf::from("/"))
+            .unwrap();
         let sources = mutator.filenames().clone();
         mutator.mutate(sources)?;
 
@@ -1195,10 +1524,11 @@ contract A {
             funcs_to_mutate: None,
             contract: None,
         };
-        let sourceroot = filename.parent().unwrap();
 
         let sources = vec![filename.to_str().unwrap().to_string()];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
-        Mutator::new(conf, FileResolver::new(), sources, solc)
+        let mut cache = FileResolver::new();
+        cache.add_import_path(&PathBuf::from("/")).unwrap();
+        Mutator::new(conf, cache, sources, solc)
     }
 }

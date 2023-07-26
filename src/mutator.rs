@@ -371,7 +371,10 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
         Statement::DoWhile(_, _, _, _) => true,
         Statement::Expression(_, _, _) => true,
         Statement::Delete(_, _, _) => true,
-        Statement::Destructure(_, _, _) => true,
+        Statement::Destructure(_, _, e) => {
+            e.recurse(mutator, mutate_expression);
+            true
+        }
         Statement::Continue(_) => true,
         Statement::Break(_) => true,
         Statement::Return(_, rv) => {
