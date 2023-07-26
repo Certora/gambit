@@ -64,7 +64,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         filepath
                     } else {
                         let joined = config_parent_pb.join(filepath);
-                        joined.canonicalize().unwrap()
+                        joined
+                            .canonicalize()
+                            .expect(format!("Couldn't find file at {}", joined.display()).as_str())
                     };
 
                     // PARAM: Outdir
