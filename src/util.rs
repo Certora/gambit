@@ -357,6 +357,7 @@ pub fn normalize_mutation_operator_name(op_name: &String) -> String {
         "aor" | "arithmetic-operator-replacement" => "arithmetic-operator-replacement",
         "bor" | "bitwise-operator-replacement" => "bitwise-operator-replacement",
         "evr" | "expression-value-replacement" => "expression-value-replacement",
+        "edc" | "elim-delegate-call" => "elim-delegate-call",
         "lor" | "logical-operator-replacement" => "logical-operator-replacement",
         "lvr" | "literal-value-replacement" => "literal-value-replacement",
         "ror" | "relational-operator-replacement" => "relational-operator-replacement",

@@ -229,23 +229,16 @@ pub trait Mutation {
 /// Kinds of mutations.
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
-    // # New Operators
-    // ## Literal Value Replacement
-    LiteralValueReplacement,
-    // ## Binary Operator Replacement
-    BitwiseOperatorReplacement,
-    RelationalOperatorReplacement,
     ArithmeticOperatorReplacement,
+    BitwiseOperatorReplacement,
+    ElimDelegateCall,
+    LiteralValueReplacement,
     LogicalOperatorReplacement,
+    RelationalOperatorReplacement,
     ShiftOperatorReplacement,
-    // ## UnaryOperatorReplacement
-    UnaryOperatorReplacement,
-    // ## Fallback Operators
-    ExpressionValueReplacement,
     StatementDeletion,
-
-    // # Old Operators (Deprecated)
-    ElimDelegateMutation,
+    UnaryOperatorReplacement,
+    ExpressionValueReplacement,
 }
 
 impl ToString for MutationType {
@@ -254,14 +247,14 @@ impl ToString for MutationType {
             MutationType::LiteralValueReplacement => "LiteralValueReplacement",
             MutationType::BitwiseOperatorReplacement => "ConditionalOperatorReplacement",
             MutationType::RelationalOperatorReplacement => "RelationalOperatorReplacement",
-            MutationType::ArithmeticOperatorReplacement => "ArithmeticOperatorReplacemnt",
+            MutationType::ArithmeticOperatorReplacement => "ArithmeticOperatorReplacement",
             MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
             MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
             MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
             MutationType::ExpressionValueReplacement => "ExpressionOperatorReplacement",
             MutationType::StatementDeletion => "StatementDeletion",
 
-            MutationType::ElimDelegateMutation => "ElimDelegateMutation",
+            MutationType::ElimDelegateCall => "ElimDelegateCall",
         };
         str.into()
     }
@@ -328,7 +321,7 @@ impl Mutation for MutationType {
             }
 
             // Old Operators
-            MutationType::ElimDelegateMutation => {
+            MutationType::ElimDelegateCall => {
                 elim_delegate_mutation(self, resolver, ns, expr, contents)
             }
             _ => vec![],
@@ -342,7 +335,7 @@ impl MutationType {
             MutationType::ArithmeticOperatorReplacement,
             MutationType::BitwiseOperatorReplacement,
             MutationType::ExpressionValueReplacement,
-            MutationType::ElimDelegateMutation,
+            MutationType::ElimDelegateCall,
             MutationType::LiteralValueReplacement,
             MutationType::LogicalOperatorReplacement,
             MutationType::RelationalOperatorReplacement,
@@ -356,7 +349,7 @@ impl MutationType {
         match self {
             MutationType::ArithmeticOperatorReplacement => "AOR",
             MutationType::BitwiseOperatorReplacement => "BOR",
-            MutationType::ElimDelegateMutation => "EDM",
+            MutationType::ElimDelegateCall => "EDC",
             MutationType::ExpressionValueReplacement => "EVR",
             MutationType::LiteralValueReplacement => "LVR",
             MutationType::LogicalOperatorReplacement => "LOR",
@@ -1050,7 +1043,7 @@ mod test {
     #[test]
     pub fn test_elim_delegate_mutation() -> Result<(), Box<dyn error::Error>> {
         let ops = vec![
-            MutationType::ElimDelegateMutation,
+            MutationType::ElimDelegateCall,
             MutationType::ArithmeticOperatorReplacement,
         ];
         // TODO: how should I test this?
