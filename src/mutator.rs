@@ -101,6 +101,7 @@ impl From<&MutateParams> for Mutator {
                 .into(),
         );
         solc.with_optimize(value.solc_optimize);
+
         if let Some(basepath) = value.solc_base_path.clone() {
             solc.with_basepath(basepath);
         }
