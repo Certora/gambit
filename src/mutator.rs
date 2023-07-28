@@ -140,16 +140,15 @@ impl From<&MutateParams> for Mutator {
         let mut file_resolver = FileResolver::new();
 
         // Add base path to file resolver
-        match &value.solc_base_path {
-            Some(base_path) => {
+        if value.import_paths.is_empty() {
+            file_resolver
+                .add_import_path(&PathBuf::from(""))
+                .expect(format!("Failed to add import path {}", "").as_str());
+        } else {
+            for import_path in value.import_paths.iter() {
                 file_resolver
-                    .add_import_path(&PathBuf::from(base_path))
-                    .expect(
-                        format!("Failed to add base_path as import path: {}", base_path).as_str(),
-                    );
-            }
-            None => {
-                file_resolver.add_import_path(&PathBuf::from(".")).unwrap();
+                    .add_import_path(&PathBuf::from(import_path))
+                    .expect(format!("Failed to add import path {}", import_path).as_str());
             }
         }
 

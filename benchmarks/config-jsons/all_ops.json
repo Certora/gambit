@@ -1,49 +1,63 @@
 [
     {
         "filename": "../Ops/AOR/AOR.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "AOR"
         ]
     },
     {
         "filename": "../Ops/BOR/BOR.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "BOR"
         ]
     },
     {
         "filename": "../Ops/EDC/EDC.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "EDC"
         ]
     },
     {
         "filename": "../Ops/LOR/LOR.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "LOR"
         ]
     },
     {
         "filename": "../Ops/LVR/LVR.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "LVR"
         ]
     },
     {
         "filename": "../Ops/ROR/ROR.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "ROR"
         ]
     },
     {
         "filename": "../Ops/UOR/UOR.sol",
-        "solc-base-path": "../Ops",
+        "import_paths": [
+            "../Ops"
+        ],
         "mutations": [
             "UOR"
         ]

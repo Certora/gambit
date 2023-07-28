@@ -170,9 +170,14 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             .import_paths
             .iter()
             .map(|ip| {
-                PathBuf::from(ip)
-                    .canonicalize()
-                    .expect(format!("Could not canonicalize path {}", ip).as_str())
+                resolve_config_file_path(ip, &json_parent_directory)
+                    .expect(
+                        format!(
+                            "Could not canonicalize path {} with respect to {:?}",
+                            ip, &json_parent_directory
+                        )
+                        .as_str(),
+                    )
                     .to_str()
                     .unwrap()
                     .to_string()
@@ -185,9 +190,14 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         );
         if let Some(ref base_path) = params.solc_base_path {
             print_deprecation_warning("solc_base_path", "1.0.0", "Use import_path instead");
-            let base_path = PathBuf::from(&base_path)
-                .canonicalize()
-                .expect(format!("Could not canonicalize path {}", base_path).as_str())
+            let base_path = resolve_config_file_path(&base_path, &json_parent_directory)
+                .expect(
+                    format!(
+                        "Could not canonicalize path {} with respect to {:?}",
+                        base_path, &json_parent_directory
+                    )
+                    .as_str(),
+                )
                 .to_str()
                 .unwrap()
                 .to_string();
@@ -200,9 +210,14 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         if !params.solc_include_paths.is_empty() {
             print_deprecation_warning("solc_include_path", "1.0.0", "Use import_path instead");
             for include_path in params.solc_include_paths.iter() {
-                let include_path = PathBuf::from(&include_path)
-                    .canonicalize()
-                    .expect(format!("Could not canonicalize path {}", include_path).as_str())
+                let include_path = resolve_config_file_path(include_path, &json_parent_directory)
+                    .expect(
+                        format!(
+                            "Could not canonicalize path {} with respect to {:?}",
+                            include_path, &json_parent_directory
+                        )
+                        .as_str(),
+                    )
                     .to_str()
                     .unwrap()
                     .to_string();
@@ -212,6 +227,8 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             }
             params.solc_include_paths = vec![];
         }
+
+        log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
 
         // PARAM: solc_remappings
         log::debug!("    [.] Resolving params.solc_remapping");
