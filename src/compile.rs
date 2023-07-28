@@ -19,11 +19,20 @@ static OPTIMIZE: &str = "--optimize";
 pub struct Solc {
     /// The solc executable string
     pub solc: String,
+    /// The output directory for solc to compile to (-o|--output-dir in solc)
     output_directory: PathBuf,
+    /// The root of the virtual filesystem (--base-path in solc)
     basepath: Option<String>,
+    /// Make additional source directory availabe to the default import callback (--include-path in solc)
+    include_paths: Vec<String>,
+    /// Allow a given path for imports (--allow-paths in solc)
     allow_paths: Option<Vec<String>>,
+    /// Specify remappings (xyz=/path/to/xyz in solc)
     remappings: Option<Vec<String>>,
+    /// Enable optimization flag (--optimize in solc)
     optimize: bool,
+    /// Bypass all other flags and manually specify raw arguments passed to solc
+    raw_args: Option<Vec<String>>,
 }
 
 impl Solc {
@@ -32,9 +41,11 @@ impl Solc {
             solc,
             output_directory,
             basepath: None,
+            include_paths: vec![],
             allow_paths: None,
             remappings: None,
             optimize: false,
+            raw_args: None,
         }
     }
 
@@ -49,8 +60,27 @@ impl Solc {
         }
     }
 
+    pub fn with_output_directory(&mut self, output_directory: PathBuf) -> &Self {
+        self.output_directory = output_directory;
+        self
+    }
+
     pub fn with_basepath(&mut self, basepath: String) -> &Self {
         self.basepath = Some(basepath);
+        self
+    }
+
+    pub fn with_include_path(&mut self, include_path: String) -> &Self {
+        self.include_paths.push(include_path);
+        self
+    }
+
+    pub fn with_import_path(&mut self, import_path: String) -> &Self {
+        if self.basepath.is_none() {
+            self.basepath = Some(import_path);
+        } else {
+            self.include_paths.push(import_path);
+        }
         self
     }
 
@@ -68,17 +98,18 @@ impl Solc {
         self.optimize = optimize;
         self
     }
+
+    pub fn with_raw_args(&mut self, raw_args: Vec<String>) -> &Self {
+        self.raw_args = Some(raw_args);
+        self
+    }
 }
 
 impl Solc {
     /// Invoke the full solidity compiler and return the exit code, stdout, and stderr
-    pub fn compile(
-        &self,
-        solidity_file: &Path,
-        outdir: &Path,
-    ) -> Result<CompilerRet, Box<dyn error::Error>> {
+    pub fn compile(&self, solidity_file: &Path) -> Result<CompilerRet, Box<dyn error::Error>> {
         log::debug!("Invoking full compilation on {}", solidity_file.display());
-        self.invoke_compiler(solidity_file, outdir, false)
+        self.invoke_compiler(solidity_file, false)
     }
 
     /// Perform the actual compilation by invoking a process. This is a wrapper
@@ -95,10 +126,9 @@ impl Solc {
     fn invoke_compiler(
         &self,
         solidity_file: &Path,
-        ast_dir: &Path,
         stop_after_parse: bool,
     ) -> Result<CompilerRet, Box<dyn error::Error>> {
-        let flags = self.make_compilation_flags(solidity_file, ast_dir, stop_after_parse);
+        let flags = self.make_compilation_flags(solidity_file, stop_after_parse);
         let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
             .iter()
@@ -144,46 +174,45 @@ impl Solc {
     }
 
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`
-    fn make_compilation_flags(
-        &self,
-        solidity_file: &Path,
-        ast_dir: &Path,
-        stop_after_parse: bool,
-    ) -> Vec<String> {
-        let mut flags: Vec<String> = vec![
-            "--ast-compact-json".into(),
-            solidity_file.to_str().unwrap().into(),
-            "--output-dir".into(),
-            ast_dir.to_str().unwrap().into(),
-            "--overwrite".into(),
-        ];
-        if stop_after_parse {
-            flags.push("--stop-after".into());
-            flags.push("parsing".into());
-        }
-
-        if let Some(basepath) = &self.basepath {
-            flags.push("--base-path".into());
-            flags.push(basepath.clone());
-        }
-
-        if let Some(allow_paths) = &self.allow_paths {
-            flags.push(ALLOWPATH.into());
-            for r in allow_paths {
-                flags.push(r.clone());
+    fn make_compilation_flags(&self, solidity_file: &Path, stop_after_parse: bool) -> Vec<String> {
+        if let Some(ref flags) = self.raw_args {
+            flags.clone()
+        } else {
+            let mut flags: Vec<String> = vec![
+                "--ast-compact-json".into(),
+                solidity_file.to_str().unwrap().into(),
+                "--output-dir".into(),
+                self.output_directory.to_str().unwrap().into(),
+                "--overwrite".into(),
+            ];
+            if stop_after_parse {
+                flags.push("--stop-after".into());
+                flags.push("parsing".into());
             }
-        }
 
-        if let Some(remaps) = &self.remappings {
-            for r in remaps {
-                flags.push(r.clone());
+            if let Some(basepath) = &self.basepath {
+                flags.push("--base-path".into());
+                flags.push(basepath.clone());
             }
-        }
 
-        if self.optimize {
-            flags.push(OPTIMIZE.into());
-        }
+            if let Some(allow_paths) = &self.allow_paths {
+                flags.push(ALLOWPATH.into());
+                for r in allow_paths {
+                    flags.push(r.clone());
+                }
+            }
 
-        flags
+            if let Some(remaps) = &self.remappings {
+                for r in remaps {
+                    flags.push(r.clone());
+                }
+            }
+
+            if self.optimize {
+                flags.push(OPTIMIZE.into());
+            }
+
+            flags
+        }
     }
 }

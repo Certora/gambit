@@ -135,7 +135,7 @@ pub fn run_mutate(
             // TODO: Separate out Filtering from Validation
 
             // Check if we are filtering
-            let validator = Validator {
+            let mut validator = Validator {
                 solc: Solc::new(params.solc.clone(), outdir_path.clone()),
             };
             let (sampled, invalid) = if let Some(num_mutants) = params.num_mutants {
@@ -147,7 +147,8 @@ pub fn run_mutate(
                 } else {
                     Some(params.seed)
                 };
-                let filter = RandomDownSampleFilter::new(seed, !params.skip_validate, validator);
+                let mut filter =
+                    RandomDownSampleFilter::new(seed, !params.skip_validate, validator);
                 let (sampled, invalid) = filter.filter_mutants(&mutator, num_mutants)?;
                 if !params.skip_validate {
                     log::info!(

@@ -13,7 +13,7 @@ pub trait MutantFilter {
     /// `self.validate()` returns `true`. When successful, return an
     /// Ok((valid-mutants, invalid-mutants))
     fn filter_mutants(
-        &self,
+        &mut self,
         mutator: &Mutator,
         num_mutants: usize,
     ) -> Result<(Vec<Mutant>, Vec<Mutant>), Box<dyn error::Error>>;
@@ -44,7 +44,7 @@ impl RandomDownSampleFilter {
 
 impl MutantFilter for RandomDownSampleFilter {
     fn filter_mutants(
-        &self,
+        &mut self,
         mutator: &Mutator,
         num_mutants: usize,
     ) -> Result<(Vec<Mutant>, Vec<Mutant>), Box<dyn error::Error>> {
@@ -97,7 +97,7 @@ pub struct Validator {
 impl Validator {
     /// validate a mutant by writing it to disk and compiling it. If compilation
     /// fails then this is an invalid mutant.
-    pub fn validate_mutant(&self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
+    pub fn validate_mutant(&mut self, mutant: &Mutant) -> Result<bool, Box<dyn error::Error>> {
         let source_filename = mutant.path();
         let source_parent_dir = source_filename.parent().unwrap();
         let mutant_file = NamedTempFile::new_in(source_parent_dir)?;
@@ -109,7 +109,11 @@ impl Validator {
         );
         let dir = tempdir()?;
         MutantWriter::write_mutant_to_file(mutant_file_path, mutant)?;
-        let was_success = match self.solc.compile(mutant_file_path, dir.path()) {
+        let was_success = match self
+            .solc
+            .with_output_directory(dir.into_path())
+            .compile(mutant_file_path)
+        {
             Ok((code, _, _)) => code == 0,
             Err(_) => false,
         };
@@ -117,7 +121,7 @@ impl Validator {
     }
 
     /// Return a tuple of (valid-mutants, invalid-mutants)
-    pub fn get_valid_mutants(&self, mutants: &[Mutant]) -> (Vec<Mutant>, Vec<Mutant>) {
+    pub fn get_valid_mutants(&mut self, mutants: &[Mutant]) -> (Vec<Mutant>, Vec<Mutant>) {
         log::info!("Validating mutants...");
         let mut valid_mutants = vec![];
         let mut invalid_mutants: Vec<Mutant> = vec![];
