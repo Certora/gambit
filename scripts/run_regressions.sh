@@ -20,63 +20,96 @@
 
 SCRIPTS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 GAMBIT="$SCRIPTS/.."
+GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
 REGRESSIONS="$GAMBIT"/resources/regressions
-echo "scripts: $SCRIPTS"
-echo "gambit: $GAMBIT"
-echo "configs: $CONFIGS"
-echo "regressions: $REGRESSIONS"
+TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
 
-[ -e "$REGRESSIONS" ] || {
-    echo "No regressions exist!"
-}
+NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
 
 passed=()
 failed=()
-echo "Running tests..."
-cd "$GAMBIT" || {
-    echo "Error: couldn't cd $GAMBIT"
-    exit 1
+
+print_vars() {
+    echo "scripts: $SCRIPTS"
+    echo "gambit: $GAMBIT"
+    echo "configs: $CONFIGS"
+    echo "regressions: $REGRESSIONS"
+    echo "temporary regressions: $TMP_REGRESSIONS"
 }
-for conf_path in "$CONFIGS"/*; do
-    echo
-    echo
-    printf "\033[1m- Conf path: %s\033[0m\n" "$conf_path"
 
-    conf=$(basename "$conf_path")
-    regression_dir="$REGRESSIONS"/"$conf"
+build_release() {
+    old_dir=$(pwd)
+    cd "$GAMBIT" || exit 1
+    cargo build --release
 
-    printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
-    stdout="$(cargo run -- mutate --json "$conf_path")"
-    printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
-    printf "  \033[1mDiffing\033[0m gambit_out and %s\n" "$regression_dir"
-    bash "$SCRIPTS"/remove_sourceroots.sh gambit_out/gambit_results.json
-    if diff -q -r gambit_out "$regression_dir"; then
-        printf "  \033[92mSUCCESS\033[0m\n"
-        passed+=("$conf")
-    else
-        printf "  \033[91mFAILED:\033[0m %s\n" "$conf"
-        failed+=("$conf")
-    fi
-    rm -rf gambit_out
+    cd "$old_dir" || exit 1
+}
 
-done
+run_regressions() {
+    echo "Running regression tests on $NUM_CONFIGS configurations"
 
-printf "\n\n\033[96mREGRESSION SUMMARY\033[0m\n"
-printf "\033[96m==================\033[0m\n\n"
+    starting_dir=$(pwd)
+    cd "$GAMBIT" || {
+        echo "Error: couldn't cd $GAMBIT"
+        exit 1
+    }
 
-printf "\033[92mPassed:\033[0m %s of %s tests\n" ${#passed[@]} $((${#failed[@]} + ${#passed[@]}))
-printf "\033[92m-------\033[0m\n"
+    conf_idx=0
 
-for conf in "${passed[@]}"; do
-    printf "\033[92m[+]\033[0m %s\n" "$conf"
-done
+    for conf_path in "$CONFIGS"/*; do
+        conf_idx=$((conf_idx + 1))
+        echo
+        echo
+        printf "\033[1mConfiguration %s/%s: %s\033[0m\n" "$conf_idx" "$NUM_CONFIGS" "$conf_path"
 
-printf "\n"
+        conf=$(basename "$conf_path")
+        regression_dir="$REGRESSIONS"/"$conf"
 
-printf "\033[91mFailed:\033[0m %s of %s tests\n" ${#failed[@]} $((${#failed[@]} + ${#passed[@]}))
-printf "\033[91m-------\033[0m\n"
+        printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
+        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
+        printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
+        printf "  \033[1mDiffing\033[0m gambit_out and %s\n" "$regression_dir"
+        bash "$SCRIPTS"/remove_sourceroots.sh gambit_out/gambit_results.json
+        if diff -q -r gambit_out "$regression_dir"; then
+            printf "  \033[92mSUCCESS\033[0m\n"
+            passed+=("$conf")
+        else
+            printf "  \033[91mFAILED:\033[0m %s\n" "$conf"
+            failed+=("$conf")
+        fi
+        rm -rf gambit_out
 
-for conf in "${failed[@]}"; do
-    printf "\033[91m[-]\033[0m %s\n" "$conf"
-done
+    done
+
+    cd "$starting_dir" || exit 1
+
+}
+
+summary() {
+
+    printf "\n\n\033[96mREGRESSION SUMMARY\033[0m\n"
+    printf "\033[96m==================\033[0m\n\n"
+
+    printf "\033[92mPassed:\033[0m %s of %s tests\n" ${#passed[@]} $((${#failed[@]} + ${#passed[@]}))
+    printf "\033[92m-------\033[0m\n"
+
+    for conf in "${passed[@]}"; do
+        printf "\033[92m[✔]\033[0m %s\n" "$conf"
+    done
+
+    printf "\n"
+
+    printf "\033[91mFailed:\033[0m %s of %s tests\n" ${#failed[@]} $((${#failed[@]} + ${#passed[@]}))
+    printf "\033[91m-------\033[0m\n"
+
+    for conf in "${failed[@]}"; do
+        printf "\033[91m[✘]\033[0m %s\n" "$conf"
+    done
+
+}
+
+print_vars
+build_release
+run_regressions
+summary

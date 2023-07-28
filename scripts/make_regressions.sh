@@ -32,7 +32,6 @@ print_vars() {
     echo "configs: $CONFIGS"
     echo "regressions: $REGRESSIONS"
     echo "temporary regressions: $TMP_REGRESSIONS"
-
 }
 
 double_check_make_regressions() {
@@ -80,7 +79,7 @@ setup() {
     mkdir -p "$TMP_REGRESSIONS"
 }
 
-run_regressions() {
+make_regressions() {
     echo "Running on $NUM_CONFIGS configurations"
     starting_dir=$(pwd)
     failed_confs=()
@@ -153,5 +152,5 @@ print_vars
 build_release
 clean_state
 setup
-run_regressions
+make_regressions
 summary
