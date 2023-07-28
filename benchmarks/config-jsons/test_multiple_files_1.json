@@ -1,12 +1,16 @@
 [
     {
         "filename": "../Ops/AOR/AOR.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "AOR"
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "C",
         "functions": [
             "getarray"

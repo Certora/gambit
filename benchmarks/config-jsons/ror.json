@@ -1,7 +1,9 @@
 [
     {
         "filename": "../Ops/ROR/ROR.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "mutations": [
             "relational-operator-replacement"
         ]

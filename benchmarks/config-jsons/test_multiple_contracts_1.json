@@ -1,7 +1,9 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "Utils",
         "functions": [
             "getarray"
@@ -10,7 +12,9 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "C",
         "functions": [
             "getarray",

@@ -1,7 +1,9 @@
 [
     {
         "filename": "../Ops/EDC/EDC.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "mutations": [
             "edc"
         ]

@@ -1,13 +1,17 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "Utils",
         "solc": "solc"
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "C",
         "solc": "solc"
     }

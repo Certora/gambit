@@ -1,7 +1,9 @@
 [
     {
         "filename": "../Ops/UOR/UOR.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "mutations": [
             "uor"
         ]

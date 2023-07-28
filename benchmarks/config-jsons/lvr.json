@@ -1,7 +1,9 @@
 [
     {
         "filename": "../Ops/LVR/LVR.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "mutations": [
             "lvr"
         ]

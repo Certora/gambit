@@ -1,7 +1,9 @@
 [
     {
         "filename": "../Ops/BOR/BOR.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "mutations": [
             "bor"
         ]

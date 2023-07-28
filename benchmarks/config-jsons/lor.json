@@ -1,7 +1,9 @@
 [
     {
         "filename": "../Ops/LOR/LOR.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "mutations": [
             "logical-operator-replacement"
         ]

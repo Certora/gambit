@@ -1,7 +1,9 @@
 [
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "Utils",
         "functions": [
             "add"
@@ -14,7 +16,9 @@
     },
     {
         "filename": "../MultipleContracts/C.sol",
-        "solc-base-path": "..",
+        "import_paths": [
+            ".."
+        ],
         "contract": "C",
         "functions": [
             "add"
