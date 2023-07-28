@@ -399,3 +399,13 @@ pub fn get_import_path(resolver: &FileResolver, import_no: usize) -> Option<Path
         _ => None,
     }
 }
+
+/// Print a deprecation warning to stderr
+pub fn print_deprecation_warning(argument: &str, version: &str, message: &str) {
+    let yellow = ansi_term::Color::Yellow;
+    let text = yellow.paint(format!(
+        "Deprecation Warning: {}\n    `{}` was deprecated in Gambit v{}. {}",
+        argument, argument, version, message
+    ));
+    eprintln!("{}", text)
+}

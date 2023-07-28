@@ -236,3 +236,7 @@ pub fn run_summary(params: SummaryParams) -> Result<(), Box<dyn std::error::Erro
     log::debug!("Summary parameters: {:?}", params);
     summarize(params)
 }
+
+pub fn print_version() {
+    println!("Gambit version: {}", env!("CARGO_PKG_VERSION"))
+}

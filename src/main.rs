@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use gambit::{
-    default_gambit_output_directory, normalize_path, repair_remapping, run_mutate, run_summary,
-    Command, MutateParams,
+    default_gambit_output_directory, normalize_path, print_deprecation_warning, print_version,
+    repair_remapping, run_mutate, run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -110,14 +110,68 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         None
                     };
 
-                    // PARAM: solc_basepath
-                    log::debug!("    [.] Resolving params.solc_base_path");
-                    let basepath = if let Some(basepaths) = &params.solc_base_path {
-                        Some(resolve_config_file_path(basepaths, &json_parent_directory)?)
-                            .map(|bp| bp.to_str().unwrap().to_string())
-                    } else {
-                        Some(json_parent_directory.to_str().unwrap().to_string())
-                    };
+                    log::debug!(
+                        "    [.] Resolving params.import_paths: {:?}",
+                        params.solc_base_path
+                    );
+
+                    let mut import_paths = params
+                        .import_paths
+                        .iter()
+                        .map(|ip| {
+                            PathBuf::from(ip)
+                                .canonicalize()
+                                .expect(format!("Could not canonicalize path {}", ip).as_str())
+                                .to_str()
+                                .unwrap()
+                                .to_string()
+                        })
+                        .collect::<Vec<String>>();
+
+                    log::debug!(
+                        "    [.] Resolving params.solc_base_path: {:?}",
+                        params.solc_base_path
+                    );
+                    if let Some(ref base_path) = params.solc_base_path {
+                        print_deprecation_warning(
+                            "solc_base_path",
+                            "1.0.0",
+                            "Use import_path instead",
+                        );
+                        let base_path = PathBuf::from(&base_path)
+                            .canonicalize()
+                            .expect(format!("Could not canonicalize path {}", base_path).as_str())
+                            .to_str()
+                            .unwrap()
+                            .to_string();
+                        if !import_paths.contains(&base_path) {
+                            import_paths.push(base_path);
+                        }
+                        params.solc_base_path = None;
+                    }
+
+                    if !params.solc_include_paths.is_empty() {
+                        print_deprecation_warning(
+                            "solc_include_path",
+                            "1.0.0",
+                            "Use import_path instead",
+                        );
+                        for include_path in params.solc_include_paths.iter() {
+                            let include_path = PathBuf::from(&include_path)
+                                .canonicalize()
+                                .expect(
+                                    format!("Could not canonicalize path {}", include_path)
+                                        .as_str(),
+                                )
+                                .to_str()
+                                .unwrap()
+                                .to_string();
+                            if !import_paths.contains(&include_path) {
+                                import_paths.push(include_path);
+                            }
+                        }
+                        params.solc_include_paths = vec![];
+                    }
 
                     // PARAM: solc_remappings
                     log::debug!("    [.] Resolving params.solc_remapping");
@@ -142,7 +196,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     params.filename = Some(filepath.to_str().unwrap().to_string());
                     params.outdir = Some(outdir);
                     params.solc_allow_paths = allow_paths;
-                    params.solc_base_path = basepath;
+                    params.import_paths = import_paths;
                     params.solc_remappings = remapping;
                 }
                 run_mutate(mutate_params)?;
@@ -192,21 +246,66 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 log::debug!(
+                    "    [.] Resolving params.import_paths: {:?}",
+                    params.solc_base_path
+                );
+
+                let mut import_paths = params
+                    .import_paths
+                    .iter()
+                    .map(|ip| {
+                        PathBuf::from(ip)
+                            .canonicalize()
+                            .expect(format!("Could not canonicalize path {}", ip).as_str())
+                            .to_str()
+                            .unwrap()
+                            .to_string()
+                    })
+                    .collect::<Vec<String>>();
+
+                log::debug!(
                     "    [.] Resolving params.solc_base_path: {:?}",
                     params.solc_base_path
                 );
-                let solc_base_path = params.solc_base_path.map(|bp| {
-                    PathBuf::from(bp)
+                if let Some(ref base_path) = params.solc_base_path {
+                    print_deprecation_warning(
+                        "--solc_base_path",
+                        "1.0.0",
+                        "Use --import_path/-I instead",
+                    );
+                    let base_path = PathBuf::from(&base_path)
                         .canonicalize()
-                        .unwrap()
+                        .expect(format!("Could not canonicalize path {}", base_path).as_str())
                         .to_str()
                         .unwrap()
-                        .to_string()
-                });
-                log::debug!(
-                    "    [.] Resolved params.solc_base_path to {:?}",
-                    solc_base_path
-                );
+                        .to_string();
+                    if !import_paths.contains(&base_path) {
+                        import_paths.push(base_path);
+                    }
+                    params.solc_base_path = None;
+                }
+
+                if !params.solc_include_paths.is_empty() {
+                    print_deprecation_warning(
+                        "--solc_include_path",
+                        "1.0.0",
+                        "Use --import_path/-I instead",
+                    );
+                    for include_path in params.solc_include_paths.iter() {
+                        let include_path = PathBuf::from(&include_path)
+                            .canonicalize()
+                            .expect(
+                                format!("Could not canonicalize path {}", include_path).as_str(),
+                            )
+                            .to_str()
+                            .unwrap()
+                            .to_string();
+                        if !import_paths.contains(&include_path) {
+                            import_paths.push(include_path);
+                        }
+                    }
+                    params.solc_include_paths = vec![];
+                }
 
                 log::debug!("    [.] Resolving params.solc_remapping");
                 let solc_remapping = params.solc_remappings.as_ref().map(|rms| {
@@ -228,7 +327,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.filename = Some(filepath.to_str().unwrap().to_string());
                 params.outdir = Some(outdir);
                 params.solc_allow_paths = solc_allowpaths;
-                params.solc_base_path = solc_base_path;
+                params.import_paths = import_paths;
                 params.solc_remappings = solc_remapping;
 
                 run_mutate(vec![*params])?;
@@ -236,6 +335,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Command::Summary(params) => {
             run_summary(params)?;
+        }
+        Command::Version => {
+            print_version();
         }
     }
     Ok(())
