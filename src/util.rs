@@ -88,7 +88,13 @@ pub fn repair_remapping(remap_str: &str, resolve_against: Option<&str>) -> Strin
     let resolved_path = PathBuf::from(against_path_str)
         .join(rhs)
         .canonicalize()
-        .unwrap();
+        .expect(
+            format!(
+                "Unable to resolve remapping target `{}` against base path `{}`",
+                rhs, against_path_str
+            )
+            .as_str(),
+        );
     let resolved = resolved_path.to_str().unwrap();
     let result = lhs.to_owned() + EQUAL + resolved;
     log::debug!("Repaired to {}", result);
@@ -299,10 +305,13 @@ mod tests {
 
     #[test]
     pub fn test_simplify_path() {
-        assert_simplifed_path("benchmarks/10Power", "benchmarks/10Power");
-        assert_simplifed_path("benchmarks/10Power", "benchmarks/../benchmarks/10Power");
-        assert_simplifed_path("benchmarks", "benchmarks/../benchmarks/10Power/..");
-        assert_simplifed_path("", "benchmarks/../benchmarks/10Power/../..");
+        assert_simplifed_path("benchmarks/Ops/AOR", "benchmarks/Ops/AOR");
+        assert_simplifed_path(
+            "benchmarks/Ops/BOR",
+            "benchmarks/Ops/../.././benchmarks/Ops/BOR",
+        );
+        assert_simplifed_path("benchmarks", "benchmarks/../benchmarks/Ops/..");
+        assert_simplifed_path("", "benchmarks/../benchmarks/Ops/../..");
     }
 
     /// Helper function to assert simplified paths

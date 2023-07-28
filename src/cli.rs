@@ -162,9 +162,15 @@ pub struct MutateParams {
     #[arg(long)]
     pub contract: Option<String>,
 
+    /// Specify a directory to search for solidity files during import
     #[arg(long = "import-path", short = 'I')]
     #[serde(default = "default_import_paths")]
     pub import_paths: Vec<String>,
+
+    /// Map directory to search for solidity files [format: map=path]
+    #[arg(long = "import-map", short = 'm')]
+    #[serde(default = "default_import_paths")]
+    pub import_maps: Vec<String>,
 
     /// Deprecated: Basepath argument to solc (`--base-path`)
     #[arg(long, hide = true)]
@@ -192,6 +198,13 @@ pub struct MutateParams {
     #[arg(long, default_value = "false")]
     #[serde(default = "default_log_invalid")]
     pub log_invalid: bool,
+
+    /// Manually specify any solc arguments. These will bypass any other args
+    /// passed to solc (e.g., --solc_include_paths). This is meant as a backup
+    /// method in case the normal Gambit CLI does not provide the needed
+    /// flexibility
+    #[arg(long, default_value=None)]
+    pub solc_raw_args: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

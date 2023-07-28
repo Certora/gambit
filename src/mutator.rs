@@ -112,25 +112,6 @@ impl From<&MutateParams> for Mutator {
             solc.with_remappings(remappings);
         }
 
-        // let sourceroot = match &value.sourceroot {
-        //     Some(sourceroot) => PathBuf::from(sourceroot),
-        //     None => {
-        //         // Attempt to use CWD as the sourceroot. Ensuer that the
-        //         // filename belongs to (is prefixed by) the sourceroot
-        //         let sourceroot = PathBuf::from(".").canonicalize().unwrap();
-        //         let filename = &value
-        //             .filename
-        //             .as_ref()
-        //             .unwrap_or_else(|| panic!("Found unresolved filename in params: {:?}", value));
-        //         let filepath = PathBuf::from(filename).canonicalize().unwrap();
-        //         if !&filepath.starts_with(&sourceroot) {
-        //             panic!("Unresolved sourceroot! Attempted to use the current working directory {} but filename {} was not a descendent.", sourceroot.display(), filepath.display());
-        //         }
-
-        //         sourceroot
-        //     }
-        // };
-
         let mut filenames: Vec<String> = vec![];
         if let Some(filename) = &value.filename {
             log::info!("Creating Source from filename: {}", filename);
@@ -142,8 +123,8 @@ impl From<&MutateParams> for Mutator {
         // Add base path to file resolver
         if value.import_paths.is_empty() {
             file_resolver
-                .add_import_path(&PathBuf::from(""))
-                .expect(format!("Failed to add import path {}", "").as_str());
+                .add_import_path(&PathBuf::from("."))
+                .expect(format!("Failed to add import path {}", ".").as_str());
         } else {
             for import_path in value.import_paths.iter() {
                 file_resolver
