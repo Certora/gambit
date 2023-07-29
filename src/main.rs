@@ -251,6 +251,7 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             params.solc_remappings = None;
         }
 
+        log::debug!("    [->] Resolved params.import_maps: {:?}", import_maps);
         // Finally, update params with resolved source root and filename.
         // (We don't update earlier to preserve the state of params
         // for error reporting: reporting the parsed in value of
@@ -329,6 +330,8 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         })
         .collect::<Vec<String>>();
 
+    log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
+
     log::debug!(
         "    [.] Resolving params.solc_base_path: {:?}",
         params.solc_base_path
@@ -372,7 +375,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         let import_map = repair_remapping(import_map.as_str(), None);
         import_maps.push(import_map);
     }
-    log::debug!("    [.] Resolving params.solc_remapping");
+
     if let Some(ref remappings) = params.solc_remappings {
         print_deprecation_warning("--solc_remapping", "1.0.0", "Use --import_map/-m instead");
         for remapping in remappings.iter() {
@@ -381,17 +384,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         }
         params.solc_remappings = None;
     }
-    log::debug!("    [.] Resolving params.solc_remapping");
-    let solc_remapping = params.solc_remappings.as_ref().map(|rms| {
-        rms.iter()
-            .map(|rm| repair_remapping(rm.as_str(), None))
-            .collect()
-    });
-    log::debug!(
-        "    [->] Resolved params.solc_remapping:\n    {:#?} to \n    {:#?}",
-        &params.solc_remappings,
-        &solc_remapping
-    );
+    log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
 
     // Finally, update params with resolved source root and filename.
     // (We don't update earlier to preserve the state of params
@@ -402,7 +395,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     params.outdir = Some(outdir);
     params.solc_allow_paths = solc_allowpaths;
     params.import_paths = import_paths;
-    params.solc_remappings = solc_remapping;
+    params.solc_remappings = None;
 
     run_mutate(vec![*params])?;
     Ok(())
