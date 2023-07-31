@@ -89,6 +89,7 @@ impl MutantFilter for RandomDownSampleFilter {
     }
 }
 
+#[derive(Debug)]
 /// Responsible for mutant validation logic
 pub struct Validator {
     pub solc: Solc,

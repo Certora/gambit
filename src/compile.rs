@@ -1,4 +1,4 @@
-use crate::invoke_command;
+use crate::{invoke_command, MutateParams};
 use std::{
     error,
     path::{Path, PathBuf},
@@ -47,6 +47,17 @@ impl Solc {
             optimize: false,
             raw_args: None,
         }
+    }
+
+    pub fn with_vfs_roots_from_params(&mut self, params: &MutateParams) -> &Self {
+        if !params.import_paths.is_empty() {
+            self.with_basepath(params.import_paths.get(0).unwrap().clone());
+            for path in params.import_paths[1..].iter() {
+                self.with_include_path(path.clone());
+            }
+        }
+        self.with_remappings(params.import_maps.clone());
+        self
     }
 
     pub fn output_directory(&self) -> &Path {

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use gambit::{
     default_gambit_output_directory, normalize_path, print_deprecation_warning, print_version,
-    repair_remapping, run_mutate, run_summary, Command, MutateParams,
+    run_mutate, run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -232,21 +232,13 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 
         let mut import_maps = vec![];
         for import_map in params.import_maps.iter() {
-            let import_map = repair_remapping(
-                import_map.as_str(),
-                Some(json_parent_directory.to_str().unwrap()),
-            );
-            import_maps.push(import_map);
+            import_maps.push(import_map.clone());
         }
         log::debug!("    [.] Resolving params.solc_remapping");
         if let Some(ref remappings) = params.solc_remappings {
             print_deprecation_warning("solc_remapping", "1.0.0", "Use import_map instead");
             for remapping in remappings.iter() {
-                let import_map = repair_remapping(
-                    remapping.as_str(),
-                    Some(json_parent_directory.to_str().unwrap()),
-                );
-                import_maps.push(import_map);
+                import_maps.push(remapping.clone());
             }
             params.solc_remappings = None;
         }
@@ -372,15 +364,13 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
 
     let mut import_maps = vec![];
     for import_map in params.import_maps.iter() {
-        let import_map = repair_remapping(import_map.as_str(), None);
-        import_maps.push(import_map);
+        import_maps.push(import_map.clone());
     }
 
     if let Some(ref remappings) = params.solc_remappings {
         print_deprecation_warning("--solc_remapping", "1.0.0", "Use --import_map/-m instead");
         for remapping in remappings.iter() {
-            let import_map = repair_remapping(remapping.as_str(), None);
-            import_maps.push(import_map);
+            import_maps.push(remapping.clone());
         }
         params.solc_remappings = None;
     }

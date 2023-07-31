@@ -5,7 +5,7 @@
             "../ImportMaps"
         ],
         "import_maps": [
-            "@lib=../ImportMaps/node_modules/lib"
+            "@lib=node_modules/lib"
         ],
         "mutations": [
             "aor"
