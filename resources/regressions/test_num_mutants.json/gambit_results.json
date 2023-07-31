@@ -1,0 +1,37 @@
+[
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `function plus(int256 a, int256 b) public pure returns (int256) {`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a - b;\n     }\n \n     // Expect 4 mutants:\n",
+    "id": "1",
+    "name": "mutants/1/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `) public pure returns (int256) {`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
+    "id": "2",
+    "name": "mutants/2/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `) public pure returns (uint256) {`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
+    "id": "3",
+    "name": "mutants/3/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `**`) of: `) public pure returns (uint256) {`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) ** b;\n     }\n \n     // Expect 5 mutants:\n",
+    "id": "4",
+    "name": "mutants/4/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `function power(uint256 a, uint256 b) public pure returns (uint256) {`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a * b;\n     }\n }\n",
+    "id": "5",
+    "name": "mutants/5/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+  }
+]
