@@ -109,7 +109,7 @@ impl Solc {
     /// Invoke the full solidity compiler and return the exit code, stdout, and stderr
     pub fn compile(&self, solidity_file: &Path) -> Result<CompilerRet, Box<dyn error::Error>> {
         log::debug!("Invoking full compilation on {}", solidity_file.display());
-        self.invoke_compiler(solidity_file, false)
+        self.invoke_compiler(solidity_file)
     }
 
     /// Perform the actual compilation by invoking a process. This is a wrapper
@@ -123,12 +123,8 @@ impl Solc {
     /// (e.g., when doing an initial compilation of an original unmutated
     /// solidity file), and getting detailed information on why such a
     /// compilation failed is important!
-    fn invoke_compiler(
-        &self,
-        solidity_file: &Path,
-        stop_after_parse: bool,
-    ) -> Result<CompilerRet, Box<dyn error::Error>> {
-        let flags = self.make_compilation_flags(solidity_file, stop_after_parse);
+    fn invoke_compiler(&self, solidity_file: &Path) -> Result<CompilerRet, Box<dyn error::Error>> {
+        let flags = self.make_compilation_flags(solidity_file);
         let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
             .iter()
@@ -174,21 +170,16 @@ impl Solc {
     }
 
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`
-    fn make_compilation_flags(&self, solidity_file: &Path, stop_after_parse: bool) -> Vec<String> {
+    fn make_compilation_flags(&self, solidity_file: &Path) -> Vec<String> {
         if let Some(ref flags) = self.raw_args {
             flags.clone()
         } else {
             let mut flags: Vec<String> = vec![
-                "--ast-compact-json".into(),
                 solidity_file.to_str().unwrap().into(),
                 "--output-dir".into(),
                 self.output_directory.to_str().unwrap().into(),
                 "--overwrite".into(),
             ];
-            if stop_after_parse {
-                flags.push("--stop-after".into());
-                flags.push("parsing".into());
-            }
 
             if let Some(basepath) = &self.basepath {
                 flags.push("--base-path".into());
