@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use gambit::{
     default_gambit_output_directory, normalize_path, print_deprecation_warning, print_version,
-    resolve_against_parent, run_mutate, run_summary, Command, MutateParams,
+    run_mutate, run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
