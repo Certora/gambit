@@ -20,7 +20,6 @@ mod mutator;
 pub use mutator::*;
 
 mod summary;
-use solang_parser::pt::Loc;
 pub use summary::*;
 
 mod test_util;
@@ -175,20 +174,13 @@ pub fn run_mutate(
                 let invalid_log = &outdir_path.join("invalid.log");
                 let mut w = Writer::from_path(invalid_log)?;
                 for (i, mutant) in invalid.iter().enumerate() {
-                    let mutant_loc = &mutant.mutant_loc;
-                    let file_no = match mutant_loc.loc {
-                        Loc::File(file_no, _, _) => file_no,
-                        _ => panic!(),
-                    };
-                    let ns = &mutator.namespace.clone().unwrap();
-                    let file = ns.files.get(file_no).unwrap();
                     let (line_no, col_no) = mutant.get_line_column();
                     let mid = i + 1;
                     let line_col = format!("{}:{}", line_no, col_no);
                     w.write_record([
                         mid.to_string().as_str(),
                         mutant.op.short_name().as_str(),
-                        file.path.to_str().unwrap(),
+                        mutant.path().to_str().unwrap(),
                         line_col.as_str(),
                         mutant.orig.as_str(),
                         mutant.repl.as_str(),

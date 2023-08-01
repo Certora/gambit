@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use gambit::{
     default_gambit_output_directory, normalize_path, print_deprecation_warning, print_version,
-    run_mutate, run_summary, Command, MutateParams,
+    resolve_against_parent, run_mutate, run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -102,16 +102,39 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
     log::info!("Performing Path Resolution for Configurations");
     log::info!("Found {} configurations", mutate_params.len());
 
-    for (i, params) in mutate_params.iter_mut().enumerate() {
+    // Pass-through args
+    let pass_through_outdir = if let Some(outdir) = params.outdir {
+        Some(PathBuf::from(".").canonicalize()?.join(outdir))
+    } else {
+        None
+    }
+    .map(|pb| pb.to_str().unwrap().to_string());
+    println!("Normalized outdir: {:?}", pass_through_outdir);
+
+    for (i, p) in mutate_params.iter_mut().enumerate() {
+        // Add pass-through args from CLI to each mutate param we deserialized from the config file
+
+        if params.log_invalid {
+            p.log_invalid = true;
+        }
+        if params.no_export {
+            p.no_export = true;
+        }
+        if params.skip_validate {
+            p.skip_validate = true;
+        }
+        if params.no_overwrite {
+            p.no_overwrite = true;
+        }
+        if pass_through_outdir.is_some() {
+            p.outdir = pass_through_outdir.clone();
+        }
         // Source Root Resolution
         log::info!("Configuration {}", i + 1);
 
         // PARAM: Filename
         log::info!("    [.] Resolving params.filename");
-        let filename = params
-            .filename
-            .clone()
-            .expect("No filename in configuration");
+        let filename = p.filename.clone().expect("No filename in configuration");
         let filepath = PathBuf::from(&filename);
         let filepath = if filepath.is_absolute() {
             filepath
@@ -132,7 +155,7 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         // `outdir` might not exist yet
 
         log::debug!("    [.] Resolving params.outdir");
-        let outdir_path = match &params.outdir {
+        let outdir_path = match &p.outdir {
             Some(outdir) => {
                 let outdir_path = PathBuf::from(outdir);
                 if outdir_path.is_absolute() {
@@ -146,13 +169,13 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         let outdir = outdir_path.to_str().unwrap().to_string();
         log::debug!(
             "    [->] Resolved path `{:?}` to `{}`",
-            &params.outdir.clone(),
+            &p.outdir.clone(),
             &outdir,
         );
 
         // PARAM: solc_allowpaths
         log::debug!("    [.] Resolving params.solc_allow_paths");
-        let allow_paths = if let Some(allow_paths) = &params.solc_allow_paths {
+        let allow_paths = if let Some(allow_paths) = &p.solc_allow_paths {
             Some(resolve_config_file_paths(
                 allow_paths,
                 &json_parent_directory,
@@ -163,10 +186,10 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 
         log::debug!(
             "    [.] Resolving params.import_paths: {:?}",
-            params.solc_base_path
+            p.solc_base_path
         );
 
-        let mut import_paths = params
+        let mut import_paths = p
             .import_paths
             .iter()
             .map(|ip| {
@@ -186,9 +209,9 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 
         log::debug!(
             "    [.] Resolving params.solc_base_path: {:?}",
-            params.solc_base_path
+            p.solc_base_path
         );
-        if let Some(ref base_path) = params.solc_base_path {
+        if let Some(ref base_path) = p.solc_base_path {
             print_deprecation_warning("solc_base_path", "1.0.0", "Use import_path instead");
             let base_path = resolve_config_file_path(&base_path, &json_parent_directory)
                 .expect(
@@ -204,12 +227,12 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             if !import_paths.contains(&base_path) {
                 import_paths.push(base_path);
             }
-            params.solc_base_path = None;
+            p.solc_base_path = None;
         }
 
-        if !params.solc_include_paths.is_empty() {
+        if !p.solc_include_paths.is_empty() {
             print_deprecation_warning("solc_include_path", "1.0.0", "Use import_path instead");
-            for include_path in params.solc_include_paths.iter() {
+            for include_path in p.solc_include_paths.iter() {
                 let include_path = resolve_config_file_path(include_path, &json_parent_directory)
                     .expect(
                         format!(
@@ -225,22 +248,22 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
                     import_paths.push(include_path);
                 }
             }
-            params.solc_include_paths = vec![];
+            p.solc_include_paths = vec![];
         }
 
         log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
 
         let mut import_maps = vec![];
-        for import_map in params.import_maps.iter() {
+        for import_map in p.import_maps.iter() {
             import_maps.push(import_map.clone());
         }
         log::debug!("    [.] Resolving params.solc_remapping");
-        if let Some(ref remappings) = params.solc_remappings {
+        if let Some(ref remappings) = p.solc_remappings {
             print_deprecation_warning("solc_remapping", "1.0.0", "Use import_map instead");
             for remapping in remappings.iter() {
                 import_maps.push(remapping.clone());
             }
-            params.solc_remappings = None;
+            p.solc_remappings = None;
         }
 
         log::debug!("    [->] Resolved params.import_maps: {:?}", import_maps);
@@ -249,11 +272,11 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         // for error reporting: reporting the parsed in value of
         // `params` will be more helpful to the end user than
         // reporting the modified value of params).
-        params.filename = Some(filepath.to_str().unwrap().to_string());
-        params.outdir = Some(outdir);
-        params.import_paths = import_paths;
-        params.import_maps = import_maps;
-        params.solc_allow_paths = allow_paths;
+        p.filename = Some(filepath.to_str().unwrap().to_string());
+        p.outdir = Some(outdir);
+        p.import_paths = import_paths;
+        p.import_maps = import_maps;
+        p.solc_allow_paths = allow_paths;
     }
     run_mutate(mutate_params)?;
     Ok(())

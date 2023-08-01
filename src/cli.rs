@@ -101,20 +101,20 @@ pub struct MutateParams {
     pub filename: Option<String>,
 
     /// If specified, randomly downsamples the number of mutants
-    #[arg(long, short, default_value = None)]
+    #[arg(long, short, default_value = None, conflicts_with = "json")]
     #[serde(default = "default_num_mutants")]
     pub num_mutants: Option<usize>,
 
     /// Use a random seed instead of the specified seed. This will override any
     /// value passed in with the `--seed` flag
-    #[arg(long, default_value = "false")]
+    #[arg(long, default_value = "false", conflicts_with = "json")]
     #[serde(default = "default_random_seed")]
     pub random_seed: bool,
 
     /// Specify a seed for randomized down sampling. By default seed=0 is used
     /// and is deterministic, but nondeterminism can be enabled with the
     /// `--random-seed` flag
-    #[arg(long, short, default_value = "0")]
+    #[arg(long, short, default_value = "0", conflicts_with = "json")]
     #[serde(default = "default_seed")]
     pub seed: u64,
 
@@ -126,12 +126,12 @@ pub struct MutateParams {
     /// it is the current working directory. All filenames (either specified by
     /// the --filename flag or as a "filename" field in a JSON configuration
     /// file) must exist inside the sourceroot directory.
-    #[arg(long, default_value = None)]
+    #[arg(long, default_value = None, conflicts_with = "json")]
     #[serde(default = "default_source_root")]
     pub sourceroot: Option<String>,
 
     /// Specify the mutation operators
-    #[arg(long, num_args(1..))]
+    #[arg(long, num_args(1..), conflicts_with = "json")]
     pub mutations: Option<Vec<String>>,
 
     /// Skip mutant export
@@ -145,48 +145,48 @@ pub struct MutateParams {
     pub no_overwrite: bool,
 
     /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
-    #[arg(long, default_value = "solc")]
+    #[arg(long, default_value = "solc", conflicts_with = "json")]
     #[serde(default = "default_solc")]
     pub solc: String,
 
     /// Run solc with the `--optimize` flag
-    #[arg(long, default_value = "false")]
+    #[arg(long, default_value = "false", conflicts_with = "json")]
     #[serde(default = "default_solc_optimize")]
     pub solc_optimize: bool,
 
     /// Specify function names to mutate
-    #[arg(long, num_args(1..))]
+    #[arg(long, num_args(1..), conflicts_with = "json")]
     pub functions: Option<Vec<String>>,
 
     /// Specify a contract to mutate
-    #[arg(long)]
+    #[arg(long, conflicts_with = "json")]
     pub contract: Option<String>,
 
     /// Specify a directory to search for solidity files during import
-    #[arg(long = "import-path", short = 'I')]
+    #[arg(long = "import-path", short = 'I', conflicts_with = "json")]
     #[serde(default = "default_import_paths")]
     pub import_paths: Vec<String>,
 
     /// Map directory to search for solidity files [format: map=path]
-    #[arg(long = "import-map", short = 'm')]
+    #[arg(long = "import-map", short = 'm', conflicts_with = "json")]
     #[serde(default = "default_import_paths")]
     pub import_maps: Vec<String>,
 
     /// Deprecated: Basepath argument to solc (`--base-path`)
-    #[arg(long, hide = true)]
+    #[arg(long, hide = true, conflicts_with = "json")]
     pub solc_base_path: Option<String>,
 
     /// Deprecated: Include paths argument to solc (`--include-paths`)
-    #[arg(long = "solc-include-path", hide = true)]
+    #[arg(long = "solc-include-path", hide = true, conflicts_with = "json")]
     #[serde(default = "default_include_paths")]
     pub solc_include_paths: Vec<String>,
 
     /// Allowpath argument to solc used during validation
-    #[arg(long)]
+    #[arg(long, conflicts_with = "json")]
     pub solc_allow_paths: Option<Vec<String>>,
 
     /// Solidity remappings
-    #[arg(long, num_args(1..))]
+    #[arg(long, num_args(1..), conflicts_with = "json")]
     pub solc_remappings: Option<Vec<String>>,
 
     /// Do not validate mutants by invoking solc
@@ -203,7 +203,7 @@ pub struct MutateParams {
     /// passed to solc (e.g., --solc_include_paths). This is meant as a backup
     /// method in case the normal Gambit CLI does not provide the needed
     /// flexibility
-    #[arg(long, default_value=None)]
+    #[arg(long, default_value=None, conflicts_with = "json")]
     pub solc_raw_args: Option<Vec<String>>,
 }
 
