@@ -111,6 +111,14 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
     .map(|pb| pb.to_str().unwrap().to_string());
     println!("Normalized outdir: {:?}", pass_through_outdir);
 
+    if params.sourceroot.is_some() {
+        print_deprecation_warning(
+            "--sourceroot",
+            "1.0.0",
+            "--sourceroot is no longer used and will be ignored",
+        );
+    }
+
     for (i, p) in mutate_params.iter_mut().enumerate() {
         // Add pass-through args from CLI to each mutate param we deserialized from the config file
 
@@ -129,8 +137,15 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         if pass_through_outdir.is_some() {
             p.outdir = pass_through_outdir.clone();
         }
-        // Source Root Resolution
         log::info!("Configuration {}", i + 1);
+
+        if p.sourceroot.is_some() {
+            print_deprecation_warning(
+                "sourceroot",
+                "1.0.0",
+                "sourceroot is no longer used and will be ignored",
+            );
+        }
 
         // PARAM: Filename
         log::info!("    [.] Resolving params.filename");
@@ -267,11 +282,6 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         }
 
         log::debug!("    [->] Resolved params.import_maps: {:?}", import_maps);
-        // Finally, update params with resolved source root and filename.
-        // (We don't update earlier to preserve the state of params
-        // for error reporting: reporting the parsed in value of
-        // `params` will be more helpful to the end user than
-        // reporting the modified value of params).
         p.filename = Some(filepath.to_str().unwrap().to_string());
         p.outdir = Some(outdir);
         p.import_paths = import_paths;
@@ -296,6 +306,13 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         .expect("No filename in configuration");
     let filepath = PathBuf::from(&filename).canonicalize().unwrap();
 
+    if params.sourceroot.is_some() {
+        print_deprecation_warning(
+            "--sourceroot",
+            "1.0.0",
+            "--sourceroot is no longer used and will be ignored",
+        );
+    }
     log::debug!("    [.] Resolving params.outdir {:?}", &params.outdir);
 
     let outdir = normalize_path(&PathBuf::from(

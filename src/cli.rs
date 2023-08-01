@@ -79,24 +79,7 @@ pub struct MutateParams {
     #[arg(long, short, conflicts_with = "filename")]
     pub json: Option<String>,
 
-    /// The name of the file to mutate. Note that this filename must be a
-    /// descendent of the source root (`.` by default, or specified by the
-    /// `--sourceroot` flag).
-    ///
-    /// # Example
-    ///
-    /// Running:
-    ///
-    /// `gambit mutate --filename /path/to/file.sol --sourceroot /some/other/path`
-    ///
-    /// will cause an error.  This is because `/path/to/file.sol` is not
-    /// (recursively) contained in `/some/other/path`. On the other hand, if
-    /// our working directory is `/path/to`, running:
-    ///
-    /// `gambit mutate --filename /path/to/file.sol`
-    ///
-    /// will work because `--sourceroot` is by default `.` which, in this case,
-    /// expands to `/path/to`, which contains `file.sol`.
+    /// The name of the file to mutate.
     #[arg(conflicts_with = "json")]
     pub filename: Option<String>,
 
@@ -126,7 +109,7 @@ pub struct MutateParams {
     /// it is the current working directory. All filenames (either specified by
     /// the --filename flag or as a "filename" field in a JSON configuration
     /// file) must exist inside the sourceroot directory.
-    #[arg(long, default_value = None, conflicts_with = "json")]
+    #[arg(long, default_value = None, hide = true, conflicts_with = "json")]
     #[serde(default = "default_source_root")]
     pub sourceroot: Option<String>,
 
