@@ -1,0 +1,17 @@
+[
+    {
+        "filename": "../Ops/AOR/AOR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "no_export": true
+    },
+    {
+        "filename": "../Ops/BOR/BOR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "num_mutants": 1,
+        "no_export": true
+    }
+]

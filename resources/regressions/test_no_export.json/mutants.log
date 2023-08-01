@@ -1,0 +1,28 @@
+1,STD,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:0,return a + b,assert(true)
+2,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,-
+3,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,*
+4,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,/
+5,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,%
+6,STD,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:0,return a - b,assert(true)
+7,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,+
+8,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,*
+9,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,/
+10,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,%
+11,STD,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:0,return ((a)) * b,assert(true)
+12,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,+
+13,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,-
+14,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,/
+15,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,%
+16,STD,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:0,return ((a)) * b,assert(true)
+17,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,+
+18,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,-
+19,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,/
+20,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,**
+21,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,%
+22,STD,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:0,return a ** b,assert(true)
+23,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,+
+24,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,-
+25,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,*
+26,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,/
+27,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,%
+28,AOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,9:9,|,+
