@@ -18,7 +18,7 @@ contract AOR {
     // a * b
     // a / b
     // a % b
-    /// ArithmeticOperatorReplacement(`-` |==> `/`) of: `function minus(int256 a, int256 b) public pure returns (int256) {`
+    /// ArithmeticOperatorReplacement(`-` |==> `/`) of: `return a - b;`
     function minus(int256 a, int256 b) public pure returns (int256) {
         return a / b;
     }

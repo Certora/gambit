@@ -43,7 +43,7 @@ contract AOR {
     function unsigned_times_with_parens(
         uint256 a,
         uint256 b
-    /// StatementDeletion(`return ((a)) * b` |==> `assert(true)`) of: `) public pure returns (uint256) {`
+    /// StatementDeletion(`return ((a)) * b` |==> `assert(true)`) of: `return ((a)) * b;`
     ) public pure returns (uint256) {
         assert(true);
     }

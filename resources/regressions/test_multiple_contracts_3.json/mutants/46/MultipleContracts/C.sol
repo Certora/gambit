@@ -34,7 +34,7 @@ contract C {
         Utils.getarray(b, address(this));
     }
 
-    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `function add(int8 c, int8 d) public pure returns (int8) {`
+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`
     function add(int8 c, int8 d) public pure returns (int8) {
         assert(true);
     }

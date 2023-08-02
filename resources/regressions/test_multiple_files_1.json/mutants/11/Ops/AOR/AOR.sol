@@ -30,7 +30,7 @@ contract AOR {
     function times_with_parens(
         int256 a,
         int256 b
-    /// StatementDeletion(`return ((a)) * b` |==> `assert(true)`) of: `) public pure returns (int256) {`
+    /// StatementDeletion(`return ((a)) * b` |==> `assert(true)`) of: `return ((a)) * b;`
     ) public pure returns (int256) {
         assert(true);
     }

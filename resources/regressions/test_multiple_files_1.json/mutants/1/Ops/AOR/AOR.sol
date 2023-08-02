@@ -9,7 +9,7 @@ contract AOR {
     // a * b
     // a / b
     // a % b
-    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `function plus(int256 a, int256 b) public pure returns (int256) {`
+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`
     function plus(int256 a, int256 b) public pure returns (int256) {
         assert(true);
     }

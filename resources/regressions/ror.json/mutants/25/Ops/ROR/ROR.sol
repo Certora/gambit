@@ -49,7 +49,7 @@ contract ROR {
         uint256 x,
         uint256 y,
         uint256 z
-    /// RelationalOperatorReplacement(`(x + y) >= z` |==> `true`) of: `) public pure returns (bool) {`
+    /// RelationalOperatorReplacement(`(x + y) >= z` |==> `true`) of: `return (x + y) >= z;`
     ) public pure returns (bool) {
         return true;
     }

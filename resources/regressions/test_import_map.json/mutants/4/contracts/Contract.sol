@@ -5,7 +5,7 @@ import "@lib/Lib.sol";
 import "contracts/B.sol";
 
 contract Contract {
-    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `function plus(int256 a, int256 b) public pure returns (int256) {`
+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`
     function plus(int256 a, int256 b) public pure returns (int256) {
         return a % b;
     }

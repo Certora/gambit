@@ -54,7 +54,7 @@ contract AOR {
     // a * b
     // a % b
 
-    /// StatementDeletion(`return a ** b` |==> `assert(true)`) of: `function power(uint256 a, uint256 b) public pure returns (uint256) {`
+    /// StatementDeletion(`return a ** b` |==> `assert(true)`) of: `return a ** b;`
     function power(uint256 a, uint256 b) public pure returns (uint256) {
         assert(true);
     }

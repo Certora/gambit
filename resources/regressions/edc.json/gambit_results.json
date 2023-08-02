@@ -1,7 +1,7 @@
 [
   {
     "description": "ElimDelegateCall",
-    "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n     bool public delegateSuccessful;\n     bytes public myData;\n \n+    /// ElimDelegateCall(`delegatecall` |==> `call`) of: `function setVars(address _contract) public payable {`\n     function setVars(address _contract) public payable {\n-        (bool success, ) = _contract.delegatecall(\n+        (bool success, ) = _contract.call(\n             abi.encodeWithSignature(\"setVars(uint256)\", 1)\n         );\n         require(success, \"Delegatecall failed\");\n",
+    "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n     bool public delegateSuccessful;\n     bytes public myData;\n \n+    /// ElimDelegateCall(`delegatecall` |==> `call`) of: `(bool success, ) = _contract.delegatecall(`\n     function setVars(address _contract) public payable {\n-        (bool success, ) = _contract.delegatecall(\n+        (bool success, ) = _contract.call(\n             abi.encodeWithSignature(\"setVars(uint256)\", 1)\n         );\n         require(success, \"Delegatecall failed\");\n",
     "id": "1",
     "name": "mutants/1/Ops/EDC/EDC.sol",
     "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol",

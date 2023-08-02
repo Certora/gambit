@@ -20,7 +20,7 @@ contract C {
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
-        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 a = 10;`
+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`
         uint256 a = 10;
         uint256 res = a % decimals;
         return res;

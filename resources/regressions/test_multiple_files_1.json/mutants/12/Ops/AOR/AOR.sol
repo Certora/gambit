@@ -30,7 +30,7 @@ contract AOR {
     function times_with_parens(
         int256 a,
         int256 b
-    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `) public pure returns (int256) {`
+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`
     ) public pure returns (int256) {
         return ((a)) + b;
     }

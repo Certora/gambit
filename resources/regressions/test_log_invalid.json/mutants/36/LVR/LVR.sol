@@ -11,7 +11,7 @@ contract LVR {
     int256 zero_s = 0;
 
     // Expect 1 mutant: 1
-    /// LiteralValueReplacement(`0` |==> `1`) of: `function unsigned_zero() public pure returns (uint256) {`
+    /// LiteralValueReplacement(`0` |==> `1`) of: `uint256 zero = 0;`
     function unsigned_zero() public pure returns (uint256) {
         uint256 zero = 1;
         return zero;

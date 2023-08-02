@@ -34,7 +34,7 @@ contract C {
         Utils.getarray(b, address(this));
     }
 
-    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `function add(int8 c, int8 d) public pure returns (int8) {`
+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`
     function add(int8 c, int8 d) public pure returns (int8) {
         return c / d;
     }

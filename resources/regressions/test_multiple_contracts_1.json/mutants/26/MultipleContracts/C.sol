@@ -3,7 +3,7 @@
 pragma solidity ^0.8.13;
 
 library Utils {
-    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `function getarray(address[] memory c, address e) internal pure {`
+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) internal pure {
         assert(true);
     }

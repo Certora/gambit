@@ -14,7 +14,7 @@ library Utils {
 
 contract C {
     function foo() external view returns (address[] memory) {
-        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `address[] memory a = new address[](1);`
+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`
         address[] memory a = new address[](1);
         assert(true);
         return a;

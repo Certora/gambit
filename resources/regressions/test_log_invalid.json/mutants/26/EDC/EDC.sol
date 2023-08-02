@@ -12,7 +12,7 @@ contract EDC {
     bool public delegateSuccessful;
     bytes public myData;
 
-    /// ElimDelegateCall(`delegatecall` |==> `call`) of: `function setVars(address _contract) public payable {`
+    /// ElimDelegateCall(`delegatecall` |==> `call`) of: `(bool success, ) = _contract.delegatecall(`
     function setVars(address _contract) public payable {
         (bool success, ) = _contract.call(
             abi.encodeWithSignature("setVars(uint256)", 1)

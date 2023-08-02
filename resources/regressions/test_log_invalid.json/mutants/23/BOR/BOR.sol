@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 contract BOR {
     // Expect 1 mutants:
     // a & b;
-    /// ConditionalOperatorReplacement(`|` |==> `&`) of: `function bw_or(int256 a, int256 b) public pure returns (int256) {`
+    /// ConditionalOperatorReplacement(`|` |==> `&`) of: `return a | b;`
     function bw_or(int256 a, int256 b) public pure returns (int256) {
         return a & b;
     }

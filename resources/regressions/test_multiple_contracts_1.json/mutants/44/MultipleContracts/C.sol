@@ -25,7 +25,7 @@ contract C {
         return res;
     }
 
-    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `function getarray(address[] memory c, address e) public pure {`
+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) public pure {
         assert(true);
     }

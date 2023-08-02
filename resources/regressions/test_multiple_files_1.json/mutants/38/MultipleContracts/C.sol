@@ -19,7 +19,7 @@ contract C {
         return a;
     }
 
-    /// LiteralValueReplacement(`10` |==> `0`) of: `function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {`
+    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
         uint256 a = 0;
         uint256 res = a ** decimals;

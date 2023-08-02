@@ -30,7 +30,7 @@ contract C {
     }
 
     function callmyself() external view {
-        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `address[] memory b = this.foo();`
+        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`
         address[] memory b = this.foo();
         assert(true);
     }

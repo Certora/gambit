@@ -15,7 +15,7 @@ contract UOR {
     }
 
     // Expect a single mutant: ~x
-    /// UnaryOperatorReplacement(`` |==> ` ~ `) of: `function signed_neg(int256 x) public pure returns (int256) {`
+    /// UnaryOperatorReplacement(`` |==> ` ~ `) of: `return -x;`
     function signed_neg(int256 x) public pure returns (int256) {
         return  ~ -x;
     }
