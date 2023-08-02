@@ -26,6 +26,10 @@ TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
 
 NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
 
+green_check="$(printf "[\033[32;1m ✔ \033[0m]")"
+yellow_elipses="$(printf "[\033[33;1m...\033[0m]")"
+red_x="$(printf "[\033[31;1m ✘ \033[0m]")"
+
 print_vars() {
     echo "scripts: $SCRIPTS"
     echo "gambit: $GAMBIT"
@@ -89,7 +93,7 @@ make_regressions() {
         conf_idx=$((conf_idx + 1))
         echo
         echo
-        printf "\033[1mConfiguration %s/%s: %s\033[0m\n" "$conf_idx" "$NUM_CONFIGS" "$conf_path"
+        printf "\033[1mConfiguration %s/%s:\033[0m %s\n" "$conf_idx" "$NUM_CONFIGS" "$(basename "$conf_path")"
 
         conf=$(basename "$conf_path")
         outdir="$TMP_REGRESSIONS"/"$conf"
@@ -100,16 +104,17 @@ make_regressions() {
         }
         printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
+        printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
         exit_code=$?
         if [ $exit_code -ne 0 ]; then
-            printf "\033[31;1m[!] Failed to run config %s\n" "$conf_path"
+            printf "%s Failed to run config %s\n" "$red_x" "$(basename "$conf_path")"
             failed=true
             failed_confs+=("$conf_path")
+        else
+            printf "  \033[1mMoving Outdir:\033[0m to %s\n" "$outdir"
+            mv gambit_out "$outdir"
+            printf "%s Successfully ran %s\n" "$green_check" "$(basename "$conf_path")"
         fi
-        printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
-        mv gambit_out "$outdir"
-        printf "  \033[1mMoving Outdir:\033[0m to %s\n" "$outdir"
-        bash "$SCRIPTS"/remove_sourceroots.sh "$outdir/gambit_results.json"
         cd "$starting_dir" || exit 1
 
     done
@@ -121,7 +126,7 @@ summary() {
 
     if $failed; then
 
-        printf "[✘] \033[31;1m%s/%s configurations failed to run:\033[0m\n" "${#failed_confs[@]}" "$NUM_CONFIGS"
+        printf "%s \033[31;1m%s/%s configurations failed to run:\033[0m\n" "$red_x" "${#failed_confs[@]}" "$NUM_CONFIGS"
         idx=0
         for conf in "${failed_confs[@]}"; do
             idx=$((idx + 1))
@@ -133,16 +138,15 @@ summary() {
         clean_state
         exit 101
     else
-        printf "[✔] \033[32;1m All %s configurations ran successfully\033[0m\n" "$NUM_CONFIGS"
+        printf "%s \033[32;1m All %s configurations ran successfully\033[0m\n" "$green_check" "$NUM_CONFIGS"
         [ -e "$REGRESSIONS" ] && {
-            echo "Removing old regressions"
+            printf "%s Removing old regressions\n" "$yellow_elipses"
             rm -rf "$REGRESSIONS"
         }
-        echo
-        echo "[+] Moving Temporary regessions to regressions location"
-        echo "    $TMP_REGRESSIONS -> $REGRESSIONS"
-        echo
+        printf "%s Moving Temporary regessions to regressions location\n" "$yellow_elipses"
+        printf "%s    %s -> %s\n" "$yellow_elipses" "$TMP_REGRESSIONS" "$REGRESSIONS"
         mv "$TMP_REGRESSIONS" "$REGRESSIONS"
+        printf "%s Regression tests successfully updated\n" "$green_check"
         clean_state
     fi
 }
