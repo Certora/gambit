@@ -625,7 +625,7 @@ fn literal_value_replacement(
     let replacements = match expr {
         Expression::BoolLiteral { value, .. } => vec![(!value).to_string()],
         Expression::NumberLiteral { ty, value, .. } => match ty {
-            solang::sema::ast::Type::Address(_) => todo!(),
+            solang::sema::ast::Type::Address(_) => vec![],
             solang::sema::ast::Type::Int(_) => {
                 if value.is_zero() {
                     vec!["-1".to_string(), "1".to_string()]
