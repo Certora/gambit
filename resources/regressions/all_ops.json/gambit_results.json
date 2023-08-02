@@ -4,531 +4,531 @@
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a - b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "1",
     "name": "mutants/1/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a * b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "2",
     "name": "mutants/2/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a / b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "3",
     "name": "mutants/3/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a % b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "4",
     "name": "mutants/4/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `+`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a + b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "5",
     "name": "mutants/5/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `*`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a * b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "6",
     "name": "mutants/6/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `/`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a / b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "7",
     "name": "mutants/7/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `%`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a % b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "8",
     "name": "mutants/8/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) + b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "9",
     "name": "mutants/9/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "10",
     "name": "mutants/10/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "11",
     "name": "mutants/11/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `%`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) % b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "12",
     "name": "mutants/12/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) + b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "13",
     "name": "mutants/13/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "14",
     "name": "mutants/14/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "15",
     "name": "mutants/15/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `**`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) ** b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "16",
     "name": "mutants/16/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `%`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) % b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "17",
     "name": "mutants/17/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a + b;\n     }\n }\n",
     "id": "18",
     "name": "mutants/18/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a - b;\n     }\n }\n",
     "id": "19",
     "name": "mutants/19/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a * b;\n     }\n }\n",
     "id": "20",
     "name": "mutants/20/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a / b;\n     }\n }\n",
     "id": "21",
     "name": "mutants/21/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a % b;\n     }\n }\n",
     "id": "22",
     "name": "mutants/22/AOR/AOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
     "description": "ConditionalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -6,8 +6,9 @@\n contract BOR {\n     // Expect 1 mutants:\n     // a & b;\n+    /// ConditionalOperatorReplacement(`|` |==> `&`) of: `return a | b;`\n     function bw_or(int256 a, int256 b) public pure returns (int256) {\n-        return a | b;\n+        return a & b;\n     }\n \n     // Expect 1 mutants:\n",
     "id": "23",
     "name": "mutants/23/BOR/BOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol"
   },
   {
     "description": "ConditionalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n \n     // Expect 1 mutants:\n     // a | b;\n+    /// ConditionalOperatorReplacement(`&` |==> `|`) of: `return a & b;`\n     function bw_and(int256 a, int256 b) public pure returns (int256) {\n-        return a & b;\n+        return a | b;\n     }\n \n     // Expect 1 mutants:\n",
     "id": "24",
     "name": "mutants/24/BOR/BOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol"
   },
   {
     "description": "ConditionalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,7 +18,8 @@\n \n     // Expect 1 mutants:\n     // a | b;\n+    /// ConditionalOperatorReplacement(`^` |==> `&`) of: `return a ^ b;`\n     function bw_xor(int256 a, int256 b) public pure returns (int256) {\n-        return a ^ b;\n+        return a & b;\n     }\n }\n",
     "id": "25",
     "name": "mutants/25/BOR/BOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol"
   },
   {
     "description": "ElimDelegateCall",
     "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n     bool public delegateSuccessful;\n     bytes public myData;\n \n+    /// ElimDelegateCall(`delegatecall` |==> `call`) of: `(bool success, ) = _contract.delegatecall(`\n     function setVars(address _contract) public payable {\n-        (bool success, ) = _contract.delegatecall(\n+        (bool success, ) = _contract.call(\n             abi.encodeWithSignature(\"setVars(uint256)\", 1)\n         );\n         require(success, \"Delegatecall failed\");\n",
     "id": "26",
     "name": "mutants/26/EDC/EDC.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract LOR {\n     // Expect three mutants: a, b, false\n+    /// LogicalOperatorReplacement(`a && b` |==> `a`) of: `return a && b;`\n     function and(bool a, bool b) public pure returns (bool) {\n-        return a && b;\n+        return a;\n     }\n \n     // Expect three mutants: a, b, true\n",
     "id": "27",
     "name": "mutants/27/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract LOR {\n     // Expect three mutants: a, b, false\n+    /// LogicalOperatorReplacement(`a && b` |==> `b`) of: `return a && b;`\n     function and(bool a, bool b) public pure returns (bool) {\n-        return a && b;\n+        return b;\n     }\n \n     // Expect three mutants: a, b, true\n",
     "id": "28",
     "name": "mutants/28/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract LOR {\n     // Expect three mutants: a, b, false\n+    /// LogicalOperatorReplacement(`a && b` |==> `false`) of: `return a && b;`\n     function and(bool a, bool b) public pure returns (bool) {\n-        return a && b;\n+        return false;\n     }\n \n     // Expect three mutants: a, b, true\n",
     "id": "29",
     "name": "mutants/29/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect three mutants: a, b, true\n+    /// LogicalOperatorReplacement(`a || b` |==> `a`) of: `return a || b;`\n     function or(bool a, bool b) public pure returns (bool) {\n-        return a || b;\n+        return a;\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n",
     "id": "30",
     "name": "mutants/30/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect three mutants: a, b, true\n+    /// LogicalOperatorReplacement(`a || b` |==> `b`) of: `return a || b;`\n     function or(bool a, bool b) public pure returns (bool) {\n-        return a || b;\n+        return b;\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n",
     "id": "31",
     "name": "mutants/31/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect three mutants: a, b, true\n+    /// LogicalOperatorReplacement(`a || b` |==> `true`) of: `return a || b;`\n     function or(bool a, bool b) public pure returns (bool) {\n-        return a || b;\n+        return true;\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n",
     "id": "32",
     "name": "mutants/32/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `x < y`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return x < y;\n     }\n }\n",
     "id": "33",
     "name": "mutants/33/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `a != (x >= y)`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return a != (x >= y);\n     }\n }\n",
     "id": "34",
     "name": "mutants/34/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LogicalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `true`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return true;\n     }\n }\n",
     "id": "35",
     "name": "mutants/35/LOR/LOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -11,8 +11,9 @@\n     int256 zero_s = 0;\n \n     // Expect 1 mutant: 1\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `uint256 zero = 0;`\n     function unsigned_zero() public pure returns (uint256) {\n-        uint256 zero = 0;\n+        uint256 zero = 1;\n         return zero;\n     }\n \n",
     "id": "36",
     "name": "mutants/36/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -17,8 +17,9 @@\n     }\n \n     // Expect 2 mutant: 0, 2\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `uint256 one = 1;`\n     function unsigned_one() public pure returns (uint256) {\n-        uint256 one = 1;\n+        uint256 one = 0;\n         return one;\n     }\n \n",
     "id": "37",
     "name": "mutants/37/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -17,8 +17,9 @@\n     }\n \n     // Expect 2 mutant: 0, 2\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `uint256 one = 1;`\n     function unsigned_one() public pure returns (uint256) {\n-        uint256 one = 1;\n+        uint256 one = 2;\n         return one;\n     }\n \n",
     "id": "38",
     "name": "mutants/38/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -23,8 +23,9 @@\n     }\n \n     // Expect 2 mutants: 0, 1\n+    /// LiteralValueReplacement(`-1` |==> `0`) of: `int256 neg_one = -1;`\n     function signed_neg_one() public pure returns (int256) {\n-        int256 neg_one = -1;\n+        int256 neg_one = 0;\n         return neg_one;\n     }\n \n",
     "id": "39",
     "name": "mutants/39/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -23,8 +23,9 @@\n     }\n \n     // Expect 2 mutants: 0, 1\n+    /// LiteralValueReplacement(`-1` |==> `1`) of: `int256 neg_one = -1;`\n     function signed_neg_one() public pure returns (int256) {\n-        int256 neg_one = -1;\n+        int256 neg_one = 1;\n         return neg_one;\n     }\n \n",
     "id": "40",
     "name": "mutants/40/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -23,8 +23,9 @@\n     }\n \n     // Expect 2 mutants: 0, 1\n+    /// LiteralValueReplacement(`-1` |==> `0`) of: `int256 neg_one = -1;`\n     function signed_neg_one() public pure returns (int256) {\n-        int256 neg_one = -1;\n+        int256 neg_one = 0;\n         return neg_one;\n     }\n \n",
     "id": "41",
     "name": "mutants/41/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -29,8 +29,9 @@\n     }\n \n     // Expect 2 mutants: -1, 0\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `int256 pos_one = 1;`\n     function signed_pos_one() public pure returns (int256) {\n-        int256 pos_one = 1;\n+        int256 pos_one = 0;\n         return pos_one;\n     }\n \n",
     "id": "42",
     "name": "mutants/42/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -29,8 +29,9 @@\n     }\n \n     // Expect 2 mutants: -1, 0\n+    /// LiteralValueReplacement(`1` |==> `-1`) of: `int256 pos_one = 1;`\n     function signed_pos_one() public pure returns (int256) {\n-        int256 pos_one = 1;\n+        int256 pos_one = -1;\n         return pos_one;\n     }\n \n",
     "id": "43",
     "name": "mutants/43/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -29,8 +29,9 @@\n     }\n \n     // Expect 2 mutants: -1, 0\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `int256 pos_one = 1;`\n     function signed_pos_one() public pure returns (int256) {\n-        int256 pos_one = 1;\n+        int256 pos_one = 2;\n         return pos_one;\n     }\n \n",
     "id": "44",
     "name": "mutants/44/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 2 mutants: -1, 1\n+    /// LiteralValueReplacement(`0` |==> `-1`) of: `int256 zero = 0;`\n     function signed_zero() public pure returns (int256) {\n-        int256 zero = 0;\n+        int256 zero = -1;\n         return zero;\n     }\n }\n",
     "id": "45",
     "name": "mutants/45/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 2 mutants: -1, 1\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `int256 zero = 0;`\n     function signed_zero() public pure returns (int256) {\n-        int256 zero = 0;\n+        int256 zero = 1;\n         return zero;\n     }\n }\n",
     "id": "46",
     "name": "mutants/46/LVR/LVR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract ROR {\n     // Expect 3 mutants: x <= y, x != y, false\n+    /// RelationalOperatorReplacement(`<` |==> `<=`) of: `return x < y;`\n     function less(uint256 x, uint256 y) public pure returns (bool) {\n-        return x < y;\n+        return x <= y;\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n",
     "id": "47",
     "name": "mutants/47/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract ROR {\n     // Expect 3 mutants: x <= y, x != y, false\n+    /// RelationalOperatorReplacement(`<` |==> `!=`) of: `return x < y;`\n     function less(uint256 x, uint256 y) public pure returns (bool) {\n-        return x < y;\n+        return x != y;\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n",
     "id": "48",
     "name": "mutants/48/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract ROR {\n     // Expect 3 mutants: x <= y, x != y, false\n+    /// RelationalOperatorReplacement(`x < y` |==> `false`) of: `return x < y;`\n     function less(uint256 x, uint256 y) public pure returns (bool) {\n-        return x < y;\n+        return false;\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n",
     "id": "49",
     "name": "mutants/49/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n+    /// RelationalOperatorReplacement(`<=` |==> `<`) of: `return x <= y;`\n     function less_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x <= y;\n+        return x < y;\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n",
     "id": "50",
     "name": "mutants/50/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n+    /// RelationalOperatorReplacement(`<=` |==> `==`) of: `return x <= y;`\n     function less_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x <= y;\n+        return x == y;\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n",
     "id": "51",
     "name": "mutants/51/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n+    /// RelationalOperatorReplacement(`x <= y` |==> `true`) of: `return x <= y;`\n     function less_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x <= y;\n+        return true;\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n",
     "id": "52",
     "name": "mutants/52/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n+    /// RelationalOperatorReplacement(`>` |==> `>=`) of: `return x > y;`\n     function more(uint256 x, uint256 y) public pure returns (bool) {\n-        return x > y;\n+        return x >= y;\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n",
     "id": "53",
     "name": "mutants/53/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n+    /// RelationalOperatorReplacement(`>` |==> `!=`) of: `return x > y;`\n     function more(uint256 x, uint256 y) public pure returns (bool) {\n-        return x > y;\n+        return x != y;\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n",
     "id": "54",
     "name": "mutants/54/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n+    /// RelationalOperatorReplacement(`x > y` |==> `false`) of: `return x > y;`\n     function more(uint256 x, uint256 y) public pure returns (bool) {\n-        return x > y;\n+        return false;\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n",
     "id": "55",
     "name": "mutants/55/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n+    /// RelationalOperatorReplacement(`>=` |==> `>`) of: `return x >= y;`\n     function more_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x >= y;\n+        return x > y;\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n",
     "id": "56",
     "name": "mutants/56/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n+    /// RelationalOperatorReplacement(`>=` |==> `==`) of: `return x >= y;`\n     function more_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x >= y;\n+        return x == y;\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n",
     "id": "57",
     "name": "mutants/57/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n+    /// RelationalOperatorReplacement(`x >= y` |==> `true`) of: `return x >= y;`\n     function more_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x >= y;\n+        return true;\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n",
     "id": "58",
     "name": "mutants/58/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n+    /// RelationalOperatorReplacement(`==` |==> `<=`) of: `return x == y;`\n     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x == y;\n+        return x <= y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "59",
     "name": "mutants/59/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n+    /// RelationalOperatorReplacement(`==` |==> `>=`) of: `return x == y;`\n     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x == y;\n+        return x >= y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "60",
     "name": "mutants/60/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n+    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`\n     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x == y;\n+        return false;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "61",
     "name": "mutants/61/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     // Expect 2 mutants: true, false\n+    /// RelationalOperatorReplacement(`x == y` |==> `true`) of: `return x == y;`\n     function equal_not_ord(bool x, bool y) public pure returns (bool) {\n-        return x == y;\n+        return true;\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n",
     "id": "62",
     "name": "mutants/62/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     // Expect 2 mutants: true, false\n+    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`\n     function equal_not_ord(bool x, bool y) public pure returns (bool) {\n-        return x == y;\n+        return false;\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n",
     "id": "63",
     "name": "mutants/63/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n+    /// RelationalOperatorReplacement(`!=` |==> `<`) of: `return x != y;`\n     function not_equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x != y;\n+        return x < y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "64",
     "name": "mutants/64/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n+    /// RelationalOperatorReplacement(`!=` |==> `>`) of: `return x != y;`\n     function not_equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x != y;\n+        return x > y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "65",
     "name": "mutants/65/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n+    /// RelationalOperatorReplacement(`x != y` |==> `true`) of: `return x != y;`\n     function not_equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x != y;\n+        return true;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "66",
     "name": "mutants/66/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -40,8 +40,9 @@\n     }\n \n     // Expect 2 mutants: true, false\n+    /// RelationalOperatorReplacement(`x != y` |==> `true`) of: `return x != y;`\n     function not_equal_not_ord(bool x, bool y) public pure returns (bool) {\n-        return x != y;\n+        return true;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) == z, true\n",
     "id": "67",
     "name": "mutants/67/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -40,8 +40,9 @@\n     }\n \n     // Expect 2 mutants: true, false\n+    /// RelationalOperatorReplacement(`x != y` |==> `false`) of: `return x != y;`\n     function not_equal_not_ord(bool x, bool y) public pure returns (bool) {\n-        return x != y;\n+        return false;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) == z, true\n",
     "id": "68",
     "name": "mutants/68/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -49,8 +49,9 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`>=` |==> `>`) of: `return (x + y) >= z;`\n     ) public pure returns (bool) {\n-        return (x + y) >= z;\n+        return (x + y) > z;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) < z, true\n",
     "id": "69",
     "name": "mutants/69/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -49,8 +49,9 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`>=` |==> `==`) of: `return (x + y) >= z;`\n     ) public pure returns (bool) {\n-        return (x + y) >= z;\n+        return (x + y) == z;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) < z, true\n",
     "id": "70",
     "name": "mutants/70/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -49,8 +49,9 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`(x + y) >= z` |==> `true`) of: `return (x + y) >= z;`\n     ) public pure returns (bool) {\n-        return (x + y) >= z;\n+        return true;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) < z, true\n",
     "id": "71",
     "name": "mutants/71/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -58,7 +58,8 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`!=` |==> `<`) of: `return (x + y) != z;`\n     ) public pure returns (bool) {\n-        return (x + y) != z;\n+        return (x + y) < z;\n     }\n }\n",
     "id": "72",
     "name": "mutants/72/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -58,7 +58,8 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`!=` |==> `>`) of: `return (x + y) != z;`\n     ) public pure returns (bool) {\n-        return (x + y) != z;\n+        return (x + y) > z;\n     }\n }\n",
     "id": "73",
     "name": "mutants/73/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -58,7 +58,8 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`(x + y) != z` |==> `true`) of: `return (x + y) != z;`\n     ) public pure returns (bool) {\n-        return (x + y) != z;\n+        return true;\n     }\n }\n",
     "id": "74",
     "name": "mutants/74/ROR/ROR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol"
   },
   {
     "description": "UnaryOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect a single mutant: -x\n+    /// UnaryOperatorReplacement(`` |==> ` - `) of: `return ~x;`\n     function signed_bw_not(int256 x) public pure returns (int256) {\n-        return ~x;\n+        return  - ~x;\n     }\n \n     // Expect a single mutant: ~x\n",
     "id": "75",
     "name": "mutants/75/UOR/UOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol"
   },
   {
     "description": "UnaryOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect a single mutant: ~x\n+    /// UnaryOperatorReplacement(`` |==> ` ~ `) of: `return -x;`\n     function signed_neg(int256 x) public pure returns (int256) {\n-        return -x;\n+        return  ~ -x;\n     }\n }\n",
     "id": "76",
     "name": "mutants/76/UOR/UOR.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol"
   }
 ]
