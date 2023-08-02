@@ -165,7 +165,7 @@ impl Mutant {
         }
 
         let mut_line = lines.next().unwrap();
-        let orig_line = contents.lines().nth(line_no - 1).unwrap();
+        let orig_line = contents.lines().nth(line_no).unwrap();
 
         let indent = get_indent(mut_line);
         let comment = format!(
