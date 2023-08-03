@@ -109,7 +109,6 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         None
     }
     .map(|pb| pb.to_str().unwrap().to_string());
-    println!("Normalized outdir: {:?}", pass_through_outdir);
 
     if params.sourceroot.is_some() {
         print_deprecation_warning(

@@ -969,10 +969,6 @@ fn elim_delegate_mutation(
             let no_address = &source[idx..loc.end()];
             let delegate_call_start = idx + no_address.find("delegatecall").unwrap();
             let delegate_call_end = delegate_call_start + 12;
-            println!(
-                "Delegate call: `{}`",
-                &source[delegate_call_start..delegate_call_end]
-            );
 
             vec![Mutant::new(
                 &file_resolver,
