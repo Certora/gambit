@@ -501,27 +501,19 @@ fn arith_op_replacement(
         return vec![];
     }
     match expr {
-        Expression::BitwiseOr { .. }
-        | Expression::BitwiseAnd { .. }
-        | Expression::BitwiseXor { .. }
-        | Expression::Divide { .. }
+        Expression::Divide { .. }
         | Expression::Modulo { .. }
         | Expression::Multiply { .. }
         | Expression::Subtract { .. }
         | Expression::Add { .. } => {
-            let is_signed_int = if let Type::Int(_) = expr.ty() {
-                true
-            } else {
-                false
-            };
-            if is_signed_int {
+            if let Type::Int(_) = expr.ty() {
                 // When we're signed, filter out `**`, which is illegal
                 replacements = replacements
                     .iter()
                     .filter(|x| **x != "**")
                     .map(|x| *x)
                     .collect();
-            }
+            };
 
             let op_loc = get_op_loc(expr, contents);
             replacements

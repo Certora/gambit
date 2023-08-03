@@ -189,8 +189,8 @@
     "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -6,8 +6,9 @@\n contract BOR {\n     // Expect 1 mutants:\n     // a & b;\n+    /// ArithmeticOperatorReplacement(`|` |==> `+`) of: `return a | b;`\n     function bw_or(int256 a, int256 b) public pure returns (int256) {\n-        return a | b;\n+        return a + b;\n     }\n \n     // Expect 1 mutants:\n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -18,7 +18,8 @@\n \n     // Expect 1 mutants:\n     // a | b;\n+    /// StatementDeletion(`return a ^ b` |==> `assert(true)`) of: `return a ^ b;`\n     function bw_xor(int256 a, int256 b) public pure returns (int256) {\n-        return a ^ b;\n+        assert(true);\n     }\n }\n",
     "id": "28",
     "name": "mutants/28/BOR/BOR.sol",
     "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol"

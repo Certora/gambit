@@ -25,4 +25,4 @@
 25,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,*
 26,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,/
 27,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,%
-28,AOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,9:9,|,+
+28,STD,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,21:0,return a ^ b,assert(true)
