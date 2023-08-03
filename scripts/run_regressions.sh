@@ -19,6 +19,8 @@
 # `resources/regressions/XXXXX`) relative to this script's parent directory.
 
 SCRIPTS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+green_check=""
+red_x=""
 # shellcheck disable=SC1091
 source "$SCRIPTS/util.sh"
 GAMBIT="$SCRIPTS/.."
