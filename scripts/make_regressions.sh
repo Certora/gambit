@@ -18,6 +18,8 @@
 # `resources/regressions/XXXXX`) relative to this script's parent directory.
 
 SCRIPTS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+# shellcheck disable=SC1091
+source "$SCRIPTS/util.sh"
 GAMBIT="$SCRIPTS/.."
 GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
@@ -25,10 +27,6 @@ REGRESSIONS="$GAMBIT"/resources/regressions
 TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
 
 NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
-
-green_check="$(printf "[\033[32;1m ✔ \033[0m]")"
-yellow_elipses="$(printf "[\033[33;1m...\033[0m]")"
-red_x="$(printf "[\033[31;1m ✘ \033[0m]")"
 
 print_vars() {
     echo "scripts: $SCRIPTS"
@@ -40,7 +38,7 @@ print_vars() {
 
 double_check_make_regressions() {
     printf "\033[33m[!!!] WARNING!\033[0m You are about to remake all regression tests!!\n"
-    printf "      This will overwrite the \033[44;37;1m%s\033[0m directory!\n" "$REGRESSIONS"
+    printf "      \033[41;37;1;3mThis will overwrite \`\033[0;41;37;1mresources/regressions\033[0;41;37;1;3m\`!!\033[0m\n"
     printf "      (\033[1mNote:\033[0m regressions are tracked by Git, so you can recover to a previous state)\n"
     while true; do
         printf "Do you wish to proceed? [Y/n] "
@@ -102,18 +100,18 @@ make_regressions() {
             echo "Error: couldn't cd $GAMBIT"
             exit 1
         }
-        printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
-        printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
+        printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
         exit_code=$?
         if [ $exit_code -ne 0 ]; then
-            printf "%s Failed to run config %s\n" "$red_x" "$(basename "$conf_path")"
+            printf "  %s Failed to run config %s\n" "$red_x" "$(basename "$conf_path")"
             failed=true
             failed_confs+=("$conf_path")
         else
-            printf "  \033[1mMoving Outdir:\033[0m to %s\n" "$outdir"
+            printf "  %s \033[1mMoving Outdir:\033[0m to %s\n" "$green_check" "$outdir"
             mv gambit_out "$outdir"
-            printf "%s Successfully ran %s\n" "$green_check" "$(basename "$conf_path")"
+            printf "  %s Successfully created regression test case for %s\n" "$green_check" "$(basename "$conf_path")"
         fi
         cd "$starting_dir" || exit 1
 
@@ -140,13 +138,13 @@ summary() {
     else
         printf "%s \033[32;1m All %s configurations ran successfully\033[0m\n" "$green_check" "$NUM_CONFIGS"
         [ -e "$REGRESSIONS" ] && {
-            printf "%s Removing old regressions\n" "$yellow_elipses"
             rm -rf "$REGRESSIONS"
+            printf "%s Removed old regressions\n" "$green_check"
         }
-        printf "%s Moving Temporary regessions to regressions location\n" "$yellow_elipses"
-        printf "%s    %s -> %s\n" "$yellow_elipses" "$TMP_REGRESSIONS" "$REGRESSIONS"
         mv "$TMP_REGRESSIONS" "$REGRESSIONS"
-        printf "%s Regression tests successfully updated\n" "$green_check"
+        printf "%s Moved Temporary regessions to regressions location\n" "$green_check"
+        printf "     %s -> %s\n" "$TMP_REGRESSIONS" "$REGRESSIONS"
+        printf "%s \033[1;3mRegression tests successfully updated\033[0m\n" "$green_check"
         clean_state
     fi
 }

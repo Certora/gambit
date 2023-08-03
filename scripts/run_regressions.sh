@@ -19,6 +19,8 @@
 # `resources/regressions/XXXXX`) relative to this script's parent directory.
 
 SCRIPTS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+# shellcheck disable=SC1091
+source "$SCRIPTS/util.sh"
 GAMBIT="$SCRIPTS/.."
 GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
@@ -61,21 +63,20 @@ run_regressions() {
         conf_idx=$((conf_idx + 1))
         echo
         echo
-        printf "\033[1mConfiguration %s/%s: %s\033[0m\n" "$conf_idx" "$NUM_CONFIGS" "$conf_path"
+        printf "\033[1mConfiguration %s/%s:\033[0m %s\n" "$conf_idx" "$NUM_CONFIGS" "$(basename "$conf_path")"
 
         conf=$(basename "$conf_path")
         regression_dir="$REGRESSIONS"/"$conf"
 
-        printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
-        printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
-        printf "  \033[1mDiffing\033[0m gambit_out and %s\n" "$regression_dir"
-        bash "$SCRIPTS"/remove_sourceroots.sh gambit_out/gambit_results.json
+        printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
+        printf "  %s \033[1mDiffing\033[0m gambit_out and %s\n" "$green_check" "$regression_dir"
         if diff -q -r gambit_out "$regression_dir"; then
-            printf "  \033[92mSUCCESS\033[0m\n"
+            printf "  %s No regressions in %s\n" "$green_check" "$conf"
             passed+=("$conf")
         else
-            printf "  \033[91mFAILED:\033[0m %s\n" "$conf"
+            printf "  %s Found a regression in %s\n" "$red_x" "$conf"
             failed+=("$conf")
         fi
         rm -rf gambit_out
@@ -95,7 +96,7 @@ summary() {
     printf "\033[92m-------\033[0m\n"
 
     for conf in "${passed[@]}"; do
-        printf "\033[92m[✔]\033[0m %s\n" "$conf"
+        printf "%s %s\n" "$green_check" "$conf"
     done
 
     printf "\n"
@@ -104,7 +105,7 @@ summary() {
     printf "\033[91m-------\033[0m\n"
 
     for conf in "${failed[@]}"; do
-        printf "\033[91m[✘]\033[0m %s\n" "$conf"
+        printf "%s %s\n" "$red_x" "$conf"
     done
 
 }
