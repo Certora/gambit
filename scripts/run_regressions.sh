@@ -73,12 +73,14 @@ run_regressions() {
         printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
         printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
-        printf "  %s \033[1mDiffing\033[0m gambit_out and %s\n" "$green_check" "$regression_dir"
-        if diff -q -r gambit_out "$regression_dir"; then
+        if diff -q -r gambit_out "$regression_dir" 1>/dev/null; then
+            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$green_check" "$regression_dir"
             printf "  %s No regressions in %s\n" "$green_check" "$conf"
             passed+=("$conf")
         else
-            printf "  %s Found a regression in %s\n" "$red_x" "$conf"
+            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$red_x" "$regression_dir"
+            diff -r gambit_out/mutants "$regression_dir"/mutants
+            printf "  %s Found a regression in \033[3m%s\033[0m\n" "$red_x" "$conf"
             failed+=("$conf")
         fi
         rm -rf gambit_out
