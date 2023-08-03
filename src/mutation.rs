@@ -1,7 +1,7 @@
 use crate::{get_import_path, get_indent, Mutator};
 use clap::ValueEnum;
 use num_bigint::BigInt;
-use num_traits::{One, Zero};
+use num_traits::{One, Signed, Zero};
 use serde::{Deserialize, Serialize};
 use solang::{
     file_resolver::FileResolver,
@@ -621,11 +621,17 @@ fn literal_value_replacement(
             solang::sema::ast::Type::Int(_) => {
                 if value.is_zero() {
                     vec!["-1".to_string(), "1".to_string()]
-                } else {
+                } else if value.is_positive() {
                     vec![
                         "0".to_string(),
                         (-value).to_string(),
                         (value + BigInt::one()).to_string(),
+                    ]
+                } else {
+                    vec![
+                        "0".to_string(),
+                        (-value).to_string(),
+                        (value - BigInt::one()).to_string(),
                     ]
                 }
             }
