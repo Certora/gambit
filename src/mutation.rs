@@ -224,6 +224,9 @@ pub trait Mutation {
     fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant>;
 
     fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
+
+    /// Is a given mutation operator a fallback mutation?
+    fn is_fallback_mutation(&self, mutator: &Mutator) -> bool;
 }
 
 /// Kinds of mutations.
@@ -284,6 +287,9 @@ impl Mutation for MutationType {
     }
 
     fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
+        if self.is_fallback_mutation(mutator) {
+            return vec![];
+        }
         let file_no = expr.loc().file_no();
         let resolver = &mutator.file_resolver;
         let contents = &resolver.get_contents_of_file_no(file_no).unwrap();
@@ -327,6 +333,10 @@ impl Mutation for MutationType {
             _ => vec![],
         }
     }
+
+    fn is_fallback_mutation(&self, mutator: &Mutator) -> bool {
+        mutator.conf.fallback_operators.contains(self)
+    }
 }
 
 impl MutationType {
@@ -343,6 +353,10 @@ impl MutationType {
             MutationType::StatementDeletion,
             MutationType::UnaryOperatorReplacement,
         ]
+    }
+
+    pub fn default_fallback_mutation_operators() -> Vec<MutationType> {
+        vec![MutationType::ExpressionValueReplacement]
     }
 
     pub fn short_name(&self) -> String {
@@ -751,8 +765,8 @@ fn rel_op_replacement(
 
                 // The following types are not orderable, so we replace with true and false
                 // TODO: Can Addresses be ordered?
-                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
-                _ => vec!["true", "false"],
+                solang::sema::ast::Type::Address(_) => vec!["false"],
+                _ => vec!["false"],
             }
         }
         Expression::NotEqual { left, .. } => {
@@ -765,8 +779,8 @@ fn rel_op_replacement(
 
                 // The following types are not orderable, so we replace with true and false
                 // TODO: Can Addresses be ordered?
-                solang::sema::ast::Type::Address(_) => vec!["true", "false"],
-                _ => vec!["true", "false"],
+                solang::sema::ast::Type::Address(_) => vec!["true"],
+                _ => vec!["true"],
             }
         }
         _ => return vec![],
@@ -990,6 +1004,7 @@ fn expression_value_replacement(
     _source: &Arc<str>,
 ) -> Vec<Mutant> {
     // TODO: implement
+    println!("Running EVR on {:?} ", _expr);
     vec![]
 }
 
@@ -1425,7 +1440,7 @@ contract A {
             .prefix(prefix.as_str())
             .rand_bytes(5)
             .tempdir_in(source.parent().unwrap())?;
-        let mut mutator = make_mutator(ops, source, outdir.into_path());
+        let mut mutator = make_mutator(ops, &vec![], source, outdir.into_path());
         mutator
             .file_resolver
             .add_import_path(&PathBuf::from("/"))
@@ -1477,7 +1492,7 @@ contract A {
             .prefix("gambit-compile-dir")
             .rand_bytes(5)
             .tempdir()?;
-        let mut mutator = make_mutator(ops, source.clone(), outdir.into_path());
+        let mut mutator = make_mutator(ops, &vec![], source.clone(), outdir.into_path());
         // let source_os_str = source.as_os_str();
         // println!("source: {:?}", source_os_str);
         // let ns = parse_and_resolve(
@@ -1505,9 +1520,15 @@ contract A {
 
     /// Create a mutator for a single file, creating required components (e.g.,
     /// Solc, creating Sources and rapping them in a Vec<Rc<Source>>, etc)
-    fn make_mutator(ops: &Vec<MutationType>, filename: PathBuf, outdir: PathBuf) -> Mutator {
+    fn make_mutator(
+        ops: &Vec<MutationType>,
+        fallback: &Vec<MutationType>,
+        filename: PathBuf,
+        outdir: PathBuf,
+    ) -> Mutator {
         let conf = MutatorConf {
             mutation_operators: ops.clone(),
+            fallback_operators: fallback.clone(),
             funcs_to_mutate: None,
             contract: None,
         };

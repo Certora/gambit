@@ -28,6 +28,12 @@ pub struct MutatorConf {
     /// Mutation operators to apply during mutation
     pub mutation_operators: Vec<MutationType>,
 
+    /// Operators to use when an expression or statement didn't
+    /// otherwise mutate. These act as a fallback to help ensure
+    /// a given program point is mutated without creating too many
+    /// mutants.
+    pub fallback_operators: Vec<MutationType>,
+
     /// If this is `Some(fnames)` then only mutate functions with names in
     /// `fnames`. If this is `None` then mutate all function names
     pub funcs_to_mutate: Option<Vec<String>>,
@@ -49,8 +55,19 @@ impl From<&MutateParams> for MutatorConf {
         } else {
             MutationType::default_mutation_operators()
         };
+        let fallback_operators = if let Some(ops) = &mutate_params.fallback_mutations {
+            ops.iter()
+                .map(|op| {
+                    MutationType::from_str(normalize_mutation_operator_name(op).as_str(), true)
+                        .unwrap_or_else(|_| panic!("Unrecognized mutation operator {op}"))
+                })
+                .collect()
+        } else {
+            MutationType::default_fallback_mutation_operators()
+        };
         MutatorConf {
             mutation_operators,
+            fallback_operators,
             funcs_to_mutate: mutate_params.functions.clone(),
             contract: mutate_params.contract.clone(),
         }
@@ -188,6 +205,10 @@ impl Mutator {
         &self.conf.mutation_operators.as_slice()
     }
 
+    pub fn fallback_mutation_operators(&self) -> &[MutationType] {
+        &self.conf.fallback_operators.as_slice()
+    }
+
     /// Run all mutations! This is the main external entry point into mutation.
     /// This function:
     ///
@@ -299,6 +320,19 @@ impl Mutator {
         if let Some(_) = expr.loc().try_file_no() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
+                if op.is_fallback_mutation(self) {
+                    continue;
+                }
+                mutants.append(&mut op.mutate_expression(self, expr));
+            }
+            self.mutants.append(&mut mutants);
+        }
+    }
+
+    pub fn apply_fallback_operators_to_expression(&mut self, expr: &Expression) {
+        if let Some(_) = expr.loc().try_file_no() {
+            let mut mutants = vec![];
+            for op in self.fallback_mutation_operators() {
                 mutants.append(&mut op.mutate_expression(self, expr));
             }
             self.mutants.append(&mut mutants);
@@ -318,11 +352,17 @@ impl Mutator {
 
 pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
     mutator.apply_operators_to_statement(statement);
+    let num_mutants_before_expr_mutate = mutator.mutants.len();
     match statement {
         Statement::Block { .. } => true,
         Statement::VariableDecl(_, _, _, expr) => {
             match expr {
-                Some(e) => e.recurse(mutator, mutate_expression),
+                Some(e) => {
+                    e.recurse(mutator, mutate_expression);
+                    if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                        perform_fallback_mutations(e, mutator);
+                    }
+                }
                 None => (),
             }
 
@@ -331,36 +371,75 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
 
         Statement::If(_, _, c, _, _) => {
             c.recurse(mutator, mutate_expression);
+            if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                perform_fallback_mutations(c, mutator);
+            }
             true
         }
         Statement::While(_, _, c, _) => {
             c.recurse(mutator, mutate_expression);
-            true
-        }
-        Statement::For {
-            loc: _,
-            reachable: _,
-            init: _,
-            cond,
-            ..
-        } => {
-            if let Some(cond) = cond {
-                cond.recurse(mutator, mutate_expression);
+            if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                perform_fallback_mutations(c, mutator);
             }
             true
         }
-        Statement::DoWhile(_, _, _, _) => true,
-        Statement::Expression(_, _, _) => true,
-        Statement::Delete(_, _, _) => true,
-        Statement::Destructure(_, _, e) => {
+        Statement::For { cond, .. } => {
+            if let Some(cond) = cond {
+                cond.recurse(mutator, mutate_expression);
+                if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                    perform_fallback_mutations(cond, mutator);
+                }
+            }
+            true
+        }
+        Statement::DoWhile(_, _, _, c) => {
+            c.recurse(mutator, mutate_expression);
+            if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                perform_fallback_mutations(c, mutator);
+            }
+            true
+        }
+        Statement::Expression(_, _, e) => {
             e.recurse(mutator, mutate_expression);
+            if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                match e {
+                    Expression::PreIncrement { .. }
+                    | Expression::PreDecrement { .. }
+                    | Expression::PostIncrement { .. }
+                    | Expression::PostDecrement { .. } => (),
+
+                    Expression::Assign { right, .. } => perform_fallback_mutations(right, mutator),
+
+                    Expression::Constructor { args, .. }
+                    | Expression::Builtin { args, .. }
+                    | Expression::InternalFunctionCall { args, .. }
+                    | Expression::ExternalFunctionCall { args, .. } => {
+                        for arg in args {
+                            perform_fallback_mutations(arg, mutator);
+                        }
+                    }
+                    Expression::ExternalFunctionCallRaw { .. } => (),
+                    _ => (),
+                }
+                perform_fallback_mutations(e, mutator);
+            }
+            true
+        }
+        Statement::Delete(_, _, e) | Statement::Destructure(_, _, e) => {
+            e.recurse(mutator, mutate_expression);
+            if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                perform_fallback_mutations(e, mutator);
+            }
             true
         }
         Statement::Continue(_) => true,
         Statement::Break(_) => true,
         Statement::Return(_, rv) => {
             if let Some(rv) = rv {
-                rv.recurse(mutator, mutate_expression)
+                rv.recurse(mutator, mutate_expression);
+                if mutator.mutants.len() == num_mutants_before_expr_mutate {
+                    perform_fallback_mutations(rv, mutator);
+                }
             }
             true
         }
@@ -375,4 +454,8 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
 pub fn mutate_expression(expr: &Expression, mutator: &mut Mutator) -> bool {
     mutator.apply_operators_to_expression(expr);
     true
+}
+
+pub fn perform_fallback_mutations(expr: &Expression, mutator: &mut Mutator) {
+    mutator.apply_fallback_operators_to_expression(expr);
 }

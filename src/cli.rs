@@ -117,6 +117,16 @@ pub struct MutateParams {
     #[arg(long, num_args(1..), conflicts_with = "json")]
     pub mutations: Option<Vec<String>>,
 
+    /// Specify  _fallback mutation operators_. These operators are not applied
+    /// to a program point unless all other operators fail. Fallback expression
+    /// mutations are only applied to certain program points. For instance,
+    /// in the expression `a + b + c`, a fallback expression mutation such as
+    /// EVR will only be applied to the full expression, and not to any
+    /// subexpressions, and only if no mutants were generated for `a + b + c` or
+    /// its subexpressions
+    #[arg(long, num_args(1..), conflicts_with = "json")]
+    pub fallback_mutations: Option<Vec<String>>,
+
     /// Skip mutant export
     #[arg(long, default_value_t = DEFAULT_NO_EXPORT_MUTANTS)]
     #[serde(default = "default_no_export_mutants")]
