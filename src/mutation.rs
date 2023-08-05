@@ -224,6 +224,7 @@ pub trait Mutation {
     fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant>;
 
     fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
+    fn mutate_expression_fallback(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
 
     /// Is a given mutation operator a fallback mutation?
     fn is_fallback_mutation(&self, mutator: &Mutator) -> bool;
@@ -287,7 +288,61 @@ impl Mutation for MutationType {
     }
 
     fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
-        if self.is_fallback_mutation(mutator) {
+        self._mutate_expression_helper(mutator, expr, false)
+    }
+
+    fn mutate_expression_fallback(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
+        self._mutate_expression_helper(mutator, expr, true)
+    }
+
+    fn is_fallback_mutation(&self, mutator: &Mutator) -> bool {
+        mutator.conf.fallback_operators.contains(self)
+    }
+}
+
+impl MutationType {
+    pub fn default_mutation_operators() -> Vec<MutationType> {
+        vec![
+            MutationType::ArithmeticOperatorReplacement,
+            MutationType::BitwiseOperatorReplacement,
+            MutationType::ExpressionValueReplacement,
+            MutationType::ElimDelegateCall,
+            MutationType::LiteralValueReplacement,
+            MutationType::LogicalOperatorReplacement,
+            MutationType::RelationalOperatorReplacement,
+            MutationType::ShiftOperatorReplacement,
+            MutationType::StatementDeletion,
+            MutationType::UnaryOperatorReplacement,
+        ]
+    }
+
+    pub fn default_fallback_mutation_operators() -> Vec<MutationType> {
+        vec![MutationType::ExpressionValueReplacement]
+    }
+
+    pub fn short_name(&self) -> String {
+        match self {
+            MutationType::ArithmeticOperatorReplacement => "AOR",
+            MutationType::BitwiseOperatorReplacement => "BOR",
+            MutationType::ElimDelegateCall => "EDC",
+            MutationType::ExpressionValueReplacement => "EVR",
+            MutationType::LiteralValueReplacement => "LVR",
+            MutationType::LogicalOperatorReplacement => "LOR",
+            MutationType::RelationalOperatorReplacement => "ROR",
+            MutationType::ShiftOperatorReplacement => "SOR",
+            MutationType::StatementDeletion => "STD",
+            MutationType::UnaryOperatorReplacement => "UOR",
+        }
+        .to_string()
+    }
+
+    fn _mutate_expression_helper(
+        &self,
+        mutator: &Mutator,
+        expr: &Expression,
+        is_fallback: bool,
+    ) -> Vec<Mutant> {
+        if self.is_fallback_mutation(mutator) != is_fallback {
             return vec![];
         }
         let file_no = expr.loc().file_no();
@@ -332,47 +387,6 @@ impl Mutation for MutationType {
             }
             _ => vec![],
         }
-    }
-
-    fn is_fallback_mutation(&self, mutator: &Mutator) -> bool {
-        mutator.conf.fallback_operators.contains(self)
-    }
-}
-
-impl MutationType {
-    pub fn default_mutation_operators() -> Vec<MutationType> {
-        vec![
-            MutationType::ArithmeticOperatorReplacement,
-            MutationType::BitwiseOperatorReplacement,
-            MutationType::ExpressionValueReplacement,
-            MutationType::ElimDelegateCall,
-            MutationType::LiteralValueReplacement,
-            MutationType::LogicalOperatorReplacement,
-            MutationType::RelationalOperatorReplacement,
-            MutationType::ShiftOperatorReplacement,
-            MutationType::StatementDeletion,
-            MutationType::UnaryOperatorReplacement,
-        ]
-    }
-
-    pub fn default_fallback_mutation_operators() -> Vec<MutationType> {
-        vec![MutationType::ExpressionValueReplacement]
-    }
-
-    pub fn short_name(&self) -> String {
-        match self {
-            MutationType::ArithmeticOperatorReplacement => "AOR",
-            MutationType::BitwiseOperatorReplacement => "BOR",
-            MutationType::ElimDelegateCall => "EDC",
-            MutationType::ExpressionValueReplacement => "EVR",
-            MutationType::LiteralValueReplacement => "LVR",
-            MutationType::LogicalOperatorReplacement => "LOR",
-            MutationType::RelationalOperatorReplacement => "ROR",
-            MutationType::ShiftOperatorReplacement => "SOR",
-            MutationType::StatementDeletion => "STD",
-            MutationType::UnaryOperatorReplacement => "UOR",
-        }
-        .to_string()
     }
 }
 
@@ -995,17 +1009,85 @@ fn elim_delegate_mutation(
     }
 }
 
+fn defaults_by_type(ty: &Type) -> Vec<&str> {
+    match ty {
+        Type::Bool => vec!["true", "false"],
+        Type::Int(_) => vec!["-1", "0", "1"],
+        Type::Uint(_) => vec!["0", "1"],
+        _ => vec![],
+    }
+}
+
 #[allow(dead_code)]
 fn expression_value_replacement(
-    _op: &MutationType,
-    _file_resolver: &FileResolver,
-    _namespace: Rc<Namespace>,
-    _expr: &Expression,
-    _source: &Arc<str>,
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
 ) -> Vec<Mutant> {
     // TODO: implement
-    println!("Running EVR on {:?} ", _expr);
-    vec![]
+    println!("Running EVR on {:?} ", expr);
+    let replacements = match expr {
+        Expression::Add { ty, .. }
+        | Expression::Subtract { ty, .. }
+        | Expression::Multiply { ty, .. }
+        | Expression::Divide { ty, .. }
+        | Expression::Modulo { ty, .. }
+        | Expression::Power { ty, .. }
+        | Expression::BitwiseOr { ty, .. }
+        | Expression::BitwiseAnd { ty, .. }
+        | Expression::BitwiseXor { ty, .. }
+        | Expression::ShiftLeft { ty, .. }
+        | Expression::ShiftRight { ty, .. }
+        | Expression::ConstantVariable { ty, .. }
+        | Expression::StorageVariable { ty, .. }
+        | Expression::Load { ty, .. }
+        | Expression::GetRef { ty, .. }
+        | Expression::BitwiseNot { ty, .. }
+        | Expression::Negate { ty, .. }
+        | Expression::ConditionalOperator { ty, .. }
+        | Expression::StorageLoad { ty, .. } => defaults_by_type(ty),
+        Expression::Variable { ty, .. } => {
+            println!("Visiting variable {:?}", expr);
+            defaults_by_type(ty)
+        }
+
+        Expression::ZeroExt { to, .. }
+        | Expression::Cast { to, .. }
+        | Expression::BytesCast { to, .. }
+        | Expression::CheckingTrunc { to, .. }
+        | Expression::Trunc { to, .. }
+        | Expression::SignExt { to, .. } => defaults_by_type(to),
+
+        Expression::More { .. }
+        | Expression::Less { .. }
+        | Expression::MoreEqual { .. }
+        | Expression::LessEqual { .. }
+        | Expression::Equal { .. }
+        | Expression::NotEqual { .. }
+        | Expression::Not { .. }
+        | Expression::Or { .. }
+        | Expression::And { .. } => defaults_by_type(&Type::Bool),
+        _ => vec![],
+    };
+    let mut mutants = vec![];
+    let loc = expr.loc();
+    let expr_start = loc.start();
+    let expr_end = loc.end();
+    let expr_string = &source[expr_start..expr_end];
+
+    for r in replacements {
+        mutants.push(Mutant::new(
+            file_resolver,
+            namespace.clone(),
+            loc,
+            op.clone(),
+            expr_string.to_string(),
+            r.to_string(),
+        ));
+    }
+    mutants
 }
 
 /// This testing module defines and uses the testing infrastructure, allowing
