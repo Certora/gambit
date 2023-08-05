@@ -45,10 +45,10 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
     };
 
     if !&mutation_dir.is_dir() {
-        log::error!("Missing mutation directory: `{}`", mutation_dir.display());
-        log::error!("Suggestions:");
-        log::error!("  [+] Run `gambit mutate` to generate mutants");
-        log::error!("  [+] Use the `--mutation-directory` flag to specify a different location");
+        println!("Missing mutation directory: `{}`", mutation_dir.display());
+        println!("Suggestions:");
+        println!("  [+] Run `gambit mutate` to generate mutants");
+        println!("  [+] Use the `--mutation-directory` flag to specify a different location");
         std::process::exit(1);
     } else if !&gambit_results_json_path.is_file() {
         log::error!(
