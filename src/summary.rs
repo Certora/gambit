@@ -14,6 +14,8 @@ struct MutantSummaryEntry {
     diff: String,
     op_long: String,
     op_short: String,
+    line: String,
+    col: String,
     orig: String,
     repl: String,
 }
@@ -157,12 +159,24 @@ fn get_mutant_summary(i: usize, mutant_json: &Value) -> Option<MutantSummaryEntr
             .unwrap_or_else(|| panic!("{}", missing_field_msg("repl", i, mutant_json)))
             .as_str()
             .expect("`repl` field should be as string");
+        let line = m
+            .get("line")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("line", i, mutant_json)))
+            .as_i64()
+            .expect("`line` field should be an int");
+        let col = m
+            .get("col")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("col", i, mutant_json)))
+            .as_i64()
+            .expect("`col` field should be an int");
         return Some(MutantSummaryEntry {
             mid: mid.to_string(),
             mutant_export_location: name.to_string(),
             diff: diff.to_string(),
             op_long: op_long.to_string(),
             op_short: op_short.to_string(),
+            line: line.to_string(),
+            col: col.to_string(),
             orig: orig.to_string(),
             repl: repl.to_string(),
         });
@@ -199,12 +213,14 @@ fn print_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>, short: bool
 fn print_short_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>) {
     if let Some(summary) = mutant_summary {
         println!(
-            "({}) {} ({}) {} -> {}",
+            "({}) {} [{}@{}:{}] {} -> {}",
             ansi_term::Style::new().bold().paint(&summary.mid),
             ansi_term::Color::Blue.bold().paint(&summary.op_short),
             ansi_term::Style::new()
                 .italic()
                 .paint(&summary.mutant_export_location),
+            &summary.line,
+            &summary.col,
             ansi_term::Color::Green.paint(&summary.orig),
             ansi_term::Color::Red.bold().paint(&summary.repl),
         )
