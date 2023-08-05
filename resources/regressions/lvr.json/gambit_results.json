@@ -1,8 +1,10 @@
 [
   {
+    "col": 24,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -11,8 +11,9 @@\n     int256 zero_s = 0;\n \n     // Expect 1 mutant: 1\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `uint256 zero = 0;`\n     function unsigned_zero() public pure returns (uint256) {\n-        uint256 zero = 0;\n+        uint256 zero = 1;\n         return zero;\n     }\n \n",
     "id": "1",
+    "line": 15,
     "name": "mutants/1/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "0",
@@ -10,9 +12,11 @@
     "repl": "1"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n \n     // Expect 1 mutant: 1\n     function unsigned_zero() public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`zero` |==> `0`) of: `return zero;`\n         uint256 zero = 0;\n-        return zero;\n+        return 0;\n     }\n \n     // Expect 2 mutant: 0, 2\n",
     "id": "2",
+    "line": 16,
     "name": "mutants/2/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "zero",
@@ -20,9 +24,11 @@
     "repl": "0"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n \n     // Expect 1 mutant: 1\n     function unsigned_zero() public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`zero` |==> `1`) of: `return zero;`\n         uint256 zero = 0;\n-        return zero;\n+        return 1;\n     }\n \n     // Expect 2 mutant: 0, 2\n",
     "id": "3",
+    "line": 16,
     "name": "mutants/3/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "zero",
@@ -30,9 +36,11 @@
     "repl": "1"
   },
   {
+    "col": 23,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -17,8 +17,9 @@\n     }\n \n     // Expect 2 mutant: 0, 2\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `uint256 one = 1;`\n     function unsigned_one() public pure returns (uint256) {\n-        uint256 one = 1;\n+        uint256 one = 0;\n         return one;\n     }\n \n",
     "id": "4",
+    "line": 21,
     "name": "mutants/4/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
@@ -40,9 +48,11 @@
     "repl": "0"
   },
   {
+    "col": 23,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -17,8 +17,9 @@\n     }\n \n     // Expect 2 mutant: 0, 2\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `uint256 one = 1;`\n     function unsigned_one() public pure returns (uint256) {\n-        uint256 one = 1;\n+        uint256 one = 2;\n         return one;\n     }\n \n",
     "id": "5",
+    "line": 21,
     "name": "mutants/5/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
@@ -50,9 +60,11 @@
     "repl": "2"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n \n     // Expect 2 mutant: 0, 2\n     function unsigned_one() public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`one` |==> `0`) of: `return one;`\n         uint256 one = 1;\n-        return one;\n+        return 0;\n     }\n \n     // Expect 2 mutants: 0, 1\n",
     "id": "6",
+    "line": 22,
     "name": "mutants/6/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "one",
@@ -60,9 +72,11 @@
     "repl": "0"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n \n     // Expect 2 mutant: 0, 2\n     function unsigned_one() public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`one` |==> `1`) of: `return one;`\n         uint256 one = 1;\n-        return one;\n+        return 1;\n     }\n \n     // Expect 2 mutants: 0, 1\n",
     "id": "7",
+    "line": 22,
     "name": "mutants/7/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "one",
@@ -70,9 +84,11 @@
     "repl": "1"
   },
   {
+    "col": 26,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -23,8 +23,9 @@\n     }\n \n     // Expect 2 mutants: 0, 1\n+    /// LiteralValueReplacement(`-1` |==> `0`) of: `int256 neg_one = -1;`\n     function signed_neg_one() public pure returns (int256) {\n-        int256 neg_one = -1;\n+        int256 neg_one = 0;\n         return neg_one;\n     }\n \n",
     "id": "8",
+    "line": 27,
     "name": "mutants/8/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "-1",
@@ -80,9 +96,11 @@
     "repl": "0"
   },
   {
+    "col": 26,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -23,8 +23,9 @@\n     }\n \n     // Expect 2 mutants: 0, 1\n+    /// LiteralValueReplacement(`-1` |==> `1`) of: `int256 neg_one = -1;`\n     function signed_neg_one() public pure returns (int256) {\n-        int256 neg_one = -1;\n+        int256 neg_one = 1;\n         return neg_one;\n     }\n \n",
     "id": "9",
+    "line": 27,
     "name": "mutants/9/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "-1",
@@ -90,9 +108,11 @@
     "repl": "1"
   },
   {
+    "col": 26,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -23,8 +23,9 @@\n     }\n \n     // Expect 2 mutants: 0, 1\n+    /// LiteralValueReplacement(`-1` |==> `-2`) of: `int256 neg_one = -1;`\n     function signed_neg_one() public pure returns (int256) {\n-        int256 neg_one = -1;\n+        int256 neg_one = -2;\n         return neg_one;\n     }\n \n",
     "id": "10",
+    "line": 27,
     "name": "mutants/10/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "-1",
@@ -100,9 +120,11 @@
     "repl": "-2"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -24,8 +24,9 @@\n \n     // Expect 2 mutants: 0, 1\n     function signed_neg_one() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`neg_one` |==> `-1`) of: `return neg_one;`\n         int256 neg_one = -1;\n-        return neg_one;\n+        return -1;\n     }\n \n     // Expect 2 mutants: -1, 0\n",
     "id": "11",
+    "line": 28,
     "name": "mutants/11/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "neg_one",
@@ -110,9 +132,11 @@
     "repl": "-1"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -24,8 +24,9 @@\n \n     // Expect 2 mutants: 0, 1\n     function signed_neg_one() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`neg_one` |==> `0`) of: `return neg_one;`\n         int256 neg_one = -1;\n-        return neg_one;\n+        return 0;\n     }\n \n     // Expect 2 mutants: -1, 0\n",
     "id": "12",
+    "line": 28,
     "name": "mutants/12/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "neg_one",
@@ -120,9 +144,11 @@
     "repl": "0"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -24,8 +24,9 @@\n \n     // Expect 2 mutants: 0, 1\n     function signed_neg_one() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`neg_one` |==> `1`) of: `return neg_one;`\n         int256 neg_one = -1;\n-        return neg_one;\n+        return 1;\n     }\n \n     // Expect 2 mutants: -1, 0\n",
     "id": "13",
+    "line": 28,
     "name": "mutants/13/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "neg_one",
@@ -130,9 +156,11 @@
     "repl": "1"
   },
   {
+    "col": 26,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -29,8 +29,9 @@\n     }\n \n     // Expect 2 mutants: -1, 0\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `int256 pos_one = 1;`\n     function signed_pos_one() public pure returns (int256) {\n-        int256 pos_one = 1;\n+        int256 pos_one = 0;\n         return pos_one;\n     }\n \n",
     "id": "14",
+    "line": 33,
     "name": "mutants/14/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
@@ -140,9 +168,11 @@
     "repl": "0"
   },
   {
+    "col": 26,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -29,8 +29,9 @@\n     }\n \n     // Expect 2 mutants: -1, 0\n+    /// LiteralValueReplacement(`1` |==> `-1`) of: `int256 pos_one = 1;`\n     function signed_pos_one() public pure returns (int256) {\n-        int256 pos_one = 1;\n+        int256 pos_one = -1;\n         return pos_one;\n     }\n \n",
     "id": "15",
+    "line": 33,
     "name": "mutants/15/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
@@ -150,9 +180,11 @@
     "repl": "-1"
   },
   {
+    "col": 26,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -29,8 +29,9 @@\n     }\n \n     // Expect 2 mutants: -1, 0\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `int256 pos_one = 1;`\n     function signed_pos_one() public pure returns (int256) {\n-        int256 pos_one = 1;\n+        int256 pos_one = 2;\n         return pos_one;\n     }\n \n",
     "id": "16",
+    "line": 33,
     "name": "mutants/16/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
@@ -160,9 +192,11 @@
     "repl": "2"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n \n     // Expect 2 mutants: -1, 0\n     function signed_pos_one() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`pos_one` |==> `-1`) of: `return pos_one;`\n         int256 pos_one = 1;\n-        return pos_one;\n+        return -1;\n     }\n \n     // Expect 2 mutants: -1, 1\n",
     "id": "17",
+    "line": 34,
     "name": "mutants/17/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "pos_one",
@@ -170,9 +204,11 @@
     "repl": "-1"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n \n     // Expect 2 mutants: -1, 0\n     function signed_pos_one() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`pos_one` |==> `0`) of: `return pos_one;`\n         int256 pos_one = 1;\n-        return pos_one;\n+        return 0;\n     }\n \n     // Expect 2 mutants: -1, 1\n",
     "id": "18",
+    "line": 34,
     "name": "mutants/18/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "pos_one",
@@ -180,9 +216,11 @@
     "repl": "0"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n \n     // Expect 2 mutants: -1, 0\n     function signed_pos_one() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`pos_one` |==> `1`) of: `return pos_one;`\n         int256 pos_one = 1;\n-        return pos_one;\n+        return 1;\n     }\n \n     // Expect 2 mutants: -1, 1\n",
     "id": "19",
+    "line": 34,
     "name": "mutants/19/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "pos_one",
@@ -190,9 +228,11 @@
     "repl": "1"
   },
   {
+    "col": 23,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 2 mutants: -1, 1\n+    /// LiteralValueReplacement(`0` |==> `-1`) of: `int256 zero = 0;`\n     function signed_zero() public pure returns (int256) {\n-        int256 zero = 0;\n+        int256 zero = -1;\n         return zero;\n     }\n }\n",
     "id": "20",
+    "line": 39,
     "name": "mutants/20/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "0",
@@ -200,9 +240,11 @@
     "repl": "-1"
   },
   {
+    "col": 23,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 2 mutants: -1, 1\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `int256 zero = 0;`\n     function signed_zero() public pure returns (int256) {\n-        int256 zero = 0;\n+        int256 zero = 1;\n         return zero;\n     }\n }\n",
     "id": "21",
+    "line": 39,
     "name": "mutants/21/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "0",
@@ -210,9 +252,11 @@
     "repl": "1"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -36,7 +36,8 @@\n \n     // Expect 2 mutants: -1, 1\n     function signed_zero() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`zero` |==> `-1`) of: `return zero;`\n         int256 zero = 0;\n-        return zero;\n+        return -1;\n     }\n }\n",
     "id": "22",
+    "line": 40,
     "name": "mutants/22/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "zero",
@@ -220,9 +264,11 @@
     "repl": "-1"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -36,7 +36,8 @@\n \n     // Expect 2 mutants: -1, 1\n     function signed_zero() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`zero` |==> `0`) of: `return zero;`\n         int256 zero = 0;\n-        return zero;\n+        return 0;\n     }\n }\n",
     "id": "23",
+    "line": 40,
     "name": "mutants/23/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "zero",
@@ -230,9 +276,11 @@
     "repl": "0"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -36,7 +36,8 @@\n \n     // Expect 2 mutants: -1, 1\n     function signed_zero() public pure returns (int256) {\n+        /// ExpressionValueReplacement(`zero` |==> `1`) of: `return zero;`\n         int256 zero = 0;\n-        return zero;\n+        return 1;\n     }\n }\n",
     "id": "24",
+    "line": 40,
     "name": "mutants/24/Ops/LVR/LVR.sol",
     "op": "EVR",
     "orig": "zero",

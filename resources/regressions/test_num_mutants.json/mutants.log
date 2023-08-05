@@ -1,5 +1,5 @@
-1,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,-
-2,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,-
-3,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,/
-4,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,**
-5,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,*
+1,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,13:18,+,-
+2,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,34:22,*,-
+3,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,/
+4,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,**
+5,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,58:18,**,*

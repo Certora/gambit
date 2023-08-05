@@ -1,3 +1,3 @@
-1,EDC,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,15:29,delegatecall,call
-2,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,18:8,success,true
-3,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,18:8,success,false
+1,EDC,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,16:38,delegatecall,call
+2,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,19:17,success,true
+3,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,19:17,success,false

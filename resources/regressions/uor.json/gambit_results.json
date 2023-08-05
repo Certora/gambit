@@ -1,8 +1,10 @@
 [
   {
+    "col": 16,
     "description": "UnaryOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect a single mutant: -x\n+    /// UnaryOperatorReplacement(`` |==> ` - `) of: `return ~x;`\n     function signed_bw_not(int256 x) public pure returns (int256) {\n-        return ~x;\n+        return  - ~x;\n     }\n \n     // Expect a single mutant: ~x\n",
     "id": "1",
+    "line": 14,
     "name": "mutants/1/Ops/UOR/UOR.sol",
     "op": "UOR",
     "orig": "~",
@@ -10,9 +12,11 @@
     "repl": " - "
   },
   {
+    "col": 16,
     "description": "UnaryOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect a single mutant: ~x\n+    /// UnaryOperatorReplacement(`` |==> ` ~ `) of: `return -x;`\n     function signed_neg(int256 x) public pure returns (int256) {\n-        return -x;\n+        return  ~ -x;\n     }\n }\n",
     "id": "2",
+    "line": 19,
     "name": "mutants/2/Ops/UOR/UOR.sol",
     "op": "UOR",
     "orig": "~",

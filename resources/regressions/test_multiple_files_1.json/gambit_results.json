@@ -1,8 +1,10 @@
 [
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        assert(true);\n     }\n \n     // Expect 4 mutants:\n",
     "id": "1",
+    "line": 13,
     "name": "mutants/1/Ops/AOR/AOR.sol",
     "op": "STD",
     "orig": "return a + b",
@@ -10,9 +12,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a - b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "2",
+    "line": 13,
     "name": "mutants/2/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -20,9 +24,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a * b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "3",
+    "line": 13,
     "name": "mutants/3/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -30,9 +36,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a / b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "4",
+    "line": 13,
     "name": "mutants/4/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -40,9 +48,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a % b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "5",
+    "line": 13,
     "name": "mutants/5/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -50,9 +60,11 @@
     "repl": "%"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// StatementDeletion(`return a - b` |==> `assert(true)`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        assert(true);\n     }\n \n     // Expect 4 mutants:\n",
     "id": "6",
+    "line": 22,
     "name": "mutants/6/Ops/AOR/AOR.sol",
     "op": "STD",
     "orig": "return a - b",
@@ -60,9 +72,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `+`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a + b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "7",
+    "line": 22,
     "name": "mutants/7/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -70,9 +84,11 @@
     "repl": "+"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `*`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a * b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "8",
+    "line": 22,
     "name": "mutants/8/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -80,9 +96,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `/`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a / b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "9",
+    "line": 22,
     "name": "mutants/9/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -90,9 +108,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `%`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a % b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "10",
+    "line": 22,
     "name": "mutants/10/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -100,9 +120,11 @@
     "repl": "%"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// StatementDeletion(`return ((a)) * b` |==> `assert(true)`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        assert(true);\n     }\n \n     // Expect 5 mutants:\n",
     "id": "11",
+    "line": 34,
     "name": "mutants/11/Ops/AOR/AOR.sol",
     "op": "STD",
     "orig": "return ((a)) * b",
@@ -110,9 +132,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) + b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "12",
+    "line": 34,
     "name": "mutants/12/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -120,9 +144,11 @@
     "repl": "+"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "13",
+    "line": 34,
     "name": "mutants/13/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -130,9 +156,11 @@
     "repl": "-"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "14",
+    "line": 34,
     "name": "mutants/14/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -140,9 +168,11 @@
     "repl": "/"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `%`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) % b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "15",
+    "line": 34,
     "name": "mutants/15/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -150,9 +180,11 @@
     "repl": "%"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// StatementDeletion(`return ((a)) * b` |==> `assert(true)`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        assert(true);\n     }\n \n     // Expect 5 mutants:\n",
     "id": "16",
+    "line": 47,
     "name": "mutants/16/Ops/AOR/AOR.sol",
     "op": "STD",
     "orig": "return ((a)) * b",
@@ -160,9 +192,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) + b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "17",
+    "line": 47,
     "name": "mutants/17/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -170,9 +204,11 @@
     "repl": "+"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "18",
+    "line": 47,
     "name": "mutants/18/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -180,9 +216,11 @@
     "repl": "-"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "19",
+    "line": 47,
     "name": "mutants/19/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -190,9 +228,11 @@
     "repl": "/"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `**`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) ** b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "20",
+    "line": 47,
     "name": "mutants/20/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -200,9 +240,11 @@
     "repl": "**"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `%`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) % b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "21",
+    "line": 47,
     "name": "mutants/21/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -210,9 +252,11 @@
     "repl": "%"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// StatementDeletion(`return a ** b` |==> `assert(true)`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        assert(true);\n     }\n }\n",
     "id": "22",
+    "line": 58,
     "name": "mutants/22/Ops/AOR/AOR.sol",
     "op": "STD",
     "orig": "return a ** b",
@@ -220,9 +264,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a + b;\n     }\n }\n",
     "id": "23",
+    "line": 58,
     "name": "mutants/23/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -230,9 +276,11 @@
     "repl": "+"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a - b;\n     }\n }\n",
     "id": "24",
+    "line": 58,
     "name": "mutants/24/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -240,9 +288,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a * b;\n     }\n }\n",
     "id": "25",
+    "line": 58,
     "name": "mutants/25/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -250,9 +300,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a / b;\n     }\n }\n",
     "id": "26",
+    "line": 58,
     "name": "mutants/26/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -260,9 +312,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a % b;\n     }\n }\n",
     "id": "27",
+    "line": 58,
     "name": "mutants/27/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -270,9 +324,11 @@
     "repl": "%"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "28",
+    "line": 7,
     "name": "mutants/28/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "assert(c[0] == e)",
@@ -280,9 +336,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(false);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "29",
+    "line": 7,
     "name": "mutants/29/MultipleContracts/C.sol",
     "op": "ROR",
     "orig": "c[0] == e",
@@ -290,9 +348,11 @@
     "repl": "false"
   },
   {
+    "col": 18,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(c[1] == e);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "30",
+    "line": 7,
     "name": "mutants/30/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "0",
@@ -300,9 +360,11 @@
     "repl": "1"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        assert(true);\n     }\n }\n \n",
     "id": "31",
+    "line": 11,
     "name": "mutants/31/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "return a + b",
@@ -310,9 +372,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a - b;\n     }\n }\n \n",
     "id": "32",
+    "line": 11,
     "name": "mutants/32/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -320,9 +384,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a * b;\n     }\n }\n \n",
     "id": "33",
+    "line": 11,
     "name": "mutants/33/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -330,9 +396,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a / b;\n     }\n }\n \n",
     "id": "34",
+    "line": 11,
     "name": "mutants/34/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -340,9 +408,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a % b;\n     }\n }\n \n",
     "id": "35",
+    "line": 11,
     "name": "mutants/35/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -350,9 +420,11 @@
     "repl": "%"
   },
   {
+    "col": 44,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](0);\n         a[0] = msg.sender;\n         return a;\n     }\n",
     "id": "36",
+    "line": 17,
     "name": "mutants/36/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "1",
@@ -360,9 +432,11 @@
     "repl": "0"
   },
   {
+    "col": 44,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](2);\n         a[0] = msg.sender;\n         return a;\n     }\n",
     "id": "37",
+    "line": 17,
     "name": "mutants/37/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "1",
@@ -370,9 +444,11 @@
     "repl": "2"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        assert(true);\n         return a;\n     }\n \n",
     "id": "38",
+    "line": 18,
     "name": "mutants/38/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "a[0] = msg.sender",
@@ -380,9 +456,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 11,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// LiteralValueReplacement(`0` |==> `1`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        a[1] = msg.sender;\n         return a;\n     }\n \n",
     "id": "39",
+    "line": 18,
     "name": "mutants/39/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "0",
@@ -390,9 +468,11 @@
     "repl": "1"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n contract C {\n     function foo() external view returns (address[] memory) {\n         address[] memory a = new address[](1);\n+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`\n         a[0] = msg.sender;\n-        return a;\n+        assert(true);\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n",
     "id": "40",
+    "line": 19,
     "name": "mutants/40/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "return a",
@@ -400,9 +480,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 21,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 0;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
     "id": "41",
+    "line": 23,
     "name": "mutants/41/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "10",
@@ -410,9 +492,11 @@
     "repl": "0"
   },
   {
+    "col": 21,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `11`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 11;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
     "id": "42",
+    "line": 23,
     "name": "mutants/42/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "10",
@@ -420,9 +504,11 @@
     "repl": "11"
   },
   {
+    "col": 25,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a + decimals;\n         return res;\n     }\n \n",
     "id": "43",
+    "line": 24,
     "name": "mutants/43/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "**",
@@ -430,9 +516,11 @@
     "repl": "+"
   },
   {
+    "col": 25,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a - decimals;\n         return res;\n     }\n \n",
     "id": "44",
+    "line": 24,
     "name": "mutants/44/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "**",
@@ -440,9 +528,11 @@
     "repl": "-"
   },
   {
+    "col": 25,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a * decimals;\n         return res;\n     }\n \n",
     "id": "45",
+    "line": 24,
     "name": "mutants/45/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "**",
@@ -450,9 +540,11 @@
     "repl": "*"
   },
   {
+    "col": 25,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a / decimals;\n         return res;\n     }\n \n",
     "id": "46",
+    "line": 24,
     "name": "mutants/46/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "**",
@@ -460,9 +552,11 @@
     "repl": "/"
   },
   {
+    "col": 25,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a % decimals;\n         return res;\n     }\n \n",
     "id": "47",
+    "line": 24,
     "name": "mutants/47/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "**",
@@ -470,9 +564,11 @@
     "repl": "%"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        assert(true);\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
     "id": "48",
+    "line": 25,
     "name": "mutants/48/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "return res",
@@ -480,9 +576,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// ExpressionValueReplacement(`res` |==> `0`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        return 0;\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
     "id": "49",
+    "line": 25,
     "name": "mutants/49/MultipleContracts/C.sol",
     "op": "EVR",
     "orig": "res",
@@ -490,9 +588,11 @@
     "repl": "0"
   },
   {
+    "col": 16,
     "description": "ExpressionValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// ExpressionValueReplacement(`res` |==> `1`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        return 1;\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
     "id": "50",
+    "line": 25,
     "name": "mutants/50/MultipleContracts/C.sol",
     "op": "EVR",
     "orig": "res",
@@ -500,9 +600,11 @@
     "repl": "1"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function callmyself() external view {\n",
     "id": "51",
+    "line": 29,
     "name": "mutants/51/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "assert(c[0] == e)",
@@ -510,9 +612,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(false);\n     }\n \n     function callmyself() external view {\n",
     "id": "52",
+    "line": 29,
     "name": "mutants/52/MultipleContracts/C.sol",
     "op": "ROR",
     "orig": "c[0] == e",
@@ -520,9 +624,11 @@
     "repl": "false"
   },
   {
+    "col": 18,
     "description": "LiteralValueReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(c[1] == e);\n     }\n \n     function callmyself() external view {\n",
     "id": "53",
+    "line": 29,
     "name": "mutants/53/MultipleContracts/C.sol",
     "op": "LVR",
     "orig": "0",
@@ -530,9 +636,11 @@
     "repl": "1"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     function callmyself() external view {\n+        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`\n         address[] memory b = this.foo();\n-        Utils.getarray(b, address(this));\n+        assert(true);\n     }\n \n     function add(int8 c, int8 d) public pure returns (int8) {\n",
     "id": "54",
+    "line": 34,
     "name": "mutants/54/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "Utils.getarray(b, address(this))",
@@ -540,9 +648,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 9,
     "description": "StatementDeletion",
     "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        assert(true);\n     }\n }\n",
     "id": "55",
+    "line": 38,
     "name": "mutants/55/MultipleContracts/C.sol",
     "op": "STD",
     "orig": "return c + d",
@@ -550,9 +660,11 @@
     "repl": "assert(true)"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c - d;\n     }\n }\n",
     "id": "56",
+    "line": 38,
     "name": "mutants/56/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -560,9 +672,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c * d;\n     }\n }\n",
     "id": "57",
+    "line": 38,
     "name": "mutants/57/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -570,9 +684,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c / d;\n     }\n }\n",
     "id": "58",
+    "line": 38,
     "name": "mutants/58/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",
@@ -580,9 +696,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c % d;\n     }\n }\n",
     "id": "59",
+    "line": 38,
     "name": "mutants/59/MultipleContracts/C.sol",
     "op": "AOR",
     "orig": "+",

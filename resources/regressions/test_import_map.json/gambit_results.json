@@ -1,8 +1,10 @@
 [
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,7 +5,8 @@\n import \"contracts/B.sol\";\n \n contract Contract {\n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a - b;\n     }\n }\n",
     "id": "1",
+    "line": 9,
     "name": "mutants/1/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
@@ -10,9 +12,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,7 +5,8 @@\n import \"contracts/B.sol\";\n \n contract Contract {\n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a * b;\n     }\n }\n",
     "id": "2",
+    "line": 9,
     "name": "mutants/2/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
@@ -20,9 +24,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,7 +5,8 @@\n import \"contracts/B.sol\";\n \n contract Contract {\n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a / b;\n     }\n }\n",
     "id": "3",
+    "line": 9,
     "name": "mutants/3/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
@@ -30,9 +36,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,7 +5,8 @@\n import \"contracts/B.sol\";\n \n contract Contract {\n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a % b;\n     }\n }\n",
     "id": "4",
+    "line": 9,
     "name": "mutants/4/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",

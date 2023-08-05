@@ -1,8 +1,10 @@
 [
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a - b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "1",
+    "line": 13,
     "name": "mutants/1/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -10,9 +12,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a * b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "2",
+    "line": 13,
     "name": "mutants/2/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -20,9 +24,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a / b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "3",
+    "line": 13,
     "name": "mutants/3/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -30,9 +36,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function plus(int256 a, int256 b) public pure returns (int256) {\n-        return a + b;\n+        return a % b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "4",
+    "line": 13,
     "name": "mutants/4/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
@@ -40,9 +48,11 @@
     "repl": "%"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `+`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a + b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "5",
+    "line": 22,
     "name": "mutants/5/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -50,9 +60,11 @@
     "repl": "+"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `*`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a * b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "6",
+    "line": 22,
     "name": "mutants/6/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -60,9 +72,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `/`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a / b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "7",
+    "line": 22,
     "name": "mutants/7/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -70,9 +84,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -18,8 +18,9 @@\n     // a * b\n     // a / b\n     // a % b\n+    /// ArithmeticOperatorReplacement(`-` |==> `%`) of: `return a - b;`\n     function minus(int256 a, int256 b) public pure returns (int256) {\n-        return a - b;\n+        return a % b;\n     }\n \n     // Expect 4 mutants:\n",
     "id": "8",
+    "line": 22,
     "name": "mutants/8/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
@@ -80,9 +96,11 @@
     "repl": "%"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) + b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "9",
+    "line": 34,
     "name": "mutants/9/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -90,9 +108,11 @@
     "repl": "+"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "10",
+    "line": 34,
     "name": "mutants/10/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -100,9 +120,11 @@
     "repl": "-"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "11",
+    "line": 34,
     "name": "mutants/11/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -110,9 +132,11 @@
     "repl": "/"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     function times_with_parens(\n         int256 a,\n         int256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `%`) of: `return ((a)) * b;`\n     ) public pure returns (int256) {\n-        return ((a)) * b;\n+        return ((a)) % b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "12",
+    "line": 34,
     "name": "mutants/12/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -120,9 +144,11 @@
     "repl": "%"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `+`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) + b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "13",
+    "line": 47,
     "name": "mutants/13/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -130,9 +156,11 @@
     "repl": "+"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `-`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) - b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "14",
+    "line": 47,
     "name": "mutants/14/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -140,9 +168,11 @@
     "repl": "-"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `/`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) / b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "15",
+    "line": 47,
     "name": "mutants/15/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -150,9 +180,11 @@
     "repl": "/"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `**`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) ** b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "16",
+    "line": 47,
     "name": "mutants/16/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -160,9 +192,11 @@
     "repl": "**"
   },
   {
+    "col": 22,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -43,8 +43,9 @@\n     function unsigned_times_with_parens(\n         uint256 a,\n         uint256 b\n+    /// ArithmeticOperatorReplacement(`*` |==> `%`) of: `return ((a)) * b;`\n     ) public pure returns (uint256) {\n-        return ((a)) * b;\n+        return ((a)) % b;\n     }\n \n     // Expect 5 mutants:\n",
     "id": "17",
+    "line": 47,
     "name": "mutants/17/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
@@ -170,9 +204,11 @@
     "repl": "%"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a + b;\n     }\n }\n",
     "id": "18",
+    "line": 58,
     "name": "mutants/18/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -180,9 +216,11 @@
     "repl": "+"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a - b;\n     }\n }\n",
     "id": "19",
+    "line": 58,
     "name": "mutants/19/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -190,9 +228,11 @@
     "repl": "-"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a * b;\n     }\n }\n",
     "id": "20",
+    "line": 58,
     "name": "mutants/20/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -200,9 +240,11 @@
     "repl": "*"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a / b;\n     }\n }\n",
     "id": "21",
+    "line": 58,
     "name": "mutants/21/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
@@ -210,9 +252,11 @@
     "repl": "/"
   },
   {
+    "col": 18,
     "description": "ArithmeticOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -54,7 +54,8 @@\n     // a * b\n     // a % b\n \n+    /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `return a ** b;`\n     function power(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a ** b;\n+        return a % b;\n     }\n }\n",
     "id": "22",
+    "line": 58,
     "name": "mutants/22/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",

@@ -1,9 +1,9 @@
-1,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,8:7,a && b,a
-2,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,8:7,a && b,b
-3,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,8:7,a && b,false
-4,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,13:7,a || b,a
-5,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,13:7,a || b,b
-6,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,13:7,a || b,true
-7,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,18:7,(x < y) || (a != (x >= y)),x < y
-8,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,18:7,(x < y) || (a != (x >= y)),a != (x >= y)
-9,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,18:7,(x < y) || (a != (x >= y)),true
+1,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,9:16,a && b,a
+2,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,9:16,a && b,b
+3,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,9:16,a && b,false
+4,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,14:16,a || b,a
+5,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,14:16,a || b,b
+6,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,14:16,a || b,true
+7,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),x < y
+8,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),a != (x >= y)
+9,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),true

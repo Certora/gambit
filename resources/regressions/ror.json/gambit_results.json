@@ -1,8 +1,10 @@
 [
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract ROR {\n     // Expect 3 mutants: x <= y, x != y, false\n+    /// RelationalOperatorReplacement(`<` |==> `<=`) of: `return x < y;`\n     function less(uint256 x, uint256 y) public pure returns (bool) {\n-        return x < y;\n+        return x <= y;\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n",
     "id": "1",
+    "line": 9,
     "name": "mutants/1/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "<",
@@ -10,9 +12,11 @@
     "repl": "<="
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract ROR {\n     // Expect 3 mutants: x <= y, x != y, false\n+    /// RelationalOperatorReplacement(`<` |==> `!=`) of: `return x < y;`\n     function less(uint256 x, uint256 y) public pure returns (bool) {\n-        return x < y;\n+        return x != y;\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n",
     "id": "2",
+    "line": 9,
     "name": "mutants/2/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "<",
@@ -20,9 +24,11 @@
     "repl": "!="
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -5,8 +5,9 @@\n // This contract provides test functions for relational operator replacement (ROR)\n contract ROR {\n     // Expect 3 mutants: x <= y, x != y, false\n+    /// RelationalOperatorReplacement(`x < y` |==> `false`) of: `return x < y;`\n     function less(uint256 x, uint256 y) public pure returns (bool) {\n-        return x < y;\n+        return false;\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n",
     "id": "3",
+    "line": 9,
     "name": "mutants/3/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x < y",
@@ -30,9 +36,11 @@
     "repl": "false"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n+    /// RelationalOperatorReplacement(`<=` |==> `<`) of: `return x <= y;`\n     function less_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x <= y;\n+        return x < y;\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n",
     "id": "4",
+    "line": 14,
     "name": "mutants/4/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "<=",
@@ -40,9 +48,11 @@
     "repl": "<"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n+    /// RelationalOperatorReplacement(`<=` |==> `==`) of: `return x <= y;`\n     function less_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x <= y;\n+        return x == y;\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n",
     "id": "5",
+    "line": 14,
     "name": "mutants/5/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "<=",
@@ -50,9 +60,11 @@
     "repl": "=="
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     }\n \n     // Expect 3 mutants: x < y, x == y, true\n+    /// RelationalOperatorReplacement(`x <= y` |==> `true`) of: `return x <= y;`\n     function less_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x <= y;\n+        return true;\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n",
     "id": "6",
+    "line": 14,
     "name": "mutants/6/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x <= y",
@@ -60,9 +72,11 @@
     "repl": "true"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n+    /// RelationalOperatorReplacement(`>` |==> `>=`) of: `return x > y;`\n     function more(uint256 x, uint256 y) public pure returns (bool) {\n-        return x > y;\n+        return x >= y;\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n",
     "id": "7",
+    "line": 19,
     "name": "mutants/7/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": ">",
@@ -70,9 +84,11 @@
     "repl": ">="
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n+    /// RelationalOperatorReplacement(`>` |==> `!=`) of: `return x > y;`\n     function more(uint256 x, uint256 y) public pure returns (bool) {\n-        return x > y;\n+        return x != y;\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n",
     "id": "8",
+    "line": 19,
     "name": "mutants/8/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": ">",
@@ -80,9 +96,11 @@
     "repl": "!="
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x != y, false\n+    /// RelationalOperatorReplacement(`x > y` |==> `false`) of: `return x > y;`\n     function more(uint256 x, uint256 y) public pure returns (bool) {\n-        return x > y;\n+        return false;\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n",
     "id": "9",
+    "line": 19,
     "name": "mutants/9/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x > y",
@@ -90,9 +108,11 @@
     "repl": "false"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n+    /// RelationalOperatorReplacement(`>=` |==> `>`) of: `return x >= y;`\n     function more_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x >= y;\n+        return x > y;\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n",
     "id": "10",
+    "line": 24,
     "name": "mutants/10/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": ">=",
@@ -100,9 +120,11 @@
     "repl": ">"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n+    /// RelationalOperatorReplacement(`>=` |==> `==`) of: `return x >= y;`\n     function more_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x >= y;\n+        return x == y;\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n",
     "id": "11",
+    "line": 24,
     "name": "mutants/11/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": ">=",
@@ -110,9 +132,11 @@
     "repl": "=="
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x == y, true\n+    /// RelationalOperatorReplacement(`x >= y` |==> `true`) of: `return x >= y;`\n     function more_equal(uint256 x, uint256 y) public pure returns (bool) {\n-        return x >= y;\n+        return true;\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n",
     "id": "12",
+    "line": 24,
     "name": "mutants/12/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x >= y",
@@ -120,9 +144,11 @@
     "repl": "true"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n+    /// RelationalOperatorReplacement(`==` |==> `<=`) of: `return x == y;`\n     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x == y;\n+        return x <= y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "13",
+    "line": 29,
     "name": "mutants/13/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "==",
@@ -130,9 +156,11 @@
     "repl": "<="
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n+    /// RelationalOperatorReplacement(`==` |==> `>=`) of: `return x == y;`\n     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x == y;\n+        return x >= y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "14",
+    "line": 29,
     "name": "mutants/14/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "==",
@@ -140,9 +168,11 @@
     "repl": ">="
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n     }\n \n     // Expect 3 mutants: x >= y, x <= y, false\n+    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`\n     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x == y;\n+        return false;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "15",
+    "line": 29,
     "name": "mutants/15/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x == y",
@@ -150,9 +180,11 @@
     "repl": "false"
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     // Expect 2 mutants: true, false\n+    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`\n     function equal_not_ord(bool x, bool y) public pure returns (bool) {\n-        return x == y;\n+        return false;\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n",
     "id": "16",
+    "line": 34,
     "name": "mutants/16/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x == y",
@@ -160,9 +192,11 @@
     "repl": "false"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n+    /// RelationalOperatorReplacement(`!=` |==> `<`) of: `return x != y;`\n     function not_equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x != y;\n+        return x < y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "17",
+    "line": 39,
     "name": "mutants/17/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "!=",
@@ -170,9 +204,11 @@
     "repl": "<"
   },
   {
+    "col": 18,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n+    /// RelationalOperatorReplacement(`!=` |==> `>`) of: `return x != y;`\n     function not_equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x != y;\n+        return x > y;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "18",
+    "line": 39,
     "name": "mutants/18/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "!=",
@@ -180,9 +216,11 @@
     "repl": ">"
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -35,8 +35,9 @@\n     }\n \n     // Expect 3 mutants: x > y, x < y, true\n+    /// RelationalOperatorReplacement(`x != y` |==> `true`) of: `return x != y;`\n     function not_equal_ord(uint256 x, uint256 y) public pure returns (bool) {\n-        return x != y;\n+        return true;\n     }\n \n     // Expect 2 mutants: true, false\n",
     "id": "19",
+    "line": 39,
     "name": "mutants/19/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x != y",
@@ -190,9 +228,11 @@
     "repl": "true"
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -40,8 +40,9 @@\n     }\n \n     // Expect 2 mutants: true, false\n+    /// RelationalOperatorReplacement(`x != y` |==> `true`) of: `return x != y;`\n     function not_equal_not_ord(bool x, bool y) public pure returns (bool) {\n-        return x != y;\n+        return true;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) == z, true\n",
     "id": "20",
+    "line": 44,
     "name": "mutants/20/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "x != y",
@@ -200,9 +240,11 @@
     "repl": "true"
   },
   {
+    "col": 24,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -49,8 +49,9 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`>=` |==> `>`) of: `return (x + y) >= z;`\n     ) public pure returns (bool) {\n-        return (x + y) >= z;\n+        return (x + y) > z;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) < z, true\n",
     "id": "21",
+    "line": 53,
     "name": "mutants/21/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": ">=",
@@ -210,9 +252,11 @@
     "repl": ">"
   },
   {
+    "col": 24,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -49,8 +49,9 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`>=` |==> `==`) of: `return (x + y) >= z;`\n     ) public pure returns (bool) {\n-        return (x + y) >= z;\n+        return (x + y) == z;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) < z, true\n",
     "id": "22",
+    "line": 53,
     "name": "mutants/22/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": ">=",
@@ -220,9 +264,11 @@
     "repl": "=="
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -49,8 +49,9 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`(x + y) >= z` |==> `true`) of: `return (x + y) >= z;`\n     ) public pure returns (bool) {\n-        return (x + y) >= z;\n+        return true;\n     }\n \n     // Expect 3 mutants: (x + y) > z, (x + y) < z, true\n",
     "id": "23",
+    "line": 53,
     "name": "mutants/23/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "(x + y) >= z",
@@ -230,9 +276,11 @@
     "repl": "true"
   },
   {
+    "col": 24,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -58,7 +58,8 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`!=` |==> `<`) of: `return (x + y) != z;`\n     ) public pure returns (bool) {\n-        return (x + y) != z;\n+        return (x + y) < z;\n     }\n }\n",
     "id": "24",
+    "line": 62,
     "name": "mutants/24/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "!=",
@@ -240,9 +288,11 @@
     "repl": "<"
   },
   {
+    "col": 24,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -58,7 +58,8 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`!=` |==> `>`) of: `return (x + y) != z;`\n     ) public pure returns (bool) {\n-        return (x + y) != z;\n+        return (x + y) > z;\n     }\n }\n",
     "id": "25",
+    "line": 62,
     "name": "mutants/25/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "!=",
@@ -250,9 +300,11 @@
     "repl": ">"
   },
   {
+    "col": 16,
     "description": "RelationalOperatorReplacement",
     "diff": "--- original\n+++ mutant\n@@ -58,7 +58,8 @@\n         uint256 x,\n         uint256 y,\n         uint256 z\n+    /// RelationalOperatorReplacement(`(x + y) != z` |==> `true`) of: `return (x + y) != z;`\n     ) public pure returns (bool) {\n-        return (x + y) != z;\n+        return true;\n     }\n }\n",
     "id": "26",
+    "line": 62,
     "name": "mutants/26/Ops/ROR/ROR.sol",
     "op": "ROR",
     "orig": "(x + y) != z",

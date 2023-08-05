@@ -1,89 +1,89 @@
-1,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,-
-2,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,*
-3,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,/
-4,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,12:9,+,%
-5,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,+
-6,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,*
-7,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,/
-8,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,21:9,-,%
-9,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,+
-10,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,-
-11,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,/
-12,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,33:13,*,%
-13,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,+
-14,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,-
-15,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,/
-16,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,**
-17,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,46:13,*,%
-18,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,+
-19,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,-
-20,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,*
-21,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,/
-22,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,57:9,**,%
-23,BOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,9:9,|,&
-24,BOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,15:9,&,|
-25,BOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,21:9,^,&
-26,EDC,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,15:29,delegatecall,call
-27,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,18:8,success,true
-28,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,18:8,success,false
-29,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,8:7,a && b,a
-30,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,8:7,a && b,b
-31,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,8:7,a && b,false
-32,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,13:7,a || b,a
-33,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,13:7,a || b,b
-34,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,13:7,a || b,true
-35,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,18:7,(x < y) || (a != (x >= y)),x < y
-36,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,18:7,(x < y) || (a != (x >= y)),a != (x >= y)
-37,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,18:7,(x < y) || (a != (x >= y)),true
-38,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,14:15,0,1
-39,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,15:7,zero,0
-40,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,15:7,zero,1
-41,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,20:14,1,0
-42,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,20:14,1,2
-43,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,21:7,one,0
-44,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,21:7,one,1
-45,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,26:17,-1,0
-46,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,26:17,-1,1
-47,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,26:17,-1,-2
-48,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,27:7,neg_one,-1
-49,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,27:7,neg_one,0
-50,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,27:7,neg_one,1
-51,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,32:17,1,0
-52,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,32:17,1,-1
-53,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,32:17,1,2
-54,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,33:7,pos_one,-1
-55,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,33:7,pos_one,0
-56,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,33:7,pos_one,1
-57,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,38:14,0,-1
-58,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,38:14,0,1
-59,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,39:7,zero,-1
-60,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,39:7,zero,0
-61,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,39:7,zero,1
-62,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,8:9,<,<=
-63,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,8:9,<,!=
-64,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,8:7,x < y,false
-65,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,13:9,<=,<
-66,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,13:9,<=,==
-67,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,13:7,x <= y,true
-68,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,18:9,>,>=
-69,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,18:9,>,!=
-70,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,18:7,x > y,false
-71,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,23:9,>=,>
-72,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,23:9,>=,==
-73,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,23:7,x >= y,true
-74,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,28:9,==,<=
-75,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,28:9,==,>=
-76,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,28:7,x == y,false
-77,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,33:7,x == y,false
-78,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,38:9,!=,<
-79,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,38:9,!=,>
-80,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,38:7,x != y,true
-81,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,43:7,x != y,true
-82,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,52:15,>=,>
-83,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,52:15,>=,==
-84,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,52:7,(x + y) >= z,true
-85,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,61:15,!=,<
-86,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,61:15,!=,>
-87,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,61:7,(x + y) != z,true
-88,UOR,/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol,13:7,~, - 
-89,UOR,/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol,18:7,~, ~ 
+1,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,13:18,+,-
+2,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,13:18,+,*
+3,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,13:18,+,/
+4,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,13:18,+,%
+5,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,22:18,-,+
+6,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,22:18,-,*
+7,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,22:18,-,/
+8,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,22:18,-,%
+9,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,34:22,*,+
+10,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,34:22,*,-
+11,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,34:22,*,/
+12,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,34:22,*,%
+13,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,+
+14,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,-
+15,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,/
+16,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,**
+17,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,47:22,*,%
+18,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,58:18,**,+
+19,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,58:18,**,-
+20,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,58:18,**,*
+21,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,58:18,**,/
+22,AOR,/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol,58:18,**,%
+23,BOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,10:18,|,&
+24,BOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,16:18,&,|
+25,BOR,/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol,22:18,^,&
+26,EDC,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,16:38,delegatecall,call
+27,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,19:17,success,true
+28,EVR,/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol,19:17,success,false
+29,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,9:16,a && b,a
+30,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,9:16,a && b,b
+31,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,9:16,a && b,false
+32,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,14:16,a || b,a
+33,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,14:16,a || b,b
+34,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,14:16,a || b,true
+35,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),x < y
+36,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),a != (x >= y)
+37,LOR,/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),true
+38,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,15:24,0,1
+39,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,16:16,zero,0
+40,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,16:16,zero,1
+41,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,21:23,1,0
+42,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,21:23,1,2
+43,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,22:16,one,0
+44,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,22:16,one,1
+45,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,27:26,-1,0
+46,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,27:26,-1,1
+47,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,27:26,-1,-2
+48,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,28:16,neg_one,-1
+49,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,28:16,neg_one,0
+50,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,28:16,neg_one,1
+51,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,33:26,1,0
+52,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,33:26,1,-1
+53,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,33:26,1,2
+54,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,34:16,pos_one,-1
+55,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,34:16,pos_one,0
+56,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,34:16,pos_one,1
+57,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,39:23,0,-1
+58,LVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,39:23,0,1
+59,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,40:16,zero,-1
+60,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,40:16,zero,0
+61,EVR,/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol,40:16,zero,1
+62,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,9:18,<,<=
+63,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,9:18,<,!=
+64,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,9:16,x < y,false
+65,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,14:18,<=,<
+66,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,14:18,<=,==
+67,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,14:16,x <= y,true
+68,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,19:18,>,>=
+69,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,19:18,>,!=
+70,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,19:16,x > y,false
+71,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,24:18,>=,>
+72,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,24:18,>=,==
+73,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,24:16,x >= y,true
+74,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,29:18,==,<=
+75,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,29:18,==,>=
+76,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,29:16,x == y,false
+77,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,34:16,x == y,false
+78,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,39:18,!=,<
+79,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,39:18,!=,>
+80,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,39:16,x != y,true
+81,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,44:16,x != y,true
+82,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,53:24,>=,>
+83,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,53:24,>=,==
+84,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,53:16,(x + y) >= z,true
+85,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,62:24,!=,<
+86,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,62:24,!=,>
+87,ROR,/Users/benku/Gambit/benchmarks/Ops/ROR/ROR.sol,62:16,(x + y) != z,true
+88,UOR,/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol,14:16,~, - 
+89,UOR,/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol,19:16,~, ~ 
