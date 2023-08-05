@@ -15,13 +15,13 @@ library Utils {
 contract C {
     function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`
         a[0] = msg.sender;
-        return a;
+        assert(true);
     }
 
-    /// LiteralValueReplacement(`10` |==> `11`) of: `uint256 a = 10;`
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
-        uint256 a = 11;
+        uint256 a = 10;
         uint256 res = a ** decimals;
         return res;
     }

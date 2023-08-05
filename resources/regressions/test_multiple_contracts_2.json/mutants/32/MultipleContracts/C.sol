@@ -3,9 +3,8 @@
 pragma solidity ^0.8.13;
 
 library Utils {
-    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) internal pure {
-        assert(false);
+        assert(c[0] == e);
     }
 
     function add(int8 a, int8 b) public pure returns (int8) {
@@ -35,7 +34,8 @@ contract C {
         Utils.getarray(b, address(this));
     }
 
+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`
     function add(int8 c, int8 d) public pure returns (int8) {
-        return c + d;
+        return c % d;
     }
 }

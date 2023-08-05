@@ -3,9 +3,9 @@
 pragma solidity ^0.8.13;
 
 library Utils {
-    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`
+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) internal pure {
-        assert(c[1] == e);
+        assert(true);
     }
 
     function add(int8 a, int8 b) public pure returns (int8) {

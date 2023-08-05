@@ -332,9 +332,7 @@ impl Mutator {
     pub fn apply_fallback_operators_to_expression(&mut self, expr: &Expression) {
         if let Some(_) = expr.loc().try_file_no() {
             let mut mutants = vec![];
-            println!("YOYOYO    ");
             for op in self.fallback_mutation_operators() {
-                println!("Fallback op: {:?}", op);
                 mutants.append(&mut op.mutate_expression_fallback(self, expr));
             }
             self.mutants.append(&mut mutants);
@@ -380,13 +378,7 @@ pub fn mutate_statement(statement: &Statement, mutator: &mut Mutator) -> bool {
         }
         Statement::While(_, _, c, _) => {
             c.recurse(mutator, mutate_expression);
-            println!(
-                "While: {}, {}",
-                num_mutants_before_expr_mutate,
-                mutator.mutants.len()
-            );
             if mutator.mutants.len() == num_mutants_before_expr_mutate {
-                println!("HELLO");
                 perform_fallback_mutations(c, mutator);
             }
             true

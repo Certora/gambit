@@ -1,26 +1,38 @@
-1,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,-
-2,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,*
-3,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,/
-4,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,%
-5,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,+
-6,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,-
-7,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,*
-8,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,/
-9,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,%
-10,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,-
-11,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,*
-12,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,/
-13,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,%
-14,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,-
-15,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,*
-16,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,/
-17,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,%
-18,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,+
-19,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,-
-20,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,*
-21,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,/
-22,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,%
-23,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,-
-24,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,*
-25,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,/
-26,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,%
+1,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,6:7,c[0] == e,true
+2,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,6:7,c[0] == e,false
+3,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,-
+4,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,*
+5,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,/
+6,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,%
+7,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,+
+8,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,-
+9,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,*
+10,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,/
+11,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,%
+12,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,24:7,res,0
+13,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,24:7,res,1
+14,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,28:7,c[0] == e,true
+15,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,28:7,c[0] == e,false
+16,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,-
+17,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,*
+18,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,/
+19,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,%
+20,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,6:7,c[0] == e,true
+21,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,6:7,c[0] == e,false
+22,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,-
+23,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,*
+24,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,/
+25,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,10:9,+,%
+26,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,+
+27,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,-
+28,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,*
+29,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,/
+30,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,23:16,**,%
+31,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,24:7,res,0
+32,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,24:7,res,1
+33,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,28:7,c[0] == e,true
+34,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,28:7,c[0] == e,false
+35,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,-
+36,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,*
+37,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,/
+38,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,37:9,+,%

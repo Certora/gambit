@@ -220,9 +220,16 @@ pub enum Command {
 pub struct SummaryParams {
     /// Print summaries of the specified mutant IDs (these IDs correspond to the
     /// "id" field in `gambit_results.json`). Multiple MIDs can be specified.
-    /// If `--all` is specified, this is ignored.
-    #[arg(long, default_value = None, num_args(0..))]
+    #[arg(long, default_value = None, num_args(0..), conflicts_with = "all_mids")]
     pub mids: Option<Vec<String>>,
+
+    /// Print a summary of all MIDs
+    #[arg(long, conflicts_with = "mids")]
+    pub print_all_mids: bool,
+
+    /// Print a short version of each mutant
+    #[arg(long, short = 's')]
+    pub short: bool,
 
     /// Gambit results directory
     #[arg(long, default_value = crate::DEFAULT_GAMBIT_OUTPUT_DIRECTORY)]

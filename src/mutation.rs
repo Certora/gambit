@@ -255,7 +255,7 @@ impl ToString for MutationType {
             MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
             MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
             MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
-            MutationType::ExpressionValueReplacement => "ExpressionOperatorReplacement",
+            MutationType::ExpressionValueReplacement => "ExpressionValueReplacement",
             MutationType::StatementDeletion => "StatementDeletion",
 
             MutationType::ElimDelegateCall => "ElimDelegateCall",
@@ -276,7 +276,6 @@ impl Mutation for MutationType {
         let contents = resolver.get_contents_of_file_no(file_no).unwrap();
         let loc = stmt.loc();
         if let None = loc.try_file_no() {
-            println!("No file");
             return vec![];
         }
         match self {
@@ -336,6 +335,9 @@ impl MutationType {
         .to_string()
     }
 
+    /// Perform actual mutation. Expects a `mutator` and and `expr`, as well
+    /// as a `bool` telling us if we should be performing fallback mutations
+    /// or regular mutations
     fn _mutate_expression_helper(
         &self,
         mutator: &Mutator,
@@ -1027,7 +1029,6 @@ fn expression_value_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     // TODO: implement
-    println!("Running EVR on {:?} ", expr);
     let replacements = match expr {
         Expression::Add { ty, .. }
         | Expression::Subtract { ty, .. }
@@ -1048,10 +1049,7 @@ fn expression_value_replacement(
         | Expression::Negate { ty, .. }
         | Expression::ConditionalOperator { ty, .. }
         | Expression::StorageLoad { ty, .. } => defaults_by_type(ty),
-        Expression::Variable { ty, .. } => {
-            println!("Visiting variable {:?}", expr);
-            defaults_by_type(ty)
-        }
+        Expression::Variable { ty, .. } => defaults_by_type(ty),
 
         Expression::ZeroExt { to, .. }
         | Expression::Cast { to, .. }

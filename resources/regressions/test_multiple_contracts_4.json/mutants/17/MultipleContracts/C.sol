@@ -7,9 +7,8 @@ library Utils {
         assert(c[0] == e);
     }
 
-    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a % b;
+        return a + b;
     }
 }
 
@@ -35,7 +34,8 @@ contract C {
         Utils.getarray(b, address(this));
     }
 
+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`
     function add(int8 c, int8 d) public pure returns (int8) {
-        return c + d;
+        return c * d;
     }
 }

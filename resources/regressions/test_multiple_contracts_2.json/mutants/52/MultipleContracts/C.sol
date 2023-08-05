@@ -20,14 +20,14 @@ contract C {
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`
         uint256 a = 10;
-        uint256 res = a ** decimals;
+        uint256 res = a % decimals;
         return res;
     }
 
-    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) public pure {
-        assert(true);
+        assert(c[0] == e);
     }
 
     function callmyself() external view {

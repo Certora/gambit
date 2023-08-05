@@ -1,0 +1,14 @@
+1,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,7:7,a + b,0
+2,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,7:7,a + b,1
+3,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,12:7,result,0
+4,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,12:7,result,1
+5,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,16:9,a < b,true
+6,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,16:9,a < b,false
+7,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,17:7,c,true
+8,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,17:7,c,false
+9,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,18:4,b - a,0
+10,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,18:4,b - a,1
+11,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,19:4,a < b,true
+12,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,19:4,a < b,false
+13,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,21:7,a - b,0
+14,EVR,/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol,21:7,a - b,1

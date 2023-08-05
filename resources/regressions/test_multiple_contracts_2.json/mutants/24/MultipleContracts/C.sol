@@ -25,9 +25,9 @@ contract C {
         return res;
     }
 
-    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`
+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) public pure {
-        assert(c[1] == e);
+        assert(true);
     }
 
     function callmyself() external view {

@@ -4,6 +4,29 @@
     "diff": "--- original\n+++ mutant\n@@ -12,8 +12,9 @@\n     bool public delegateSuccessful;\n     bytes public myData;\n \n+    /// ElimDelegateCall(`delegatecall` |==> `call`) of: `(bool success, ) = _contract.delegatecall(`\n     function setVars(address _contract) public payable {\n-        (bool success, ) = _contract.delegatecall(\n+        (bool success, ) = _contract.call(\n             abi.encodeWithSignature(\"setVars(uint256)\", 1)\n         );\n         require(success, \"Delegatecall failed\");\n",
     "id": "1",
     "name": "mutants/1/Ops/EDC/EDC.sol",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol"
+    "op": "EDC",
+    "orig": "delegatecall",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol",
+    "repl": "call"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     function setVars(address _contract) public payable {\n         (bool success, ) = _contract.delegatecall(\n             abi.encodeWithSignature(\"setVars(uint256)\", 1)\n+        /// ExpressionValueReplacement(`success` |==> `true`) of: `require(success, \"Delegatecall failed\");`\n         );\n-        require(success, \"Delegatecall failed\");\n+        require(true, \"Delegatecall failed\");\n     }\n }\n",
+    "id": "2",
+    "name": "mutants/2/Ops/EDC/EDC.sol",
+    "op": "EVR",
+    "orig": "success",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol",
+    "repl": "true"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     function setVars(address _contract) public payable {\n         (bool success, ) = _contract.delegatecall(\n             abi.encodeWithSignature(\"setVars(uint256)\", 1)\n+        /// ExpressionValueReplacement(`success` |==> `false`) of: `require(success, \"Delegatecall failed\");`\n         );\n-        require(success, \"Delegatecall failed\");\n+        require(false, \"Delegatecall failed\");\n     }\n }\n",
+    "id": "3",
+    "name": "mutants/3/Ops/EDC/EDC.sol",
+    "op": "EVR",
+    "orig": "success",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EDC/EDC.sol",
+    "repl": "false"
   }
 ]

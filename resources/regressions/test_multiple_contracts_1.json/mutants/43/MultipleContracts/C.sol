@@ -14,10 +14,10 @@ library Utils {
 
 contract C {
     function foo() external view returns (address[] memory) {
+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`
         address[] memory a = new address[](1);
-        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`
-        a[0] = msg.sender;
         assert(true);
+        return a;
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {

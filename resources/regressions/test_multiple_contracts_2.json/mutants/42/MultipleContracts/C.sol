@@ -13,10 +13,10 @@ library Utils {
 }
 
 contract C {
+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`
     function foo() external view returns (address[] memory) {
-        /// LiteralValueReplacement(`0` |==> `1`) of: `a[0] = msg.sender;`
-        address[] memory a = new address[](1);
-        a[1] = msg.sender;
+        address[] memory a = new address[](2);
+        a[0] = msg.sender;
         return a;
     }
 

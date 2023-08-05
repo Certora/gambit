@@ -14,14 +14,14 @@ library Utils {
 
 contract C {
     function foo() external view returns (address[] memory) {
+        /// LiteralValueReplacement(`0` |==> `1`) of: `a[0] = msg.sender;`
         address[] memory a = new address[](1);
-        a[0] = msg.sender;
+        a[1] = msg.sender;
         return a;
     }
 
-    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
-        uint256 a = 0;
+        uint256 a = 10;
         uint256 res = a ** decimals;
         return res;
     }

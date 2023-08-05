@@ -1,0 +1,142 @@
+[
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -4,8 +4,9 @@\n \n // This contract provides test functions for relational operator replacement (ROR)\n contract EVR {\n+    /// ExpressionValueReplacement(`a + b` |==> `0`) of: `return a + b;`\n     function add(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a + b;\n+        return 0;\n     }\n \n     function evr_test_1(uint256 a, uint256 b) public pure returns (uint256) {\n",
+    "id": "1",
+    "name": "mutants/1/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a + b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "0"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -4,8 +4,9 @@\n \n // This contract provides test functions for relational operator replacement (ROR)\n contract EVR {\n+    /// ExpressionValueReplacement(`a + b` |==> `1`) of: `return a + b;`\n     function add(uint256 a, uint256 b) public pure returns (uint256) {\n-        return a + b;\n+        return 1;\n     }\n \n     function evr_test_1(uint256 a, uint256 b) public pure returns (uint256) {\n",
+    "id": "2",
+    "name": "mutants/2/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a + b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "1"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     }\n \n     function evr_test_1(uint256 a, uint256 b) public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`result` |==> `0`) of: `return result;`\n         uint256 result = add(a, b);\n-        return result;\n+        return 0;\n     }\n \n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n",
+    "id": "3",
+    "name": "mutants/3/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "result",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "0"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -9,8 +9,9 @@\n     }\n \n     function evr_test_1(uint256 a, uint256 b) public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`result` |==> `1`) of: `return result;`\n         uint256 result = add(a, b);\n-        return result;\n+        return 1;\n     }\n \n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n",
+    "id": "4",
+    "name": "mutants/4/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "result",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "1"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n         return result;\n     }\n \n+    /// ExpressionValueReplacement(`a < b` |==> `true`) of: `bool c = a < b;`\n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n-        bool c = a < b;\n+        bool c = true;\n         while (c) {\n             b = b - a;\n             c = a < b;\n",
+    "id": "5",
+    "name": "mutants/5/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a < b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "true"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n         return result;\n     }\n \n+    /// ExpressionValueReplacement(`a < b` |==> `false`) of: `bool c = a < b;`\n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n-        bool c = a < b;\n+        bool c = false;\n         while (c) {\n             b = b - a;\n             c = a < b;\n",
+    "id": "6",
+    "name": "mutants/6/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a < b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "false"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n     }\n \n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`c` |==> `true`) of: `while (c) {`\n         bool c = a < b;\n-        while (c) {\n+        while (true) {\n             b = b - a;\n             c = a < b;\n         }\n",
+    "id": "7",
+    "name": "mutants/7/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "c",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "true"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n     }\n \n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n+        /// ExpressionValueReplacement(`c` |==> `false`) of: `while (c) {`\n         bool c = a < b;\n-        while (c) {\n+        while (false) {\n             b = b - a;\n             c = a < b;\n         }\n",
+    "id": "8",
+    "name": "mutants/8/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "c",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "false"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n \n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n         bool c = a < b;\n+        /// ExpressionValueReplacement(`b - a` |==> `0`) of: `b = b - a;`\n         while (c) {\n-            b = b - a;\n+            b = 0;\n             c = a < b;\n         }\n         return a - b;\n",
+    "id": "9",
+    "name": "mutants/9/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "b - a",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "0"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n \n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n         bool c = a < b;\n+        /// ExpressionValueReplacement(`b - a` |==> `1`) of: `b = b - a;`\n         while (c) {\n-            b = b - a;\n+            b = 1;\n             c = a < b;\n         }\n         return a - b;\n",
+    "id": "10",
+    "name": "mutants/10/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "b - a",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "1"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -16,8 +16,9 @@\n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n         bool c = a < b;\n         while (c) {\n+            /// ExpressionValueReplacement(`a < b` |==> `true`) of: `c = a < b;`\n             b = b - a;\n-            c = a < b;\n+            c = true;\n         }\n         return a - b;\n     }\n",
+    "id": "11",
+    "name": "mutants/11/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a < b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "true"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -16,8 +16,9 @@\n     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {\n         bool c = a < b;\n         while (c) {\n+            /// ExpressionValueReplacement(`a < b` |==> `false`) of: `c = a < b;`\n             b = b - a;\n-            c = a < b;\n+            c = false;\n         }\n         return a - b;\n     }\n",
+    "id": "12",
+    "name": "mutants/12/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a < b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "false"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -18,7 +18,8 @@\n         while (c) {\n             b = b - a;\n             c = a < b;\n+        /// ExpressionValueReplacement(`a - b` |==> `0`) of: `return a - b;`\n         }\n-        return a - b;\n+        return 0;\n     }\n }\n",
+    "id": "13",
+    "name": "mutants/13/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a - b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "0"
+  },
+  {
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -18,7 +18,8 @@\n         while (c) {\n             b = b - a;\n             c = a < b;\n+        /// ExpressionValueReplacement(`a - b` |==> `1`) of: `return a - b;`\n         }\n-        return a - b;\n+        return 1;\n     }\n }\n",
+    "id": "14",
+    "name": "mutants/14/Ops/EVR/EVR.sol",
+    "op": "EVR",
+    "orig": "a - b",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "repl": "1"
+  }
+]

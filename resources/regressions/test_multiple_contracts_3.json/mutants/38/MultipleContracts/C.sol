@@ -7,9 +7,9 @@ library Utils {
         assert(c[0] == e);
     }
 
-    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`
+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a % b;
+        return a * b;
     }
 }
 

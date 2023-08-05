@@ -3,13 +3,13 @@
 pragma solidity ^0.8.13;
 
 library Utils {
+    /// ExpressionValueReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) internal pure {
-        assert(c[0] == e);
+        assert(false);
     }
 
-    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a * b;
+        return a + b;
     }
 }
 

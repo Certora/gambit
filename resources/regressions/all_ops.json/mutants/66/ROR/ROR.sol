@@ -10,8 +10,9 @@ contract ROR {
     }
 
     // Expect 3 mutants: x < y, x == y, true
+    /// RelationalOperatorReplacement(`<=` |==> `==`) of: `return x <= y;`
     function less_equal(uint256 x, uint256 y) public pure returns (bool) {
-        return x <= y;
+        return x == y;
     }
 
     // Expect 3 mutants: x >= y, x != y, false
@@ -40,9 +41,8 @@ contract ROR {
     }
 
     // Expect 2 mutants: true, false
-    /// RelationalOperatorReplacement(`x != y` |==> `true`) of: `return x != y;`
     function not_equal_not_ord(bool x, bool y) public pure returns (bool) {
-        return true;
+        return x != y;
     }
 
     // Expect 3 mutants: (x + y) > z, (x + y) == z, true

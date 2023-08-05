@@ -5,8 +5,9 @@ pragma experimental ABIEncoderV2;
 // This contract provides test functions for relational operator replacement (ROR)
 contract ROR {
     // Expect 3 mutants: x <= y, x != y, false
+    /// RelationalOperatorReplacement(`<` |==> `<=`) of: `return x < y;`
     function less(uint256 x, uint256 y) public pure returns (bool) {
-        return x < y;
+        return x <= y;
     }
 
     // Expect 3 mutants: x < y, x == y, true
@@ -30,9 +31,8 @@ contract ROR {
     }
 
     // Expect 2 mutants: true, false
-    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`
     function equal_not_ord(bool x, bool y) public pure returns (bool) {
-        return false;
+        return x == y;
     }
 
     // Expect 3 mutants: x > y, x < y, true

@@ -25,14 +25,14 @@ contract C {
         return res;
     }
 
+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) public pure {
-        assert(c[0] == e);
+        assert(false);
     }
 
     function callmyself() external view {
-        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`
         address[] memory b = this.foo();
-        assert(true);
+        Utils.getarray(b, address(this));
     }
 
     function add(int8 c, int8 d) public pure returns (int8) {
