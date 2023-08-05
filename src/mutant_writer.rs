@@ -51,7 +51,7 @@ impl MutantWriter {
         for (i, (mutant, _)) in mutants.iter().enumerate() {
             let mid = i + 1;
             let (lineno, colno) = mutant.get_line_column();
-            let line_col = format!("{}:{}", lineno, colno);
+            let line_col = format!("{}:{}", lineno + 1, colno + 1);
             w.write_record([
                 mid.to_string().as_str(),
                 mutant.op.short_name().as_str(),
@@ -84,6 +84,8 @@ impl MutantWriter {
                 "original": mutant.path(),
                 "orig": &mutant.orig,
                 "repl": &mutant.repl,
+                "line": &mutant.get_line_column().0 + 1,
+                "col": &mutant.get_line_column().1 + 1
             }));
         }
 

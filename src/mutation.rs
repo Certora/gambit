@@ -23,9 +23,9 @@ use std::{
 pub struct MutantLoc {
     /// The location of the node that is mutated
     pub loc: Loc,
-    /// The (starting) line number of the mode being mutated
+    /// The (starting) line number of the mode being mutated 0-indexed
     pub line_no: usize,
-    /// The column number of the node being mutated
+    /// The column number of the node being mutated 0-indexed
     pub col_no: usize,
     /// The full path to the original source file
     pub path: PathBuf,
@@ -48,7 +48,7 @@ impl Debug for MutantLoc {
 impl MutantLoc {
     pub fn new(loc: Loc, resolver: &FileResolver, namespace: Rc<Namespace>) -> MutantLoc {
         let file = namespace.files.get(loc.file_no()).unwrap();
-        let (_, line_no, col_no, _) = resolver.get_line_and_offset_from_loc(file, &loc);
+        let (line_no, col_no) = file.offset_to_line_column(loc.start());
         let path = file.path.clone();
         let import_path = get_import_path(
             resolver,
@@ -69,8 +69,8 @@ impl MutantLoc {
 
         MutantLoc {
             loc,
-            line_no,
-            col_no,
+            line_no: line_no,
+            col_no: col_no,
             path,
             sol_path: Some(sol_path),
         }
