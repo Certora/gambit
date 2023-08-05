@@ -10,10 +10,12 @@ use crate::SummaryParams;
 
 struct MutantSummaryEntry {
     mid: String,
-    name: String,
+    mutant_export_location: String,
     diff: String,
     op_long: String,
     op_short: String,
+    orig: String,
+    repl: String,
 }
 
 /// How should summary operate?
@@ -142,15 +144,27 @@ fn get_mutant_summary(i: usize, mutant_json: &Value) -> Option<MutantSummaryEntr
             .expect("`description` field should be as string");
         let op_short = m
             .get("op")
-            .unwrap_or_else(|| panic!("{}", missing_field_msg("description", i, mutant_json)))
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("op", i, mutant_json)))
             .as_str()
-            .expect("`description` field should be as string");
+            .expect("`op` field should be as string");
+        let orig = m
+            .get("orig")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("orig", i, mutant_json)))
+            .as_str()
+            .expect("`orig` field should be as string");
+        let repl = m
+            .get("repl")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("repl", i, mutant_json)))
+            .as_str()
+            .expect("`repl` field should be as string");
         return Some(MutantSummaryEntry {
             mid: mid.to_string(),
-            name: name.to_string(),
+            mutant_export_location: name.to_string(),
             diff: diff.to_string(),
             op_long: op_long.to_string(),
             op_short: op_short.to_string(),
+            orig: orig.to_string(),
+            repl: repl.to_string(),
         });
     } else {
         log::warn!(
@@ -184,7 +198,16 @@ fn print_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>, short: bool
 
 fn print_short_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>) {
     if let Some(summary) = mutant_summary {
-        println!("{}: {}: {}", summary.mid, summary.name, summary.op_long)
+        println!(
+            "({}) {} ({}) {} -> {}",
+            ansi_term::Style::new().bold().paint(&summary.mid),
+            ansi_term::Color::Blue.bold().paint(&summary.op_short),
+            ansi_term::Style::new()
+                .italic()
+                .paint(&summary.mutant_export_location),
+            ansi_term::Color::Green.paint(&summary.orig),
+            ansi_term::Color::Red.bold().paint(&summary.repl),
+        )
     }
 }
 
@@ -200,7 +223,7 @@ fn print_long_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>) {
         println!(
             "\n{}: {}",
             ansi_term::Style::new().bold().paint("Path"),
-            s.name
+            s.mutant_export_location
         );
     }
 }
