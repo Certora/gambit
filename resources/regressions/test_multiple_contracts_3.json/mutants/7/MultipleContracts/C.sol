@@ -7,15 +7,15 @@ library Utils {
         assert(c[0] == e);
     }
 
+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a + b;
+        return a / b;
     }
 }
 
 contract C {
-    /// LiteralValueReplacement(`1` |==> `0`) of: `address[] memory a = new address[](1);`
     function foo() external view returns (address[] memory) {
-        address[] memory a = new address[](0);
+        address[] memory a = new address[](1);
         a[0] = msg.sender;
         return a;
     }

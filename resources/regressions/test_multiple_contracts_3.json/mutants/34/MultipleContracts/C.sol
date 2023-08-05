@@ -7,16 +7,16 @@ library Utils {
         assert(c[0] == e);
     }
 
+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a + b;
+        assert(true);
     }
 }
 
 contract C {
     function foo() external view returns (address[] memory) {
-        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`
         address[] memory a = new address[](1);
-        assert(true);
+        a[0] = msg.sender;
         return a;
     }
 

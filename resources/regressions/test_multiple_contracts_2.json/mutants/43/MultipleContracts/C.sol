@@ -15,15 +15,15 @@ library Utils {
 contract C {
     function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`
         a[0] = msg.sender;
-        return a;
+        assert(true);
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
         uint256 a = 10;
-        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`
         uint256 res = a ** decimals;
-        assert(true);
+        return res;
     }
 
     function getarray(address[] memory c, address e) public pure {

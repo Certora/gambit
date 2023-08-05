@@ -30,9 +30,9 @@ contract ROR {
     }
 
     // Expect 2 mutants: true, false
-    /// RelationalOperatorReplacement(`x == y` |==> `true`) of: `return x == y;`
+    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`
     function equal_not_ord(bool x, bool y) public pure returns (bool) {
-        return true;
+        return false;
     }
 
     // Expect 3 mutants: x > y, x < y, true

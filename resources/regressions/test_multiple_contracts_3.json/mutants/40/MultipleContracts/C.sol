@@ -13,16 +13,16 @@ library Utils {
 }
 
 contract C {
+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`
     function foo() external view returns (address[] memory) {
-        address[] memory a = new address[](1);
+        address[] memory a = new address[](2);
         a[0] = msg.sender;
         return a;
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
-        /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `uint256 res = a ** decimals;`
         uint256 a = 10;
-        uint256 res = a * decimals;
+        uint256 res = a ** decimals;
         return res;
     }
 

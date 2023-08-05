@@ -13,11 +13,11 @@ library Utils {
 }
 
 contract C {
+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`
     function foo() external view returns (address[] memory) {
-        address[] memory a = new address[](1);
-        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`
+        address[] memory a = new address[](2);
         a[0] = msg.sender;
-        assert(true);
+        return a;
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {

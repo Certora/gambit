@@ -7,8 +7,9 @@ library Utils {
         assert(c[0] == e);
     }
 
+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a + b;
+        return a % b;
     }
 }
 
@@ -20,9 +21,8 @@ contract C {
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
-        /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `uint256 res = a ** decimals;`
         uint256 a = 10;
-        uint256 res = a + decimals;
+        uint256 res = a ** decimals;
         return res;
     }
 

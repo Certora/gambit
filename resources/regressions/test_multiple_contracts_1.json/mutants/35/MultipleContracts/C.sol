@@ -7,17 +7,17 @@ library Utils {
         assert(c[0] == e);
     }
 
+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`
     function add(int8 a, int8 b) public pure returns (int8) {
-        return a + b;
+        return a - b;
     }
 }
 
 contract C {
     function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
-        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`
         a[0] = msg.sender;
-        assert(true);
+        return a;
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {

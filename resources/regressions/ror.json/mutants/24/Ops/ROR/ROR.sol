@@ -49,9 +49,8 @@ contract ROR {
         uint256 x,
         uint256 y,
         uint256 z
-    /// RelationalOperatorReplacement(`>=` |==> `==`) of: `return (x + y) >= z;`
     ) public pure returns (bool) {
-        return (x + y) == z;
+        return (x + y) >= z;
     }
 
     // Expect 3 mutants: (x + y) > z, (x + y) < z, true
@@ -59,7 +58,8 @@ contract ROR {
         uint256 x,
         uint256 y,
         uint256 z
+    /// RelationalOperatorReplacement(`!=` |==> `<`) of: `return (x + y) != z;`
     ) public pure returns (bool) {
-        return (x + y) != z;
+        return (x + y) < z;
     }
 }

@@ -7,346 +7,416 @@
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        assert(true);\n     }\n }\n \n",
+    "description": "RelationalOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(false);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "2",
     "name": "mutants/2/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a - b;\n     }\n }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(c[1] == e);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "3",
     "name": "mutants/3/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a * b;\n     }\n }\n \n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        assert(true);\n     }\n }\n \n",
     "id": "4",
     "name": "mutants/4/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a / b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a - b;\n     }\n }\n \n",
     "id": "5",
     "name": "mutants/5/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a % b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a * b;\n     }\n }\n \n",
     "id": "6",
     "name": "mutants/6/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](0);\n         a[0] = msg.sender;\n         return a;\n     }\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a / b;\n     }\n }\n \n",
     "id": "7",
     "name": "mutants/7/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](2);\n         a[0] = msg.sender;\n         return a;\n     }\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a % b;\n     }\n }\n \n",
     "id": "8",
     "name": "mutants/8/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        assert(true);\n         return a;\n     }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](0);\n         a[0] = msg.sender;\n         return a;\n     }\n",
     "id": "9",
     "name": "mutants/9/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n contract C {\n     function foo() external view returns (address[] memory) {\n         address[] memory a = new address[](1);\n+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`\n         a[0] = msg.sender;\n-        return a;\n+        assert(true);\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](2);\n         a[0] = msg.sender;\n         return a;\n     }\n",
     "id": "10",
     "name": "mutants/10/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 0;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        assert(true);\n         return a;\n     }\n \n",
     "id": "11",
     "name": "mutants/11/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `11`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 11;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
+    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// LiteralValueReplacement(`0` |==> `1`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        a[1] = msg.sender;\n         return a;\n     }\n \n",
     "id": "12",
     "name": "mutants/12/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a + decimals;\n         return res;\n     }\n \n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n contract C {\n     function foo() external view returns (address[] memory) {\n         address[] memory a = new address[](1);\n+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`\n         a[0] = msg.sender;\n-        return a;\n+        assert(true);\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n",
     "id": "13",
     "name": "mutants/13/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a - decimals;\n         return res;\n     }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 0;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
     "id": "14",
     "name": "mutants/14/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a * decimals;\n         return res;\n     }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `11`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 11;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
     "id": "15",
     "name": "mutants/15/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a / decimals;\n         return res;\n     }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a + decimals;\n         return res;\n     }\n \n",
     "id": "16",
     "name": "mutants/16/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a % decimals;\n         return res;\n     }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a - decimals;\n         return res;\n     }\n \n",
     "id": "17",
     "name": "mutants/17/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        assert(true);\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a * decimals;\n         return res;\n     }\n \n",
     "id": "18",
     "name": "mutants/18/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function callmyself() external view {\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a / decimals;\n         return res;\n     }\n \n",
     "id": "19",
     "name": "mutants/19/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     function callmyself() external view {\n+        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`\n         address[] memory b = this.foo();\n-        Utils.getarray(b, address(this));\n+        assert(true);\n     }\n \n     function add(int8 c, int8 d) public pure returns (int8) {\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a % decimals;\n         return res;\n     }\n \n",
     "id": "20",
     "name": "mutants/20/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        assert(true);\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        assert(true);\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
     "id": "21",
     "name": "mutants/21/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c - d;\n     }\n }\n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function callmyself() external view {\n",
     "id": "22",
     "name": "mutants/22/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c * d;\n     }\n }\n",
+    "description": "RelationalOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(false);\n     }\n \n     function callmyself() external view {\n",
     "id": "23",
     "name": "mutants/23/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c / d;\n     }\n }\n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(c[1] == e);\n     }\n \n     function callmyself() external view {\n",
     "id": "24",
     "name": "mutants/24/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c % d;\n     }\n }\n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     function callmyself() external view {\n+        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`\n         address[] memory b = this.foo();\n-        Utils.getarray(b, address(this));\n+        assert(true);\n     }\n \n     function add(int8 c, int8 d) public pure returns (int8) {\n",
     "id": "25",
     "name": "mutants/25/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        assert(true);\n     }\n }\n",
     "id": "26",
     "name": "mutants/26/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        assert(true);\n     }\n }\n \n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c - d;\n     }\n }\n",
     "id": "27",
     "name": "mutants/27/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a - b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c * d;\n     }\n }\n",
     "id": "28",
     "name": "mutants/28/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a * b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c / d;\n     }\n }\n",
     "id": "29",
     "name": "mutants/29/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a / b;\n     }\n }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c % d;\n     }\n }\n",
     "id": "30",
     "name": "mutants/30/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a % b;\n     }\n }\n \n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "31",
     "name": "mutants/31/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](0);\n         a[0] = msg.sender;\n         return a;\n     }\n",
+    "description": "RelationalOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(false);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "32",
     "name": "mutants/32/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](2);\n         a[0] = msg.sender;\n         return a;\n     }\n",
+    "diff": "--- original\n+++ mutant\n@@ -3,8 +3,9 @@\n pragma solidity ^0.8.13;\n \n library Utils {\n+    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) internal pure {\n-        assert(c[0] == e);\n+        assert(c[1] == e);\n     }\n \n     function add(int8 a, int8 b) public pure returns (int8) {\n",
     "id": "33",
     "name": "mutants/33/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        assert(true);\n         return a;\n     }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        assert(true);\n     }\n }\n \n",
     "id": "34",
     "name": "mutants/34/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n contract C {\n     function foo() external view returns (address[] memory) {\n         address[] memory a = new address[](1);\n+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`\n         a[0] = msg.sender;\n-        return a;\n+        assert(true);\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a - b;\n     }\n }\n \n",
     "id": "35",
     "name": "mutants/35/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 0;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a * b;\n     }\n }\n \n",
     "id": "36",
     "name": "mutants/36/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "LiteralValueReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `11`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 11;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a / b;\n     }\n }\n \n",
     "id": "37",
     "name": "mutants/37/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a + decimals;\n         return res;\n     }\n \n",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a % b;\n     }\n }\n \n",
     "id": "38",
     "name": "mutants/38/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a - decimals;\n         return res;\n     }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `0`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](0);\n         a[0] = msg.sender;\n         return a;\n     }\n",
     "id": "39",
     "name": "mutants/39/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a * decimals;\n         return res;\n     }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -13,8 +13,9 @@\n }\n \n contract C {\n+    /// LiteralValueReplacement(`1` |==> `2`) of: `address[] memory a = new address[](1);`\n     function foo() external view returns (address[] memory) {\n-        address[] memory a = new address[](1);\n+        address[] memory a = new address[](2);\n         a[0] = msg.sender;\n         return a;\n     }\n",
     "id": "40",
     "name": "mutants/40/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a / decimals;\n         return res;\n     }\n \n",
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// StatementDeletion(`a[0] = msg.sender` |==> `assert(true)`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        assert(true);\n         return a;\n     }\n \n",
     "id": "41",
     "name": "mutants/41/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a % decimals;\n         return res;\n     }\n \n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -14,8 +14,9 @@\n \n contract C {\n     function foo() external view returns (address[] memory) {\n+        /// LiteralValueReplacement(`0` |==> `1`) of: `a[0] = msg.sender;`\n         address[] memory a = new address[](1);\n-        a[0] = msg.sender;\n+        a[1] = msg.sender;\n         return a;\n     }\n \n",
     "id": "42",
     "name": "mutants/42/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        assert(true);\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n contract C {\n     function foo() external view returns (address[] memory) {\n         address[] memory a = new address[](1);\n+        /// StatementDeletion(`return a` |==> `assert(true)`) of: `return a;`\n         a[0] = msg.sender;\n-        return a;\n+        assert(true);\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n",
     "id": "43",
     "name": "mutants/43/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function callmyself() external view {\n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `0`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 0;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
     "id": "44",
     "name": "mutants/44/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     function callmyself() external view {\n+        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`\n         address[] memory b = this.foo();\n-        Utils.getarray(b, address(this));\n+        assert(true);\n     }\n \n     function add(int8 c, int8 d) public pure returns (int8) {\n",
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -19,8 +19,9 @@\n         return a;\n     }\n \n+    /// LiteralValueReplacement(`10` |==> `11`) of: `uint256 a = 10;`\n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n-        uint256 a = 10;\n+        uint256 a = 11;\n         uint256 res = a ** decimals;\n         return res;\n     }\n",
     "id": "45",
     "name": "mutants/45/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
-    "description": "StatementDeletion",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        assert(true);\n     }\n }\n",
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `+`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a + decimals;\n         return res;\n     }\n \n",
     "id": "46",
     "name": "mutants/46/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c - d;\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `-`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a - decimals;\n         return res;\n     }\n \n",
     "id": "47",
     "name": "mutants/47/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c * d;\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `*`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a * decimals;\n         return res;\n     }\n \n",
     "id": "48",
     "name": "mutants/48/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c / d;\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `/`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a / decimals;\n         return res;\n     }\n \n",
     "id": "49",
     "name": "mutants/49/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   },
   {
     "description": "ArithmeticOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c % d;\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -20,8 +20,9 @@\n     }\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`\n         uint256 a = 10;\n-        uint256 res = a ** decimals;\n+        uint256 res = a % decimals;\n         return res;\n     }\n \n",
     "id": "50",
     "name": "mutants/50/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -21,8 +21,9 @@\n \n     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {\n         uint256 a = 10;\n+        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`\n         uint256 res = a ** decimals;\n-        return res;\n+        assert(true);\n     }\n \n     function getarray(address[] memory c, address e) public pure {\n",
+    "id": "51",
+    "name": "mutants/51/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(true);\n     }\n \n     function callmyself() external view {\n",
+    "id": "52",
+    "name": "mutants/52/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "RelationalOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(false);\n     }\n \n     function callmyself() external view {\n",
+    "id": "53",
+    "name": "mutants/53/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "LiteralValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -25,8 +25,9 @@\n         return res;\n     }\n \n+    /// LiteralValueReplacement(`0` |==> `1`) of: `assert(c[0] == e);`\n     function getarray(address[] memory c, address e) public pure {\n-        assert(c[0] == e);\n+        assert(c[1] == e);\n     }\n \n     function callmyself() external view {\n",
+    "id": "54",
+    "name": "mutants/54/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -30,8 +30,9 @@\n     }\n \n     function callmyself() external view {\n+        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`\n         address[] memory b = this.foo();\n-        Utils.getarray(b, address(this));\n+        assert(true);\n     }\n \n     function add(int8 c, int8 d) public pure returns (int8) {\n",
+    "id": "55",
+    "name": "mutants/55/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "StatementDeletion",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        assert(true);\n     }\n }\n",
+    "id": "56",
+    "name": "mutants/56/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c - d;\n     }\n }\n",
+    "id": "57",
+    "name": "mutants/57/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c * d;\n     }\n }\n",
+    "id": "58",
+    "name": "mutants/58/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c / d;\n     }\n }\n",
+    "id": "59",
+    "name": "mutants/59/MultipleContracts/C.sol",
+    "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
+  },
+  {
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c % d;\n     }\n }\n",
+    "id": "60",
+    "name": "mutants/60/MultipleContracts/C.sol",
     "original": "/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol"
   }
 ]

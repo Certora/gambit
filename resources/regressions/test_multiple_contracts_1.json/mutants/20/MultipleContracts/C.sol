@@ -20,8 +20,9 @@ contract C {
     }
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
+        /// ArithmeticOperatorReplacement(`**` |==> `%`) of: `uint256 res = a ** decimals;`
         uint256 a = 10;
-        uint256 res = a ** decimals;
+        uint256 res = a % decimals;
         return res;
     }
 
@@ -30,9 +31,8 @@ contract C {
     }
 
     function callmyself() external view {
-        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`
         address[] memory b = this.foo();
-        assert(true);
+        Utils.getarray(b, address(this));
     }
 
     function add(int8 c, int8 d) public pure returns (int8) {
