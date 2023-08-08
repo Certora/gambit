@@ -412,9 +412,37 @@ pub fn get_import_path(resolver: &FileResolver, import_no: usize) -> Option<Path
 /// Print a deprecation warning to stderr
 pub fn print_deprecation_warning(argument: &str, version: &str, message: &str) {
     let yellow = ansi_term::Color::Yellow;
-    let text = yellow.paint(format!(
-        "Deprecation Warning: {}\n    `{}` was deprecated in Gambit v{}. {}",
-        argument, argument, version, message
-    ));
-    eprintln!("{}", text)
+    let bold = ansi_term::Style::new().bold();
+    let italic = ansi_term::Style::new().italic();
+
+    eprintln!(
+        "{}: {}",
+        yellow.paint("Deprecation Warning"),
+        bold.paint(argument)
+    );
+
+    eprintln!(
+        "   `{}` was deprecated in Gambit v{}.\n    {}\n",
+        bold.paint(argument),
+        bold.paint(version),
+        italic.paint(message)
+    );
+}
+
+pub fn print_experimental_feature_warning(feature: &str, version: &str) {
+    let yellow = ansi_term::Color::Yellow;
+    let bold = ansi_term::Style::new().bold();
+    let italic = ansi_term::Style::new().italic();
+
+    eprintln!(
+        "{}: {}",
+        yellow.paint("Experimental Feature Warning"),
+        bold.paint(feature)
+    );
+    eprintln!(
+        "    `{}` is an experimental feature introduced in Gambit v{}.",
+        bold.paint(feature),
+        bold.paint(version)
+    );
+    eprintln!("{}\n", italic.paint( "     Future updates may alter this feature's behavior, or remove this feature entirely, without warning."));
 }

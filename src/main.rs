@@ -2,8 +2,9 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use gambit::{
-    default_gambit_output_directory, normalize_path, print_deprecation_warning, print_version,
-    run_mutate, run_summary, Command, MutateParams,
+    default_gambit_output_directory, normalize_mutation_operator_name, normalize_path,
+    print_deprecation_warning, print_experimental_feature_warning, print_version, run_mutate,
+    run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -136,6 +137,34 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         if pass_through_outdir.is_some() {
             p.outdir = pass_through_outdir.clone();
         }
+
+        // Check for experimental arguments
+        if p.fallback_mutations.is_some() {
+            print_experimental_feature_warning("fallback_mutations", "1.0.0");
+        }
+        if let Some(ref mutations) = p.mutations {
+            let evr = normalize_mutation_operator_name(&"evr".to_string());
+            for mutation in mutations {
+                if normalize_mutation_operator_name(&mutation) == evr {
+                    print_experimental_feature_warning(
+                        "MutationType::ExpressionValueReplacement",
+                        "1.0.0",
+                    );
+                }
+            }
+        }
+        if let Some(ref mutations) = p.fallback_mutations {
+            let evr = normalize_mutation_operator_name(&"evr".to_string());
+            for mutation in mutations {
+                if normalize_mutation_operator_name(&mutation) == evr {
+                    print_experimental_feature_warning(
+                        "MutationType::ExpressionValueReplacement",
+                        "1.0.0",
+                    );
+                }
+            }
+        }
+
         log::info!("Configuration {}", i + 1);
 
         if p.sourceroot.is_some() {
@@ -294,6 +323,32 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Running CLI MutateParams: {:#?}", &params);
 
+    // Check for experimental arguments
+    if params.fallback_mutations.is_some() {
+        print_experimental_feature_warning("--fallback_mutations", "1.0.0");
+    }
+    if let Some(ref mutations) = params.mutations {
+        let evr = normalize_mutation_operator_name(&"evr".to_string());
+        for mutation in mutations {
+            if normalize_mutation_operator_name(&mutation) == evr {
+                print_experimental_feature_warning(
+                    "MutationType::ExpressionValueReplacement",
+                    "1.0.0",
+                );
+            }
+        }
+    }
+    if let Some(ref mutations) = params.fallback_mutations {
+        let evr = normalize_mutation_operator_name(&"evr".to_string());
+        for mutation in mutations {
+            if normalize_mutation_operator_name(&mutation) == evr {
+                print_experimental_feature_warning(
+                    "MutationType::ExpressionValueReplacement",
+                    "1.0.0",
+                );
+            }
+        }
+    }
     // # Path Resolution for CLI Provided Parameters
     log::info!("    Performing File Resolution");
     //                let filename = params.filename.expect("No provided filename");

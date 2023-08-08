@@ -316,7 +316,7 @@ impl MutationType {
     }
 
     pub fn default_fallback_mutation_operators() -> Vec<MutationType> {
-        vec![MutationType::ExpressionValueReplacement]
+        vec![]
     }
 
     pub fn short_name(&self) -> String {
