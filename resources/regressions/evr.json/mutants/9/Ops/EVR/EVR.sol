@@ -14,10 +14,10 @@ contract EVR {
     }
 
     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {
+        /// ExpressionValueReplacement(`c` |==> `true`) of: `while (c) {`
         bool c = a < b;
-        /// ExpressionValueReplacement(`b - a` |==> `0`) of: `b = b - a;`
-        while (c) {
-            b = 0;
+        while (true) {
+            b = b - a;
             c = a < b;
         }
         return a - b;

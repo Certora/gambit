@@ -8,10 +8,10 @@ contract EVR {
         return a + b;
     }
 
+    /// ExpressionValueReplacement(`add(a, b)` |==> `1`) of: `uint256 result = add(a, b);`
     function evr_test_1(uint256 a, uint256 b) public pure returns (uint256) {
-        /// ExpressionValueReplacement(`result` |==> `1`) of: `return result;`
-        uint256 result = add(a, b);
-        return 1;
+        uint256 result = 1;
+        return result;
     }
 
     function evr_test_2(uint256 a, uint256 b) public pure returns (uint256) {
