@@ -114,7 +114,7 @@ pub struct MutateParams {
     pub sourceroot: Option<String>,
 
     /// Specify the mutation operators
-    #[arg(long, num_args(1..), conflicts_with = "json")]
+    #[arg(long, num_args(0..), conflicts_with = "json")]
     pub mutations: Option<Vec<String>>,
 
     /// Specify  _fallback mutation operators_. These operators are not applied
@@ -124,7 +124,7 @@ pub struct MutateParams {
     /// EVR will only be applied to the full expression, and not to any
     /// subexpressions, and only if no mutants were generated for `a + b + c` or
     /// its subexpressions
-    #[arg(long, num_args(1..), conflicts_with = "json")]
+    #[arg(long, num_args(0..), conflicts_with = "json")]
     pub fallback_mutations: Option<Vec<String>>,
 
     /// Skip mutant export

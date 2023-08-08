@@ -1067,6 +1067,13 @@ fn expression_value_replacement(
         | Expression::Not { .. }
         | Expression::Or { .. }
         | Expression::And { .. } => defaults_by_type(&Type::Bool),
+
+        Expression::InternalFunctionCall { returns, .. }
+        | Expression::ExternalFunctionCall { returns, .. } => match &returns[..] {
+            [ty] => defaults_by_type(&ty),
+            _ => vec![],
+        },
+
         _ => vec![],
     };
     let mut mutants = vec![];
