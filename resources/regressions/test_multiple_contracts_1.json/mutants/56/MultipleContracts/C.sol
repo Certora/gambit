@@ -25,9 +25,8 @@ contract C {
         return res;
     }
 
-    /// StatementDeletion(`assert(c[0] == e)` |==> `assert(true)`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) public pure {
-        assert(true);
+        assert(c[0] == e);
     }
 
     function callmyself() external view {
@@ -35,7 +34,8 @@ contract C {
         Utils.getarray(b, address(this));
     }
 
+    /// StatementDeletion(`return c + d` |==> `assert(true)`) of: `return c + d;`
     function add(int8 c, int8 d) public pure returns (int8) {
-        return c + d;
+        assert(true);
     }
 }

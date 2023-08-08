@@ -21,13 +21,13 @@ contract C {
 
     function get10PowerDecimals(uint8 decimals) public pure returns (uint256) {
         uint256 a = 10;
-        /// StatementDeletion(`return res` |==> `assert(true)`) of: `return res;`
         uint256 res = a ** decimals;
-        assert(true);
+        return res;
     }
 
+    /// RelationalOperatorReplacement(`c[0] == e` |==> `false`) of: `assert(c[0] == e);`
     function getarray(address[] memory c, address e) public pure {
-        assert(c[0] == e);
+        assert(false);
     }
 
     function callmyself() external view {

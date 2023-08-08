@@ -5,14 +5,14 @@ pragma experimental ABIEncoderV2;
 // This contract provides test functions for relational operator replacement (ROR)
 contract LOR {
     // Expect three mutants: a, b, false
-    /// LogicalOperatorReplacement(`a && b` |==> `false`) of: `return a && b;`
     function and(bool a, bool b) public pure returns (bool) {
-        return false;
+        return a && b;
     }
 
     // Expect three mutants: a, b, true
+    /// LogicalOperatorReplacement(`a || b` |==> `b`) of: `return a || b;`
     function or(bool a, bool b) public pure returns (bool) {
-        return a || b;
+        return b;
     }
 
     // Expect three mutants, x < y, a != (x >= y), true

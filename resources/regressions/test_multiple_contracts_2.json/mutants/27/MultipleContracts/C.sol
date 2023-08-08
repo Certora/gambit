@@ -30,12 +30,12 @@ contract C {
     }
 
     function callmyself() external view {
-        /// StatementDeletion(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`
         address[] memory b = this.foo();
-        assert(true);
+        Utils.getarray(b, address(this));
     }
 
+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`
     function add(int8 c, int8 d) public pure returns (int8) {
-        return c + d;
+        return c - d;
     }
 }

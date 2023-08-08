@@ -12,14 +12,14 @@ contract LVR {
 
     // Expect 1 mutant: 1
     function unsigned_zero() public pure returns (uint256) {
-        /// ExpressionValueReplacement(`zero` |==> `1`) of: `return zero;`
         uint256 zero = 0;
-        return 1;
+        return zero;
     }
 
     // Expect 2 mutant: 0, 2
+    /// LiteralValueReplacement(`1` |==> `2`) of: `uint256 one = 1;`
     function unsigned_one() public pure returns (uint256) {
-        uint256 one = 1;
+        uint256 one = 2;
         return one;
     }
 

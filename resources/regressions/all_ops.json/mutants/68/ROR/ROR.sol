@@ -15,9 +15,8 @@ contract ROR {
     }
 
     // Expect 3 mutants: x >= y, x != y, false
-    /// RelationalOperatorReplacement(`>` |==> `>=`) of: `return x > y;`
     function more(uint256 x, uint256 y) public pure returns (bool) {
-        return x >= y;
+        return x > y;
     }
 
     // Expect 3 mutants: x > y, x == y, true
@@ -50,8 +49,9 @@ contract ROR {
         uint256 x,
         uint256 y,
         uint256 z
+    /// RelationalOperatorReplacement(`>=` |==> `==`) of: `return (x + y) >= z;`
     ) public pure returns (bool) {
-        return (x + y) >= z;
+        return (x + y) == z;
     }
 
     // Expect 3 mutants: (x + y) > z, (x + y) < z, true

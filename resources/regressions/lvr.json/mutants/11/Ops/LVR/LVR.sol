@@ -24,9 +24,8 @@ contract LVR {
 
     // Expect 2 mutants: 0, 1
     function signed_neg_one() public pure returns (int256) {
-        /// ExpressionValueReplacement(`neg_one` |==> `-1`) of: `return neg_one;`
         int256 neg_one = -1;
-        return -1;
+        return neg_one;
     }
 
     // Expect 2 mutants: -1, 0
@@ -36,8 +35,9 @@ contract LVR {
     }
 
     // Expect 2 mutants: -1, 1
+    /// LiteralValueReplacement(`0` |==> `1`) of: `int256 zero = 0;`
     function signed_zero() public pure returns (int256) {
-        int256 zero = 0;
+        int256 zero = 1;
         return zero;
     }
 }

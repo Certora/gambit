@@ -46,14 +46,12 @@
 46,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,24:25,**,/
 47,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,24:25,**,%
 48,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,25:9,return res,assert(true)
-49,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,25:16,res,0
-50,EVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,25:16,res,1
-51,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)
-52,ROR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,29:16,c[0] == e,false
-53,LVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,29:18,0,1
-54,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,34:9,"Utils.getarray(b, address(this))",assert(true)
-55,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:9,return c + d,assert(true)
-56,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,-
-57,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,*
-58,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,/
-59,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,%
+49,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)
+50,ROR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,29:16,c[0] == e,false
+51,LVR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,29:18,0,1
+52,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,34:9,"Utils.getarray(b, address(this))",assert(true)
+53,STD,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:9,return c + d,assert(true)
+54,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,-
+55,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,*
+56,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,/
+57,AOR,/Users/benku/Gambit/benchmarks/MultipleContracts/C.sol,38:18,+,%
