@@ -304,7 +304,6 @@ impl MutationType {
         vec![
             MutationType::ArithmeticOperatorReplacement,
             MutationType::BitwiseOperatorReplacement,
-            MutationType::ExpressionValueReplacement,
             MutationType::ElimDelegateCall,
             MutationType::LiteralValueReplacement,
             MutationType::LogicalOperatorReplacement,
