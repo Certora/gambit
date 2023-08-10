@@ -6,7 +6,7 @@ use std::{
 
 use serde_json::Value;
 
-use crate::SummaryParams;
+use crate::{print_experimental_feature_warning, SummaryParams};
 
 struct MutantSummaryEntry {
     mid: String,
@@ -35,6 +35,7 @@ pub enum SummaryMode {
 ///
 /// [SummaryParams]:crate::cli::SummaryParams
 pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
+    print_experimental_feature_warning("gambit summary", "1.0.0");
     let mutation_dir = PathBuf::from(params.mutation_directory);
     let gambit_results_json_path = mutation_dir.join("gambit_results.json");
     let short = params.short;
