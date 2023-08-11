@@ -43,7 +43,6 @@ impl Solc {
             basepath: None,
             include_paths: vec![],
             allow_paths: None,
-            include_path: None,
             remappings: None,
             optimize: false,
             raw_args: None,
@@ -98,11 +97,6 @@ impl Solc {
 
     pub fn with_allow_paths(&mut self, allow_paths: Vec<String>) -> &Self {
         self.allow_paths = Some(allow_paths);
-        self
-    }
-
-    pub fn with_include_path(&mut self, include_path: String) -> &Self {
-        self.include_path = Some(include_path);
         self
     }
 

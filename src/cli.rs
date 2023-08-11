@@ -178,10 +178,6 @@ pub struct MutateParams {
     #[arg(long, conflicts_with = "json")]
     pub solc_allow_paths: Option<Vec<String>>,
 
-    /// Includepath argument to solc
-    #[arg(long)]
-    pub solc_include_path: Option<String>,
-
     /// Solidity remappings
     #[arg(long, hide = true, num_args(1..), conflicts_with = "json")]
     pub solc_remappings: Option<Vec<String>>,
