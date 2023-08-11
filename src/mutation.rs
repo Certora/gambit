@@ -1351,14 +1351,14 @@ contract A {
             &vec!["bool a", "bool b"],
             &vec!["if (a != b) {}"],
             &vec![MutationType::RelationalOperatorReplacement],
-            &vec!["true", "false"],
+            &vec!["true"],
         );
 
         assert_exact_mutants_for_statements(
             &vec!["bool a", "bool b"],
             &vec!["if (a == b) {}"],
             &vec![MutationType::RelationalOperatorReplacement],
-            &vec!["true", "false"],
+            &vec!["false"],
         );
     }
 
