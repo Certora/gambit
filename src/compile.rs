@@ -1,6 +1,6 @@
 use crate::{invoke_command, MutateParams};
 use std::{
-    error,
+    env, error,
     path::{Path, PathBuf},
 };
 
@@ -144,8 +144,9 @@ impl Solc {
             .join(" ");
 
         log::debug!(
-            "Invoking solc on {}: `{} {}`",
+            "Invoking solc on {} from {}: `{} {}`",
             solidity_file.display(),
+            env::current_dir()?.display(),
             self.solc,
             pretty_flags,
         );

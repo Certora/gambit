@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use gambit::{
     default_gambit_output_directory, normalize_mutation_operator_name, normalize_path,
-    print_deprecation_warning, print_experimental_feature_warning, print_version, run_mutate,
-    run_summary, Command, MutateParams,
+    print_deprecation_warning, print_experimental_feature_warning, print_version, print_warning,
+    run_mutate, run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -309,6 +309,15 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             p.solc_remappings = None;
         }
 
+        if import_paths.is_empty() {
+            let default_import_path = json_parent_directory.to_str().unwrap().to_string();
+            print_warning(
+                "No `import_paths` specified in config",
+                format!("Adding default import path {}.\nTo fix, add    \"import_paths\": [\"{}\"],\nto {}", default_import_path, default_import_path, json_path).as_str(),
+            );
+            import_paths.push(default_import_path);
+        }
+
         log::debug!("    [->] Resolved params.import_maps: {:?}", import_maps);
         p.filename = Some(filepath.to_str().unwrap().to_string());
         p.outdir = Some(outdir);
@@ -456,6 +465,8 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         params.solc_include_paths = vec![];
     }
 
+    log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
+
     let mut import_maps = vec![];
     for import_map in params.import_maps.iter() {
         import_maps.push(import_map.clone());
@@ -468,7 +479,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         }
         params.solc_remappings = None;
     }
-    log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
+    log::debug!("    [->] Resolved params.import_maps: {:?}", import_maps);
 
     // Finally, update params with resolved source root and filename.
     // (We don't update earlier to preserve the state of params

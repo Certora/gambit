@@ -151,16 +151,16 @@ impl From<&MutateParams> for Mutator {
         }
 
         // Add any remappings to file resolver
-        if let Some(remappings) = &value.solc_remappings {
-            for rm in remappings {
-                let split_rm: Vec<&str> = rm.split("=").collect();
-                if split_rm.len() != 2 {
-                    panic!("Invalid remapping: {}", rm);
-                }
-                file_resolver
-                    .add_import_map(OsString::from(split_rm[0]), PathBuf::from(split_rm[1]))
-                    .unwrap();
+        for rm in &value.import_maps {
+            let split_rm: Vec<&str> = rm.split("=").collect();
+            if split_rm.len() != 2 {
+                panic!("Invalid remapping: {}", rm);
             }
+            let map = split_rm[0];
+            let path = split_rm[1];
+            file_resolver
+                .add_import_map(OsString::from(map), PathBuf::from(path))
+                .expect(format!("Failed to add import_map {} -> {}", map, path).as_str());
         }
 
         if let Some(allow_paths) = &value.solc_allow_paths {

@@ -446,3 +446,13 @@ pub fn print_experimental_feature_warning(feature: &str, version: &str) {
     );
     eprintln!("{}\n", italic.paint( "     Future updates may alter this feature's behavior, or remove this feature entirely, without warning."));
 }
+
+pub fn print_warning(warn: &str, message: &str) {
+    let yellow = ansi_term::Color::Yellow;
+    let bold = ansi_term::Style::new().bold();
+    let message_lines = message.split('\n');
+    eprintln!("{}: {}", yellow.paint("Warning"), bold.paint(warn));
+    for line in message_lines {
+        eprintln!("    {}", line,);
+    }
+}
