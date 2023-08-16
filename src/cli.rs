@@ -156,12 +156,12 @@ pub struct MutateParams {
     pub contract: Option<String>,
 
     /// Specify a directory to search for solidity files during import
-    #[arg(long = "import-path", short = 'I', conflicts_with = "json")]
+    #[arg(long = "import_path", short = 'I', conflicts_with = "json")]
     #[serde(default = "default_import_paths")]
     pub import_paths: Vec<String>,
 
     /// Map directory to search for solidity files [format: map=path]
-    #[arg(long = "import-map", short = 'm', conflicts_with = "json")]
+    #[arg(long = "import_map", short = 'm', conflicts_with = "json")]
     #[serde(default = "default_import_paths")]
     pub import_maps: Vec<String>,
 
@@ -170,7 +170,7 @@ pub struct MutateParams {
     pub solc_base_path: Option<String>,
 
     /// Deprecated: Include paths argument to solc (`--include-paths`)
-    #[arg(long = "solc-include-path", hide = true, conflicts_with = "json")]
+    #[arg(long = "solc_include_path", hide = true, conflicts_with = "json")]
     #[serde(default = "default_include_paths")]
     pub solc_include_paths: Vec<String>,
 
