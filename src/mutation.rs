@@ -5,7 +5,7 @@ use num_traits::{One, Signed, Zero};
 use serde::{Deserialize, Serialize};
 use solang::{
     file_resolver::FileResolver,
-    sema::ast::{CallTy, Expression, Namespace, RetrieveType, Statement, Type},
+    sema::ast::{CallTy, Expression, Function, Namespace, RetrieveType, Statement, Type},
 };
 use solang_parser::pt::{CodeLocation, Loc};
 use std::{
@@ -221,9 +221,12 @@ impl Debug for Mutant {
 /// Every kind of mutation implements this trait. A mutation can check if it
 /// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
+    fn mutate_function(&self, mutator: &Mutator, func: &Function) -> Vec<Mutant>;
+
     fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant>;
 
     fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
+
     fn mutate_expression_fallback(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
 
     /// Is a given mutation operator a fallback mutation?
@@ -231,6 +234,12 @@ pub trait Mutation {
 }
 
 /// Kinds of mutations.
+///
+/// Note: to add another mutation, do the following steps:
+/// 1. Add a new entry to the `MutationType` enum
+/// 2. Update `MutationType::to_string` w/ new mutation type
+/// 3. Update `MutationType::shortname` w/ new mutation type
+/// 4. Update `normalize_mutation_operator_name()` in `utils.rs` w/ new mutation type
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
     ArithmeticOperatorReplacement,
@@ -265,6 +274,10 @@ impl ToString for MutationType {
 }
 
 impl Mutation for MutationType {
+    fn mutate_function(&self, _mutator: &Mutator, _func: &Function) -> Vec<Mutant> {
+        vec![]
+    }
+
     fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant> {
         let file_no = stmt.loc().file_no();
         let resolver = &mutator.file_resolver;
