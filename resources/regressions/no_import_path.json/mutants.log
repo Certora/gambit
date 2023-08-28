@@ -1,0 +1,30 @@
+1,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,9:9,assert(c[0] == e),assert(true)
+2,ROR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,9:16,c[0] == e,false
+3,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,9:18,0,1
+4,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,13:9,return a + b,assert(true)
+5,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,13:18,+,-
+6,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,13:18,+,*
+7,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,13:18,+,/
+8,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,13:18,+,%
+9,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,19:44,1,0
+10,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,19:44,1,2
+11,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,20:9,a[0] = msg.sender,assert(true)
+12,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,20:11,0,1
+13,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,21:9,return a,assert(true)
+14,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,25:21,10,0
+15,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,25:21,10,11
+16,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,26:25,**,+
+17,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,26:25,**,-
+18,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,26:25,**,*
+19,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,26:25,**,/
+20,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,26:25,**,%
+21,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,27:9,return res,assert(true)
+22,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,31:9,assert(c[0] == e),assert(true)
+23,ROR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,31:16,c[0] == e,false
+24,LVR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,31:18,0,1
+25,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,36:9,"Utils.getarray(b, address(this))",assert(true)
+26,STD,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,40:9,return c + d,assert(true)
+27,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,40:18,+,-
+28,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,40:18,+,*
+29,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,40:18,+,/
+30,AOR,/Users/benku/Gambit/benchmarks/NoImportPath/contracts/C.sol,40:18,+,%
