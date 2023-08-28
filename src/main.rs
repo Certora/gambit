@@ -313,7 +313,7 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             let default_import_path = json_parent_directory.to_str().unwrap().to_string();
             print_warning(
                 "No `import_paths` specified in config",
-                format!("Adding default import path {}.\nTo fix, add    \"import_paths\": [\"{}\"],\nto {}", default_import_path, default_import_path, json_path).as_str(),
+                format!("Adding default import path {}.\nTo fix, add\n    \"import_paths\": [\"{}\"],\nto {}", default_import_path, default_import_path, json_path).as_str(),
             );
             import_paths.push(default_import_path);
         }
