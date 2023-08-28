@@ -456,3 +456,13 @@ pub fn print_warning(warn: &str, message: &str) {
         eprintln!("    {}", line,);
     }
 }
+
+pub fn print_error(err: &str, message: &str) {
+    let red = ansi_term::Color::Red;
+    let bold = ansi_term::Style::new().bold();
+    let message_lines = message.split('\n');
+    eprintln!("{}: {}", red.paint("Error"), bold.paint(err));
+    for line in message_lines {
+        eprintln!("    {}", line,);
+    }
+}

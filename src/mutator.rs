@@ -1,6 +1,6 @@
 use crate::{
     default_gambit_output_directory, mutation::MutationType, normalize_mutation_operator_name,
-    Mutant, MutateParams, Mutation, Solc,
+    print_error, Mutant, MutateParams, Mutation, Solc,
 };
 use clap::ValueEnum;
 use solang::{
@@ -158,9 +158,39 @@ impl From<&MutateParams> for Mutator {
             }
             let map = split_rm[0];
             let path = split_rm[1];
-            file_resolver
-                .add_import_map(OsString::from(map), PathBuf::from(path))
-                .expect(format!("Failed to add import_map {} -> {}", map, path).as_str());
+            // XXX: This is a hack to deal with a Solang bug, where mapping
+            // targets are canonicalized _before_ they are resolved against
+            // import paths. To work around this _we_ have to resolve against
+            // import paths! Rather than passing in a raw import target, we
+            // will manually resolve our target against any import paths
+
+            let target = if let Some(target) = value
+                .import_paths
+                .iter()
+                .filter_map(|p| PathBuf::from(p).join(path).canonicalize().ok())
+                .next()
+            {
+                target
+            } else {
+                print_error(
+                    format!("Could not resolve remapping target {}", path).as_str(),
+                    format!(
+                        "Attempted to resolve {} against one of import paths [{}]",
+                        path,
+                        value.import_paths.join(", ")
+                    )
+                    .as_str(),
+                );
+                std::process::exit(1);
+            };
+
+            if let Err(e) = file_resolver.add_import_map(OsString::from(map), PathBuf::from(target))
+            {
+                print_error(
+                    format!("Failed to add import map {}={}", map, path).as_str(),
+                    format!("Encountered error {}", e).as_str(),
+                )
+            }
         }
 
         if let Some(allow_paths) = &value.solc_allow_paths {
