@@ -1,6 +1,6 @@
 use crate::{
     default_gambit_output_directory, mutation::MutationType, normalize_mutation_operator_name,
-    print_error, Mutant, MutateParams, Mutation, Solc,
+    print_error, print_warning, Mutant, MutateParams, Mutation, Solc,
 };
 use clap::ValueEnum;
 use solang::{
@@ -139,14 +139,23 @@ impl From<&MutateParams> for Mutator {
 
         // Add base path to file resolver
         if value.import_paths.is_empty() {
-            file_resolver
-                .add_import_path(&PathBuf::from("."))
-                .expect(format!("Failed to add import path {}", ".").as_str());
+            print_error(
+                "No import paths found",
+                "Tried to create a Mutator without an import path",
+            );
+            std::process::exit(1);
         } else {
             for import_path in value.import_paths.iter() {
-                file_resolver
-                    .add_import_path(&PathBuf::from(import_path))
-                    .expect(format!("Failed to add import path {}", import_path).as_str());
+                if let Err(e) = file_resolver.add_import_path(&PathBuf::from(import_path)) {
+                    print_warning(
+                        "Could not add import path",
+                        format!(
+                            "Failed to add import path {}: encountered error {}",
+                            import_path, e
+                        )
+                        .as_str(),
+                    )
+                }
             }
         }
 
@@ -285,10 +294,16 @@ impl Mutator {
         log::info!("    {} functions", ns.functions.len());
         self.namespace = Some(ns.clone());
 
-        let resolved = self
-            .file_resolver
-            .resolve_file(None, OsStr::new(filename))
-            .expect(format!("Unable to resolve filename {}", filename).as_str());
+        let resolved = match self.file_resolver.resolve_file(None, OsStr::new(filename)) {
+            Ok(resolved) => resolved,
+            Err(e) => {
+                print_error(
+                    format!("Unable to resolve filename {}", filename).as_str(),
+                    format!("Found error {}", e).as_str(),
+                );
+                std::process::exit(1)
+            }
+        };
 
         let file_path = resolved.full_path.clone();
         log::info!(

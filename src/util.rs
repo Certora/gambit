@@ -460,9 +460,31 @@ pub fn print_warning(warn: &str, message: &str) {
 pub fn print_error(err: &str, message: &str) {
     let red = ansi_term::Color::Red;
     let bold = ansi_term::Style::new().bold();
-    let message_lines = message.split('\n');
     eprintln!("{}: {}", red.paint("Error"), bold.paint(err));
-    for line in message_lines {
-        eprintln!("    {}", line,);
+    if !message.trim().is_empty() {
+        let message_lines = message.split('\n');
+        for line in message_lines {
+            eprintln!("   {}", line,);
+        }
     }
+}
+
+pub fn print_file_not_found_error(filename: &str) {
+    let italic = ansi_term::Style::new().italic();
+    print_error(
+        format!("File not found: `{}`", italic.paint(filename)).as_str(),
+        "",
+    )
+}
+
+pub fn print_invalid_conf_missing_field_error(field: &str) {
+    let italic = ansi_term::Style::new().italic();
+    print_invalid_conf_error(
+        format!("missing field `{}`", italic.paint(field)).as_str(),
+        format!("All configurations must specify field `{}`", field).as_str(),
+    )
+}
+
+pub fn print_invalid_conf_error(reason: &str, msg: &str) {
+    print_error(format!("Invalid Configuration: {}", reason).as_str(), msg)
 }

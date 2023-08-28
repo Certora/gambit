@@ -78,7 +78,13 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
     let json_path = &params.json.ok_or("No JSON Path")?;
     log::info!("Running from configuration");
     // Run from config file
-    let json_contents = std::fs::read_to_string(json_path)?;
+    let json_contents = match std::fs::read_to_string(json_path) {
+        Ok(contents) => contents,
+        Err(e) => {
+            gambit::print_file_not_found_error(json_path);
+            Err(e)?
+        }
+    };
     let json: serde_json::Value = serde_json::from_reader(json_contents.as_bytes())?;
     log::info!("Read configuration json: {:#?}", json);
 
@@ -87,7 +93,11 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
     } else if json.is_object() {
         vec![serde_json::from_str(&json_contents)?]
     } else {
-        panic!("Invalid configuration file: must be an array or an object")
+        gambit::print_invalid_conf_error(
+            "must be an array or an object",
+            "All Gambit configurations must be a valid JSON array or JSON object",
+        );
+        std::process::exit(1);
     };
     log::debug!("Deserialized JSON into MutateParams: {:#?}", &mutate_params);
 
@@ -177,15 +187,25 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 
         // PARAM: Filename
         log::info!("    [.] Resolving params.filename");
-        let filename = p.filename.clone().expect("No filename in configuration");
+        let filename = match p.filename {
+            Some(ref f) => f.clone(),
+            None => {
+                gambit::print_invalid_conf_missing_field_error("filename");
+                std::process::exit(1);
+            }
+        };
         let filepath = PathBuf::from(&filename);
         let filepath = if filepath.is_absolute() {
             filepath
         } else {
             let joined = config_parent_pb.join(filepath);
-            joined
-                .canonicalize()
-                .expect(format!("Couldn't find file at {}", joined.display()).as_str())
+            match joined.canonicalize() {
+                Ok(p) => p,
+                Err(_) => {
+                    gambit::print_file_not_found_error(joined.to_str().unwrap());
+                    std::process::exit(1)
+                }
+            }
         };
 
         // PARAM: Outdir
@@ -235,19 +255,17 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         let mut import_paths = p
             .import_paths
             .iter()
-            .map(|ip| {
-                resolve_config_file_path(ip, &json_parent_directory)
-                    .expect(
-                        format!(
-                            "Could not canonicalize path {} with respect to {:?}",
-                            ip, &json_parent_directory
-                        )
-                        .as_str(),
-                    )
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-            })
+            .map(
+                |ip| match resolve_config_file_path(ip, &json_parent_directory) {
+                    Ok(p) => p.to_str().unwrap().to_string(),
+                    Err(_) => {
+                        gambit::print_file_not_found_error(
+                            json_parent_directory.join(ip).to_str().unwrap(),
+                        );
+                        std::process::exit(1);
+                    }
+                },
+            )
             .collect::<Vec<String>>();
 
         log::debug!(
@@ -256,17 +274,16 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         );
         if let Some(ref base_path) = p.solc_base_path {
             print_deprecation_warning("solc_base_path", "1.0.0", "Use import_path instead");
-            let base_path = resolve_config_file_path(&base_path, &json_parent_directory)
-                .expect(
-                    format!(
-                        "Could not canonicalize path {} with respect to {:?}",
-                        base_path, &json_parent_directory
-                    )
-                    .as_str(),
-                )
-                .to_str()
-                .unwrap()
-                .to_string();
+            let base_path = match resolve_config_file_path(&base_path, &json_parent_directory) {
+                Ok(p) => p.to_str().unwrap().to_string(),
+                Err(_) => {
+                    gambit::print_file_not_found_error(
+                        json_parent_directory.join(&base_path).to_str().unwrap(),
+                    );
+                    std::process::exit(1);
+                }
+            };
+
             if !import_paths.contains(&base_path) {
                 import_paths.push(base_path);
             }
@@ -276,17 +293,17 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         if !p.solc_include_paths.is_empty() {
             print_deprecation_warning("solc_include_path", "1.0.0", "Use import_path instead");
             for include_path in p.solc_include_paths.iter() {
-                let include_path = resolve_config_file_path(include_path, &json_parent_directory)
-                    .expect(
-                        format!(
-                            "Could not canonicalize path {} with respect to {:?}",
-                            include_path, &json_parent_directory
-                        )
-                        .as_str(),
-                    )
-                    .to_str()
-                    .unwrap()
-                    .to_string();
+                let include_path =
+                    match resolve_config_file_path(include_path, &json_parent_directory) {
+                        Ok(p) => p.to_str().unwrap().to_string(),
+                        Err(_) => {
+                            gambit::print_file_not_found_error(
+                                json_parent_directory.join(&include_path).to_str().unwrap(),
+                            );
+                            std::process::exit(1);
+                        }
+                    };
+
                 if !import_paths.contains(&include_path) {
                     import_paths.push(include_path);
                 }
@@ -360,14 +377,22 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     }
     // # Path Resolution for CLI Provided Parameters
     log::info!("    Performing File Resolution");
-    //                let filename = params.filename.expect("No provided filename");
 
     log::debug!("    [.] Resolving params.filename");
-    let filename = params
-        .filename
-        .clone()
-        .expect("No filename in configuration");
-    let filepath = PathBuf::from(&filename).canonicalize().unwrap();
+    let filename = match params.filename {
+        Some(ref f) => f.clone(),
+        None => {
+            gambit::print_invalid_conf_missing_field_error("filename");
+            std::process::exit(1);
+        }
+    };
+    let filepath = match PathBuf::from(&filename).canonicalize() {
+        Ok(path) => path,
+        Err(_) => {
+            gambit::print_file_not_found_error(&filename);
+            std::process::exit(1);
+        }
+    };
 
     if params.sourceroot.is_some() {
         print_deprecation_warning(
@@ -415,13 +440,16 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     let mut import_paths = params
         .import_paths
         .iter()
-        .map(|ip| {
-            PathBuf::from(ip)
-                .canonicalize()
-                .expect(format!("Could not canonicalize path {}", ip).as_str())
-                .to_str()
-                .unwrap()
-                .to_string()
+        .filter_map(|ip| {
+            if let Ok(path) = PathBuf::from(ip).canonicalize() {
+                Some(path.to_str().unwrap().to_string())
+            } else {
+                print_warning(
+                    "Import path not found",
+                    format!("Failed to resolve import path {}", ip).as_str(),
+                );
+                None
+            }
         })
         .collect::<Vec<String>>();
 
@@ -433,12 +461,13 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     );
     if let Some(ref base_path) = params.solc_base_path {
         print_deprecation_warning("--solc_base_path", "1.0.0", "Use --import_path/-I instead");
-        let base_path = PathBuf::from(&base_path)
-            .canonicalize()
-            .expect(format!("Could not canonicalize path {}", base_path).as_str())
-            .to_str()
-            .unwrap()
-            .to_string();
+        let base_path = match PathBuf::from(&base_path).canonicalize() {
+            Ok(p) => p.to_str().unwrap().to_string(),
+            Err(_) => {
+                gambit::print_file_not_found_error(base_path.as_str());
+                std::process::exit(1);
+            }
+        };
         if !import_paths.contains(&base_path) {
             import_paths.push(base_path);
         }
@@ -452,12 +481,13 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
             "Use --import_path/-I instead",
         );
         for include_path in params.solc_include_paths.iter() {
-            let include_path = PathBuf::from(&include_path)
-                .canonicalize()
-                .expect(format!("Could not canonicalize path {}", include_path).as_str())
-                .to_str()
-                .unwrap()
-                .to_string();
+            let include_path = match PathBuf::from(&include_path).canonicalize() {
+                Ok(p) => p.to_str().unwrap().to_string(),
+                Err(_) => {
+                    gambit::print_file_not_found_error(include_path.as_str());
+                    std::process::exit(1);
+                }
+            };
             if !import_paths.contains(&include_path) {
                 import_paths.push(include_path);
             }
