@@ -1,0 +1,10 @@
+[
+    {
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [
+            "aor"
+        ]
+    }
+]
