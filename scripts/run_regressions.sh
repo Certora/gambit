@@ -23,7 +23,7 @@ green_check=""
 red_x=""
 # shellcheck disable=SC1091
 source "$SCRIPTS/util.sh"
-GAMBIT="$SCRIPTS/.."
+GAMBIT="$(cd "$SCRIPTS"/.. && pwd)"
 GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
 REGRESSIONS="$GAMBIT"/resources/regressions
@@ -70,15 +70,20 @@ run_regressions() {
         conf=$(basename "$conf_path")
         regression_dir="$REGRESSIONS"/"$conf"
 
-        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $conf_path"
+        # Get relative paths for nice printing
+        rel_conf_path=$(python -c "import os.path; print( os.path.relpath('$conf_path', '$(pwd)'))")
+        rel_regression_dir=$(python -c "import os.path; print( os.path.relpath('$regression_dir', '$(pwd)'))")
+
+
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $rel_conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
         printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
         if diff -q -r gambit_out "$regression_dir" 1>/dev/null; then
-            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$green_check" "$regression_dir"
+            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$green_check" "$rel_regression_dir"
             printf "  %s No regressions in %s\n" "$green_check" "$conf"
             passed+=("$conf")
         else
-            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$red_x" "$regression_dir"
+            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$red_x" "$rel_regression_dir"
             diff -r gambit_out/mutants "$regression_dir"/mutants
             printf "  %s Found a regression in \033[3m%s\033[0m\n" "$red_x" "$conf"
             failed+=("$conf")
