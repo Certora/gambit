@@ -494,6 +494,9 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         }
         params.solc_include_paths = vec![];
     }
+    if import_paths.is_empty() {
+        import_paths.push(".".to_string());
+    }
 
     log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
 
