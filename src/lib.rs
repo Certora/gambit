@@ -135,7 +135,7 @@ pub fn run_mutate(
 
             // Check if we are filtering
             let mut solc = Solc::new(params.solc.clone(), outdir_path.clone());
-            solc.with_vfs_roots_from_params(&params);
+            solc.with_vfs_roots_from_params(params);
             let mut validator = Validator { solc };
             log::debug!("Validator: {:?}", validator);
             let (sampled, invalid) = if let Some(num_mutants) = params.num_mutants {

@@ -1,6 +1,6 @@
 use crate::{
     default_gambit_output_directory, mutation::MutationType, normalize_mutation_operator_name,
-    print_error, print_warning, Mutant, MutateParams, Mutation, Solc,
+    print_error, Mutant, MutateParams, Mutation, Solc,
 };
 use clap::ValueEnum;
 use solang::{
@@ -135,7 +135,7 @@ impl From<&MutateParams> for Mutator {
             filenames.push(filename.clone());
         }
 
-        let mut file_resolver = FileResolver::new();
+        let mut file_resolver = FileResolver::default();
 
         // Add base path to file resolver
         if value.import_paths.is_empty() {
@@ -146,22 +146,13 @@ impl From<&MutateParams> for Mutator {
             std::process::exit(1);
         } else {
             for import_path in value.import_paths.iter() {
-                if let Err(e) = file_resolver.add_import_path(&PathBuf::from(import_path)) {
-                    print_warning(
-                        "Could not add import path",
-                        format!(
-                            "Failed to add import path {}: encountered error {}",
-                            import_path, e
-                        )
-                        .as_str(),
-                    )
-                }
+                file_resolver.add_import_path(&PathBuf::from(import_path));
             }
         }
 
         // Add any remappings to file resolver
         for rm in &value.import_maps {
-            let split_rm: Vec<&str> = rm.split("=").collect();
+            let split_rm: Vec<&str> = rm.split('=').collect();
             if split_rm.len() != 2 {
                 panic!("Invalid remapping: {}", rm);
             }
@@ -193,27 +184,16 @@ impl From<&MutateParams> for Mutator {
                 std::process::exit(1);
             };
 
-            if let Err(e) = file_resolver.add_import_map(OsString::from(map), PathBuf::from(target))
-            {
-                print_error(
-                    format!("Failed to add import map {}={}", map, path).as_str(),
-                    format!("Encountered error {}", e).as_str(),
-                )
-            }
+            file_resolver.add_import_map(OsString::from(map), target);
         }
 
         if let Some(allow_paths) = &value.solc_allow_paths {
             for allow_path in allow_paths.iter() {
-                file_resolver
-                    .add_import_path(&PathBuf::from(allow_path))
-                    .expect(
-                        format!("Failed to add allow_path as import path: {}", allow_path).as_str(),
-                    )
+                file_resolver.add_import_path(&PathBuf::from(allow_path));
             }
         }
 
-        let mutator = Mutator::new(conf, file_resolver, filenames, solc);
-        mutator
+        Mutator::new(conf, file_resolver, filenames, solc)
     }
 }
 
@@ -241,11 +221,11 @@ impl Mutator {
     }
 
     pub fn mutation_operators(&self) -> &[MutationType] {
-        &self.conf.mutation_operators.as_slice()
+        self.conf.mutation_operators.as_slice()
     }
 
     pub fn fallback_mutation_operators(&self) -> &[MutationType] {
-        &self.conf.fallback_operators.as_slice()
+        self.conf.fallback_operators.as_slice()
     }
 
     /// Run all mutations! This is the main external entry point into mutation.
@@ -265,7 +245,7 @@ impl Mutator {
         for filename in filenames.iter() {
             log::info!("Mutating file {}", filename);
 
-            match self.mutate_file(&filename) {
+            match self.mutate_file(filename) {
                 Ok(file_mutants) => {
                     log::info!("    Generated {} mutants from file", file_mutants.len());
                 }
@@ -284,7 +264,7 @@ impl Mutator {
     fn mutate_file(&mut self, filename: &String) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
         log::info!("Parsing file {}", filename);
         let ns = Rc::new(parse_and_resolve(
-            &OsStr::new(filename),
+            OsStr::new(filename),
             &mut self.file_resolver,
             solang::Target::EVM,
         ));
@@ -310,7 +290,8 @@ impl Mutator {
             "Resolved {} to {:?} with import path {:?}",
             filename,
             resolved,
-            self.file_resolver.get_import_path(resolved.get_import_no())
+            self.file_resolver
+                .get_import_path(resolved.import_no.unwrap())
         );
         // mutate functions
         for function in ns.functions.iter() {
@@ -318,7 +299,7 @@ impl Mutator {
             let file = ns.files.get(function.loc.file_no());
             match file {
                 Some(file) => {
-                    if &file.path != &file_path {
+                    if file.path != file_path {
                         continue;
                     }
                 }
@@ -362,7 +343,7 @@ impl Mutator {
     }
 
     pub fn apply_operators_to_expression(&mut self, expr: &Expression) {
-        if let Some(_) = expr.loc().try_file_no() {
+        if expr.loc().try_file_no().is_some() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
                 if op.is_fallback_mutation(self) {
@@ -375,7 +356,7 @@ impl Mutator {
     }
 
     pub fn apply_fallback_operators_to_expression(&mut self, expr: &Expression) {
-        if let Some(_) = expr.loc().try_file_no() {
+        if expr.loc().try_file_no().is_some() {
             let mut mutants = vec![];
             for op in self.fallback_mutation_operators() {
                 mutants.append(&mut op.mutate_expression_fallback(self, expr));
@@ -385,7 +366,7 @@ impl Mutator {
     }
 
     pub fn apply_operators_to_statement(&mut self, stmt: &Statement) {
-        if let Some(_) = stmt.loc().try_file_no() {
+        if stmt.loc().try_file_no().is_some() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
                 mutants.append(&mut op.mutate_statement(self, stmt));

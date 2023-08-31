@@ -153,9 +153,9 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             print_experimental_feature_warning("fallback_mutations", "1.0.0");
         }
         if let Some(ref mutations) = p.mutations {
-            let evr = normalize_mutation_operator_name(&"evr".to_string());
+            let evr = normalize_mutation_operator_name("evr");
             for mutation in mutations {
-                if normalize_mutation_operator_name(&mutation) == evr {
+                if normalize_mutation_operator_name(mutation) == evr {
                     print_experimental_feature_warning(
                         "MutationType::ExpressionValueReplacement",
                         "1.0.0",
@@ -164,9 +164,9 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             }
         }
         if let Some(ref mutations) = p.fallback_mutations {
-            let evr = normalize_mutation_operator_name(&"evr".to_string());
+            let evr = normalize_mutation_operator_name("evr");
             for mutation in mutations {
-                if normalize_mutation_operator_name(&mutation) == evr {
+                if normalize_mutation_operator_name(mutation) == evr {
                     print_experimental_feature_warning(
                         "MutationType::ExpressionValueReplacement",
                         "1.0.0",
@@ -274,11 +274,11 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         );
         if let Some(ref base_path) = p.solc_base_path {
             print_deprecation_warning("solc_base_path", "1.0.0", "Use import_path instead");
-            let base_path = match resolve_config_file_path(&base_path, &json_parent_directory) {
+            let base_path = match resolve_config_file_path(base_path, &json_parent_directory) {
                 Ok(p) => p.to_str().unwrap().to_string(),
                 Err(_) => {
                     gambit::print_file_not_found_error(
-                        json_parent_directory.join(&base_path).to_str().unwrap(),
+                        json_parent_directory.join(base_path).to_str().unwrap(),
                     );
                     std::process::exit(1);
                 }
@@ -298,7 +298,7 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
                         Ok(p) => p.to_str().unwrap().to_string(),
                         Err(_) => {
                             gambit::print_file_not_found_error(
-                                json_parent_directory.join(&include_path).to_str().unwrap(),
+                                json_parent_directory.join(include_path).to_str().unwrap(),
                             );
                             std::process::exit(1);
                         }
@@ -354,9 +354,9 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         print_experimental_feature_warning("--fallback_mutations", "1.0.0");
     }
     if let Some(ref mutations) = params.mutations {
-        let evr = normalize_mutation_operator_name(&"evr".to_string());
+        let evr = normalize_mutation_operator_name("evr");
         for mutation in mutations {
-            if normalize_mutation_operator_name(&mutation) == evr {
+            if normalize_mutation_operator_name(mutation) == evr {
                 print_experimental_feature_warning(
                     "MutationType::ExpressionValueReplacement",
                     "1.0.0",
@@ -365,9 +365,9 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         }
     }
     if let Some(ref mutations) = params.fallback_mutations {
-        let evr = normalize_mutation_operator_name(&"evr".to_string());
+        let evr = normalize_mutation_operator_name("evr");
         for mutation in mutations {
-            if normalize_mutation_operator_name(&mutation) == evr {
+            if normalize_mutation_operator_name(mutation) == evr {
                 print_experimental_feature_warning(
                     "MutationType::ExpressionValueReplacement",
                     "1.0.0",

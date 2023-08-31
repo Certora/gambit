@@ -5,7 +5,7 @@ use tempfile::Builder;
 /// optionally providing a return type
 pub fn wrap_and_write_solidity_to_temp_file(
     statements: &[&str],
-    params: &Vec<&str>,
+    params: &[&str],
     returns: Option<&str>,
 ) -> std::io::Result<PathBuf> {
     // Wrap statements in a Solidity function and contract
@@ -36,7 +36,7 @@ pub fn write_solidity_to_temp_file(sol: String) -> std::io::Result<PathBuf> {
 }
 
 /// Wrap solidity code in a contract/function
-pub fn wrap_solidity(statements: &[&str], returns: Option<&str>, params: &Vec<&str>) -> String {
+pub fn wrap_solidity(statements: &[&str], returns: Option<&str>, params: &[&str]) -> String {
     let returns = if let Some(returns) = returns {
         format!("({})", returns)
     } else {

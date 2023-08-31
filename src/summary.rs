@@ -99,7 +99,7 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
                     for (_, m) in mutant_summary_entries.iter().enumerate() {
                         if let Some(e) = m {
                             if mids.contains(&e.mid) {
-                                print_mutant_summary(&m, short);
+                                print_mutant_summary(m, short);
                             }
                         }
                     }
@@ -188,7 +188,7 @@ fn get_mutant_summary(i: usize, mutant_json: &Value) -> Option<MutantSummaryEntr
             mutant_json
         );
     }
-    return None;
+    None
 }
 
 /// Print a mutant summary, or a warning if a value is poorly formed.
@@ -245,14 +245,12 @@ fn print_long_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>) {
     }
 }
 
-fn print_statistics(summaries: &Vec<Option<MutantSummaryEntry>>) {
+fn print_statistics(summaries: &[Option<MutantSummaryEntry>]) {
     let mut op_freq: HashMap<String, usize> = HashMap::new();
     let total_mutants = summaries.iter().filter(|s| s.is_some()).count();
-    for summary in summaries {
-        if let Some(summary) = summary {
-            let op = summary.op_short.clone();
-            op_freq.insert(op.clone(), op_freq.get(&op).unwrap_or(&0) + 1);
-        }
+    for summary in summaries.iter().flatten() {
+        let op = summary.op_short.clone();
+        op_freq.insert(op.clone(), op_freq.get(&op).unwrap_or(&0) + 1);
     }
     for (op, freq) in op_freq.iter() {
         println!(

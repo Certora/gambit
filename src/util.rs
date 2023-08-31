@@ -8,7 +8,6 @@ use std::{
 use ansi_term::{ANSIGenericString, Color, Style};
 use solang::{file_resolver::FileResolver, sema::ast::Statement};
 
-static EQUAL: &str = "=";
 pub static DEFAULT_GAMBIT_OUTPUT_DIRECTORY: &str = "gambit_out";
 
 pub fn default_gambit_output_directory() -> String {
@@ -49,56 +48,6 @@ pub fn get_indent(line: &str) -> String {
         }
     }
     res
-}
-
-/// Resolve a remapping path.
-///
-/// A remapping string is of the form `@aave=path/to/aave-gho/node_modules/@aave`.
-/// This is of the form `@NAME=PATH`. This function separates `PATH` from the
-/// remapping string, resolves `PATH` with respect to the optional
-/// `resolve_against` (defaults to '.' if `None` is provided), canonicalizes the
-/// resolved path, and repackages a new canonical remapping string.
-///
-/// # Arguments
-///
-/// * `remap_str` - the remapping string whose path needs to be resolved
-/// * `resolve_against` - an optional path that `remap_str`'s PATH will be
-///   resolved against---by default (i.e., if `None` is provided), this is
-///   treated as `"."`
-pub fn repair_remapping(remap_str: &str, resolve_against: Option<&str>) -> String {
-    log::debug!(
-        "Repairing remap {} against path {:?}",
-        remap_str,
-        &resolve_against
-    );
-    let against_path_str = if let Some(p) = resolve_against {
-        p
-    } else {
-        "."
-    };
-    let parts: Vec<&str> = remap_str.split(EQUAL).collect();
-    assert_eq!(
-        parts.len(),
-        2,
-        "repair_remappings: remapping must have the shape @foo=bar/baz/blip, please check {}.",
-        remap_str
-    );
-    let lhs = parts[0];
-    let rhs = parts[1];
-    let resolved_path = PathBuf::from(against_path_str)
-        .join(rhs)
-        .canonicalize()
-        .expect(
-            format!(
-                "Unable to resolve remapping target `{}` against base path `{}`",
-                rhs, against_path_str
-            )
-            .as_str(),
-        );
-    let resolved = resolved_path.to_str().unwrap();
-    let result = lhs.to_owned() + EQUAL + resolved;
-    log::debug!("Repaired to {}", result);
-    result
 }
 
 type CommandOutput = (Option<i32>, Vec<u8>, Vec<u8>);
@@ -279,27 +228,6 @@ mod tests {
         )
     }
 
-    // Note: I'm ignoring the following two tests. I've updated
-    // `repair_remapping` to use `fs::canonicalize()` which requires a path to
-    // exist. This makes writing these tests a bit trickier.
-    #[ignore]
-    #[test]
-    fn test_remapping1() {
-        let aave = "@aave=../../../Test/aave-gho/node_modules/@aave";
-        let base = ".";
-        let res = "@aave=../../../Test/aave-gho/node_modules/@aave";
-        assert_eq!(repair_remapping(aave, Some(base)), res)
-    }
-
-    #[ignore]
-    #[test]
-    fn test_remapping2() {
-        let aave = "@aave=/Test/aave-gho/node_modules/@aave";
-        let base = "/foo/bar";
-        let res = "@aave=/Test/aave-gho/node_modules/@aave";
-        assert_eq!(repair_remapping(aave, Some(base)), res)
-    }
-
     use crate::simplify_path;
     use std::path::PathBuf;
 
@@ -358,9 +286,9 @@ pub fn normalize_path(path: &Path) -> PathBuf {
     ret
 }
 
-pub fn normalize_mutation_operator_name(op_name: &String) -> String {
+pub fn normalize_mutation_operator_name(op_name: &str) -> String {
     let tmp = op_name.to_lowercase();
-    let tmp = tmp.replace("_", "-");
+    let tmp = tmp.replace('_', "-");
     let op_name_lower = tmp.as_str();
     match op_name_lower {
         "aor" | "arithmetic-operator-replacement" => "arithmetic-operator-replacement",
@@ -402,11 +330,18 @@ pub fn statement_type(stmt: &Statement) -> &str {
 }
 
 /// Get the import path, if available, from resolver for the import_no
-pub fn get_import_path(resolver: &FileResolver, import_no: usize) -> Option<PathBuf> {
-    match resolver.get_import_path(import_no) {
-        Some(&(_, ref b)) => Some(b.clone()),
+pub fn get_sol_path(resolver: &FileResolver, file: &solang::sema::ast::File) -> Option<PathBuf> {
+    let import_paths = resolver.get_import_paths();
+    let path = &file.path;
+    for import_path in import_paths.iter().filter_map(|p| match p {
+        (None, ip) => Some(ip),
         _ => None,
+    }) {
+        if let Ok(rel_path) = path.strip_prefix(import_path) {
+            return Some(rel_path.to_path_buf());
+        }
     }
+    None
 }
 
 /// Print a deprecation warning to stderr

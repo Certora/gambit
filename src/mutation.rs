@@ -1,4 +1,4 @@
-use crate::{get_import_path, get_indent, Mutator};
+use crate::{get_indent, get_sol_path, print_error, print_warning, Mutator};
 use clap::ValueEnum;
 use num_bigint::BigInt;
 use num_traits::{One, Signed, Zero};
@@ -50,27 +50,36 @@ impl MutantLoc {
         let file = namespace.files.get(loc.file_no()).unwrap();
         let (line_no, col_no) = file.offset_to_line_column(loc.start());
         let path = file.path.clone();
-        let import_path = get_import_path(
-            resolver,
-            file.import_no
-                .expect("Expected an import no but found None"),
-        )
-        .expect("Expected an import path but found None");
-        let sol_path = path
-            .strip_prefix(&import_path)
-            .expect(
+
+        let sol_path = if let Some(sol_path) = get_sol_path(resolver, file) {
+            sol_path
+        } else if let Ok(can_path) = file.path.canonicalize() {
+            print_warning(
+                "File Not In Import Paths",
                 format!(
-                    "Could not strip prefix {:?} from path {:?}",
-                    &import_path, &path
+                    "File {} not a part of any import paths. Using canonical path {}",
+                    file.path.display(),
+                    can_path.display()
                 )
                 .as_str(),
-            )
-            .to_path_buf();
+            );
+            can_path
+        } else {
+            print_error(
+                "File Not In Import Paths",
+                format!(
+                    "File {} not a part of any import paths and could not canonicalize.",
+                    file.path.display()
+                )
+                .as_str(),
+            );
+            std::process::exit(1);
+        };
 
         MutantLoc {
             loc,
-            line_no: line_no,
-            col_no: col_no,
+            line_no,
+            col_no,
             path,
             sol_path: Some(sol_path),
         }
@@ -184,7 +193,7 @@ impl Mutant {
         }
 
         // XXX: this is a hack to avoid trailing newline diffs
-        if contents.chars().last().unwrap() == '\n' {
+        if contents.ends_with('\n') {
             lines2.push("");
         }
         Ok(lines2.join("\n"))
@@ -288,7 +297,7 @@ impl Mutation for MutationType {
             .clone();
         let contents = resolver.get_contents_of_file_no(file_no).unwrap();
         let loc = stmt.loc();
-        if let None = loc.try_file_no() {
+        if loc.try_file_no().is_none() {
             return vec![];
         }
         match self {
@@ -433,7 +442,10 @@ fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Loc {
             let op = get_operator(expr);
             let substr = &source[start..end];
             let first_op_char = op.chars().next().unwrap();
-            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).expect(
+            let op_offset_in_substr = match substr.chars().position(|c| c == first_op_char) {
+                Some(x) => x,
+                None => {
+                    print_error(format!("Could not find start/end to operator {:?}", op).as_str(),
                 format!(
                     "Error finding start/end to operator {:?} in substring {}\nExpression: {:?}\nFile: {}, Pos: {:?}",
                     op,
@@ -442,8 +454,12 @@ fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Loc {
                     left.loc().file_no(),
                     (start, end)
                 )
-                .as_str(),
-            );
+                .as_str()
+                );
+                    std::process::exit(1);
+                }
+            };
+
             let op_start = start + (op_offset_in_substr as usize);
             let op_end = op_start + op.len();
             left.loc().with_start(op_start).with_end(op_end)
@@ -457,7 +473,7 @@ fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Loc {
             let substr = &source[start..end];
             let first_op_char = op.chars().next().unwrap();
             let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
-            let op_start = start + (op_offset_in_substr as usize);
+            let op_start = start + op_offset_in_substr;
             let op_end = op_start + op.len();
             base.loc().with_start(op_start).with_end(op_end)
         }
@@ -484,7 +500,7 @@ fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Loc {
             let substr = &source[start..end];
             let first_op_char = op.chars().next().unwrap();
             let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
-            let op_start = start + (op_offset_in_substr as usize);
+            let op_start = start + op_offset_in_substr;
             let op_end = op_start + op.len();
             cond.loc().with_start(op_start).with_end(op_end)
         }
@@ -536,10 +552,13 @@ fn arith_op_replacement(
 ) -> Vec<Mutant> {
     let loc = expr.loc();
     let arith_op = get_operator(expr);
-    let rs = vec!["+", "-", "*", "/", "**", "%"];
-    let mut replacements: Vec<&str> = rs.iter().filter(|x| **x != arith_op).map(|x| *x).collect();
+    let mut replacements: Vec<&str> = ["+", "-", "*", "/", "**", "%"]
+        .iter()
+        .filter(|x| **x != arith_op)
+        .copied()
+        .collect();
 
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
     match expr {
@@ -550,11 +569,7 @@ fn arith_op_replacement(
         | Expression::Add { .. } => {
             if let Type::Int(_) = expr.ty() {
                 // When we're signed, filter out `**`, which is illegal
-                replacements = replacements
-                    .iter()
-                    .filter(|x| **x != "**")
-                    .map(|x| *x)
-                    .collect();
+                replacements.retain(|x| *x != "**");
             };
 
             let op_loc = get_op_loc(expr, contents);
@@ -565,9 +580,9 @@ fn arith_op_replacement(
                         file_resolver,
                         namespace.clone(),
                         op_loc,
-                        op.clone(),
+                        *op,
                         arith_op.to_string(),
-                        format!("{}", r),
+                        r.to_string(),
                     )
                 })
                 .collect()
@@ -581,9 +596,9 @@ fn arith_op_replacement(
                         file_resolver,
                         namespace.clone(),
                         op_loc,
-                        op.clone(),
+                        *op,
                         arith_op.to_string(),
-                        format!("{}", r),
+                        r.to_string(),
                     )
                 })
                 .collect()
@@ -600,7 +615,7 @@ fn bitwise_op_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
     match expr {
@@ -610,7 +625,7 @@ fn bitwise_op_replacement(
                 file_resolver,
                 namespace,
                 op_loc,
-                op.clone(),
+                *op,
                 "|".to_string(),
                 "&".to_string(),
             )]
@@ -621,7 +636,7 @@ fn bitwise_op_replacement(
                 file_resolver,
                 namespace,
                 op_loc,
-                op.clone(),
+                *op,
                 "&".to_string(),
                 "|".to_string(),
             )]
@@ -632,7 +647,7 @@ fn bitwise_op_replacement(
                 file_resolver,
                 namespace,
                 op_loc,
-                op.clone(),
+                *op,
                 "^".to_string(),
                 "&".to_string(),
             )]
@@ -650,7 +665,7 @@ fn literal_value_replacement(
 ) -> Vec<Mutant> {
     let loc = expr.loc();
     let orig = source[loc.start()..loc.end()].to_string();
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
     // We are only replacing BoolLiterals, NumberLiterals, and
@@ -700,7 +715,7 @@ fn literal_value_replacement(
             file_resolver,
             namespace.clone(),
             loc,
-            op.clone(),
+            *op,
             orig.clone(),
             r.clone(),
         ));
@@ -716,7 +731,7 @@ fn logical_op_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
 
@@ -747,7 +762,7 @@ fn logical_op_replacement(
                     file_resolver,
                     namespace.clone(),
                     loc,
-                    op.clone(),
+                    *op,
                     orig.clone(),
                     repl,
                 )
@@ -756,7 +771,7 @@ fn logical_op_replacement(
                 file_resolver,
                 namespace.clone(),
                 loc,
-                op.clone(),
+                *op,
                 orig.clone(),
                 r.to_string(),
             ),
@@ -774,7 +789,7 @@ fn rel_op_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
 
@@ -834,7 +849,7 @@ fn rel_op_replacement(
                 file_resolver,
                 namespace.clone(),
                 loc,
-                op.clone(),
+                *op,
                 expr_string.to_string(),
                 r.to_string(),
             ),
@@ -845,7 +860,7 @@ fn rel_op_replacement(
                 file_resolver,
                 namespace.clone(),
                 rel_op_loc,
-                op.clone(),
+                *op,
                 rel_op_string.clone(),
                 r.to_string(),
             ),
@@ -862,7 +877,7 @@ fn shift_op_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
     match expr {
@@ -872,7 +887,7 @@ fn shift_op_replacement(
                 file_resolver,
                 namespace,
                 op_loc,
-                op.clone(),
+                *op,
                 "<<".to_string(),
                 ">>".to_string(),
             )]
@@ -883,7 +898,7 @@ fn shift_op_replacement(
                 file_resolver,
                 namespace,
                 op_loc,
-                op.clone(),
+                *op,
                 ">>".to_string(),
                 "<<".to_string(),
             )]
@@ -925,7 +940,7 @@ fn statement_deletion(
             file_resolver,
             namespace,
             loc,
-            op.clone(),
+            *op,
             orig,
             "assert(true)".to_string(),
         )],
@@ -937,7 +952,7 @@ fn statement_deletion(
             file_resolver,
             namespace,
             loc,
-            op.clone(),
+            *op,
             orig,
             "assert(true)".to_string(),
         )],
@@ -953,10 +968,9 @@ fn unary_op_replacement(
 ) -> Vec<Mutant> {
     let loc = expr.loc();
     let unary_op = get_operator(expr);
-    let rs = vec!["-", "~"];
-    let replacements: Vec<&&str> = rs.iter().filter(|x| **x != unary_op).collect();
+    let replacements: Vec<&&str> = ["-", "~"].iter().filter(|x| **x != unary_op).collect();
 
-    if let None = loc.try_file_no() {
+    if loc.try_file_no().is_none() {
         return vec![];
     }
     let muts = match expr {
@@ -969,7 +983,7 @@ fn unary_op_replacement(
                         file_resolver,
                         namespace.clone(),
                         op_loc,
-                        op.clone(),
+                        *op,
                         "~".to_string(),
                         format!(" {} ", r),
                     )
@@ -1011,10 +1025,10 @@ fn elim_delegate_mutation(
             let delegate_call_end = delegate_call_start + 12;
 
             vec![Mutant::new(
-                &file_resolver,
+                file_resolver,
                 namespace,
                 Loc::File(loc.file_no(), delegate_call_start, delegate_call_end),
-                op.clone(),
+                *op,
                 "delegatecall".to_string(),
                 "call".to_string(),
             )]
@@ -1082,7 +1096,7 @@ fn expression_value_replacement(
 
         Expression::InternalFunctionCall { returns, .. }
         | Expression::ExternalFunctionCall { returns, .. } => match &returns[..] {
-            [ty] => defaults_by_type(&ty),
+            [ty] => defaults_by_type(ty),
             _ => vec![],
         },
 
@@ -1099,7 +1113,7 @@ fn expression_value_replacement(
             file_resolver,
             namespace.clone(),
             loc,
-            op.clone(),
+            *op,
             expr_string.to_string(),
             r.to_string(),
         ));
@@ -1540,10 +1554,6 @@ contract A {
             .rand_bytes(5)
             .tempdir_in(source.parent().unwrap())?;
         let mut mutator = make_mutator(ops, &vec![], source, outdir.into_path());
-        mutator
-            .file_resolver
-            .add_import_path(&PathBuf::from("/"))
-            .unwrap();
         let sources = mutator.filenames().clone();
         mutator.mutate(sources)?;
 
@@ -1607,10 +1617,7 @@ contract A {
         //         println!("  {}: {:?}", i + 1, &s);
         //     }
         // }
-        mutator
-            .file_resolver
-            .add_import_path(&PathBuf::from("/"))
-            .unwrap();
+        mutator.file_resolver.add_import_path(&PathBuf::from("/"));
         let sources = mutator.filenames().clone();
         mutator.mutate(sources)?;
 
@@ -1634,8 +1641,8 @@ contract A {
 
         let sources = vec![filename.to_str().unwrap().to_string()];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
-        let mut cache = FileResolver::new();
-        cache.add_import_path(&PathBuf::from("/")).unwrap();
+        let mut cache = FileResolver::default();
+        cache.add_import_path(&PathBuf::from(""));
         Mutator::new(conf, cache, sources, solc)
     }
 }
