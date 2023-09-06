@@ -2,7 +2,7 @@
 
 Gambit is a state-of-the-art mutation system for Solidity.
 By applying predefined syntax transformations called _mutation operators_ (for
-  example, `a + b` -> `a - b`) to a Solidity program's source code, Gambit
+  example, convert `a + b` to `a - b`) to a Solidity program's source code, Gambit
   generates variants of the program called _mutants_.
 Mutants can be used to evaluate test suites or specs used for formal
   verification: each mutant represents a potential bug in the program, and
@@ -12,8 +12,8 @@ Mutants can be used to evaluate test suites or specs used for formal
 
 1. Gambit is written in Rust. You'll need to [install Rust and
    Cargo](https://www.rust-lang.org/tools/install) to build Gambit.
-2. Gambit uses the solc, the Solidity compiler, to generate mutants. You'll need
-   to have solc binary that is compatable with the project you are mutating (see
+2. Gambit uses `solc`, the Solidity compiler, to generate mutants. You'll need
+   to have a `solc` binary that is compatible with the project you are mutating (see
    the `--solc` option in `gambit mutate --help`)
 
 ## Installation
@@ -21,7 +21,7 @@ Mutants can be used to evaluate test suites or specs used for formal
 You can download prebuilt Gambit binaries for Mac and Linux from our
 [releases](https://github.com/Certora/gambit/releases) page.
 
-To build Gambit from source, clone this repository and run
+To build Gambit from source, clone [the Gambit repository](https://github.com/Certora/gambit) and run
 
 ```
 cargo install --path .
@@ -41,10 +41,10 @@ Gambit has two main commands: `mutate` and `summary`. `gambit mutate` is
 responsible for mutating code, and `gambit summary` is a convenience command for
 summarizing generated mutants in a human-readable way.
 
-Running `gambit mutate` will invoke the solidity compiler via `solc`, so make
+Running `gambit mutate` will invoke `solc`, so make
 sure it is visible on your `PATH`. Alternatively, you can specify where Gambit can
 find the Solidity compiler with the option `--solc path/to/solc`, or specify a
-version of solc (e.g., solc8.12) with the option `--solc solc8.12`.
+`solc` binary (e.g., `solc8.12`) with the option `--solc solc8.12`.
 
 _**Note:** All tests (`cargo test`) are currently run using solc8.13. Your tests may fail if your `solc` points at
   a different version of the compiler._
@@ -65,7 +65,7 @@ instead:
 
 ```bash
 gambit mutate --json gambit_conf.json
-``` 
+```
 
 Run `gambit --help` for more information.
 
@@ -78,25 +78,27 @@ In the following section we provide examples of how to run Gambit using both
 
 ## Examples
 
-Unless otherwise noted, examples use code from `benchmarks/` and are run from
-the root of this repository.
+Unless otherwise noted, examples use code from [benchmarks/](https://github.com/Certora/gambit/tree/master/benchmarks)
+and are run from the root of the [Gambit repository](https://github.com/Certora/gambit).
 
-### Example 1: Mutating a Single File
+### Example 1: Mutating a single file
 
 To mutate a single file, use the `--filename` option (or `-f`), followed by the
 file to mutate.
 
 ```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol                          
+gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol
 ```
 <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
 Generated 34 mutants in 0.69 seconds
 </pre>
 
-_**Note:** The mutated file must located within your current working directory or
+_**Note:**
+The mutated file must located within your current working directory or
 one of its subdirectories. If you want to mutate code in an arbitrary directory,
-use the `--sourceroot` option._
+use the `--sourceroot` option.
+_
 
 ### Example 2: Mutating and Downsampling
 
@@ -417,8 +419,8 @@ passed directly to solc. All pass-through arguments are prefixed with `solc-`:
 | :-------------------- | :---------------------------------------------------------------------------- |
 | `--solc_base_path`    | passes a value to solc's `--base-path` argument                               |
 | `--solc_allow_paths`  | passes a value to solc's `--allow-paths` argument                             |
-| `--solc_include_path` | passes a value to solc's `--include-path` argument                           |
-| `--solc_remappings`    | passes a value to directly to solc: this should be of the form `prefix=path`. |
+| `--solc_include_path` | passes a value to solc's `--include-path` argument                            |
+| `--solc_remappings`   | passes a value to directly to solc: this should be of the form `prefix=path`. |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
