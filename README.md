@@ -46,8 +46,10 @@ sure it is visible on your `PATH`. Alternatively, you can specify where Gambit c
 find the Solidity compiler with the option `--solc path/to/solc`, or specify a
 `solc` binary (e.g., `solc8.12`) with the option `--solc solc8.12`.
 
-_**Note:** All tests (`cargo test`) are currently run using solc8.13. Your tests may fail if your `solc` points at
-  a different version of the compiler._
+_**Note:**
+All tests (`cargo test`) are currently run using solc8.13. Your tests may fail if your `solc` points at
+  a different version of the compiler.
+ _
 
 ### Running  `gambit mutate` 
 
@@ -116,7 +118,9 @@ Generated 3 mutants in 0.15 seconds
 </pre>
 
 ### Example 3: Viewing Gambit results
-_**Note:** this example assumes you've just completed Example 2_
+_**Note:**
+This example assumes you've just completed Example 2.
+_
 
 Gambit outputs all of its results in `gambit_out`:
 
@@ -371,7 +375,6 @@ to the `benchmarks/` directory the `"filename"` would need to be updated to
 `BinaryOpMutation/BinaryOpMutation.sol`.
 
 <!-- ANCHOR: (results-directory)= -->
-
 ## Results Directory
 
 `gambit mutate` produces all results in an output directory (default:
