@@ -132,12 +132,7 @@ jobs:
             gh release upload $TAG gambit-macos-$TAG/gambit-macos-$TAG
           fi
 
-name: Check RTD Docs
-
-on: [push]
-
-jobs:
-  test:
+  check-docs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
