@@ -315,7 +315,7 @@ For projects that have complex dependencies and imports, you may need to:
 
   ```bash
   gambit mutate --filename path/to/file.sol \
-    --solc_remappings @openzepplin=node_modules/@openzeppelin @foo=node_modules/@foo
+    --solc_remappings @openzeppelin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
 * **Specify allow paths:** To include additional allowed paths via `solc`'s
