@@ -139,7 +139,7 @@ jobs:
         uses: actions/checkout@v2
       
       - name: Check that RTD Docs are Up To Date
-        run: python3 scripts/check_rtd_docs_up_to_date.py
+        run: python3 scripts/check_rtd_docs_up_to_date.py --branch bkushigian/fix_gambit_readme
       
       - name: Check Exit Code
         run: |
