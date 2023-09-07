@@ -131,3 +131,25 @@ jobs:
             gh release upload $TAG gambit-linux-$TAG/gambit-linux-$TAG
             gh release upload $TAG gambit-macos-$TAG/gambit-macos-$TAG
           fi
+
+name: Check RTD Docs
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Check that RTD Docs are Up To Date
+        run: python3 scripts/check_rtd_docs_up_to_date.py
+      
+      - name: Check Exit Code
+        run: |
+          if [[ $? -ne 0 ]]; then
+            echo "Error: documentation is not synced"
+            exit 1
+          fi
+
