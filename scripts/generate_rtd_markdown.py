@@ -56,14 +56,42 @@ def get_anchor(line: str) -> Optional[str]:
     return anchor
 
 
-def translate(readme_file_path: str) -> str:
+def is_suppress(line: str) -> bool:
+    return "<!--SUPPRESS-->" == line.upper().replace(" ", "").strip()
+
+
+def is_end_suppress(line: str) -> bool:
+    return "<!--ENDSUPPRESS-->" == line.upper().replace(" ", "").strip()
+
+
+def is_emit(line: str) -> bool:
+    return "<!--EMIT:" == line.upper().replace(" ", "").strip()
+
+
+def is_escaped_open_comment(line: str) -> bool:
+    return line.strip() == r"<\!--"
+
+
+def is_escaped_closed_comment(line: str) -> bool:
+    return line.strip() == r"--\>"
+
+
+def translate_readme_to_rtd(readme_file_path: str) -> str:
     with open(readme_file_path) as f:
         original = f.read()
         lines = original.split("\n")
     lines2 = []
 
+    suppress_start = -1  # Track if we are suppressing
     note_start = -1  # Track if we've started a note
+    emit_start = -1
     for i, line in enumerate(lines):
+        # First, check if we are suppressing
+        if suppress_start > -1:
+            if is_end_suppress(line):
+                suppress_start = -1
+            continue
+
         anchor = get_anchor(line)
         if anchor is not None:
             lines2.append(anchor)
@@ -82,6 +110,33 @@ def translate(readme_file_path: str) -> str:
         elif note_start > -1 and line.strip() == "_":
             note_start = -1
             lines2.append("```")
+
+        elif is_emit(line):
+            if emit_start > 0:
+                raise RuntimeError(
+                    f"Cannot start a new emit on line {i+1}: already in an emit started at line {emit_start+1}"
+                )
+            emit_start = i
+
+        elif line.strip() == "-->" and emit_start > -1:
+            emit_start = -1
+
+        # Handle escaped comments from inside of an emit
+        elif is_escaped_open_comment(line) and emit_start > -1:
+            lines2.append("<!--")
+        elif is_escaped_closed_comment(line) and emit_start > -1:
+            lines2.append("-->")
+
+        elif is_suppress(line):
+            if suppress_start > 0:
+                raise RuntimeError(
+                    f"Cannot start a new suppression on line {i+1}: already in a suppression tag started at line {suppress_start+1}"
+                )
+            suppress_start = i
+        elif is_end_suppress(line):
+            raise RuntimeError(
+                f"Illegal end suppress on line {i+1}: not currently in a suppress"
+            )
         else:
             # replace internal links
             l = replace_internal_references(line)
@@ -97,7 +152,7 @@ def main():
     parser.add_argument("--output", "-o", default="gambit.md", help="output file")
 
     args = parser.parse_args()
-    rtd = translate(args.readme_file)
+    rtd = translate_readme_to_rtd(args.readme_file)
     with open(args.output, "w+") as f:
         print("Writing to", args.output)
         f.write(rtd)

@@ -1,5 +1,149 @@
 # Gambit: Mutant Generation for Solidity
 
+<!-- SUPPRESS --> 
+
+<!-- NOTE: IF YOU EDIT THIS FILE!!!
+
+  # Keep In Sync With ReadTheDocs
+
+
+  This documentation appears in two locations: 
+  - here (the Gambit repo), and
+  - https://github.com/Certora/Documentation/docs/gambit/gambit.md (used to
+    generate the ReadTheDocs documentation at
+    https://docs.certora.com/en/latest/docs/gambit/gambit.html)
+
+  Unfortunately we cannot simply copy this file the Certora Documentation repo:
+  the formats are slightly different (I describe how below). To solve this we
+  _generate_ the RTD docs from this file.
+
+
+  ## Steps to Sync With RTD
+  
+
+  1. Run `python scripts/generate_rtd_markdown.py README.md`
+
+     This will create `./gambit.md`
+
+  2. Move this generated `gambit.md` to location `docs/gambit/gambit.md` in the
+     Certora Documentation repository (https://github.com/Certora/Documentation)
+  
+  3. Create a new PR in https://github.com/Certora/Documentation with the new
+     Gambit docs
+  
+
+
+  ## Checking RTDs are Up To Date
+
+
+  In addition to translating this document to the RTD format,
+  `generate_rtd_markdown.py` also adds the md5 checksum of the original
+  `README.md` contents to an HTML comment in the translated `gambit.md`:
+
+  ```
+  <\!-- signature: CHECKSUM --\> 
+  ```
+
+  You can check to ensure that the current version of `docs/gambit/gambit.md` in
+  the Certora Documentation repo is up to date with the version of the
+  `README.md` in your working tree by running
+
+  To check that this file and RTD Gambit docs are in sync, run:
+
+  ```
+  python scripts/check_rtd_docs_upt_to_date.py
+  ```
+  
+  You can optionally specify a `--branch` argument to choose another branch in
+  the Certora Documentation repo (default is `'master'`)
+
+
+  ## Markdown Format Differences
+
+
+  1. Internal Links:
+
+     ```markdown
+     [Link Title](#link-title) becomes
+     ```
+     
+     ```markdown
+     {ref}`link-title`
+     ```
+
+     Note that `link-title` needs to target an _anchor_, which we describe in
+     item 2.
+
+  2. Anchors:
+     
+     To link to internal locations the RTD documentation expects an _anchor_:
+
+     ```markdown
+     (heading-title)=
+     ## Heading Title
+     ```
+
+     Then the 
+
+     ```markdown
+     {ref}`heading-title`
+     ```
+     
+    internal link will point to the `## Heading Title` section.
+
+    Raw markdown doesn't support this syntax, so we use an HTML comment
+    containing the contents "ANCHOR (content-title)=":
+
+    ```markdown
+    <!-- ANCHOR (heading-title)=   -- >
+    ```
+
+    Note that I intentionally added a space to the close comment tag because
+    that would terminate this entire comment :)
+  
+  3. Notes:
+
+     RTD uses admonition-style notes:
+
+     ```{note}
+     Some note goes here
+     ```
+
+     We don't have access tho this here, so I've implemented a simple system,
+     where all notes begin with a line containing:
+
+     ```markdown
+     _**Note:**
+     ```
+
+     and end with a line containing only:
+
+     ```markdown
+     _
+     ```
+
+     So, a full note would look like:
+
+     ```markdown
+     _**Note:**
+     This is a note. The opening tag is on its own line, and the closing italic
+     is on its own line. This is to make parsing easy, and to keep diffs minimal!
+     ```
+     
+-->
+
+<!-- END SUPPRESS -->
+
+<!-- EMIT:
+<\!--
+  WARNING: AUTO_GENERATED DOCUMENTATION
+
+  The following documentation is automatlically generated from the Gambit
+  README.md located at https://github.com/Certora/Gambit/README.md. Please view
+  this document for instructions on producing this file.
+--\>
+-->
+
 Gambit is a state-of-the-art mutation system for Solidity.
 By applying predefined syntax transformations called _mutation operators_ (for
   example, convert `a + b` to `a - b`) to a Solidity program's source code, Gambit
@@ -47,9 +191,9 @@ find the Solidity compiler with the option `--solc path/to/solc`, or specify a
 `solc` binary (e.g., `solc8.12`) with the option `--solc solc8.12`.
 
 _**Note:**
-All tests (`cargo test`) are currently run using solc8.13. Your tests may fail if your `solc` points at
-  a different version of the compiler.
- _
+All tests (`cargo test`) are currently run using `solc8.13`. Your tests may fail
+  if your `solc` points at a different version of the compiler.
+_
 
 ### Running  `gambit mutate` 
 
@@ -153,7 +297,7 @@ For instance, `gambit summary --mids 3 4 5`  will only print info for mutant ids
 3 through 5.
 
 
-### Example 4: Specifying solc pass-through arguments
+### Example 4: Specifying `solc` pass-through arguments
 The Solidity compiler (`solc`) may need some extra information to successfully
 run on a file or a project.  Gambit enables this with _pass-through arguments_
 that, as the name suggests, are passed directly through to the `solc` compiler.
@@ -457,6 +601,7 @@ Gambit implements the following mutation operators
 
 For more details on each mutation type, refer to the [full documentation](https://docs.certora.com/en/latest/docs/gambit/gambit.html#mutation-types).
 
+<!-- SUPPRESS -->
 ## Contact
 If you have ideas for interesting mutations or other features,
 we encourage you to make a PR or [email](mailto:chandra@certora.com) us.
@@ -467,6 +612,7 @@ We thank
 [Vishal Canumalla](https://homes.cs.washington.edu/~vishalc/)
 for their excellent contributions to an earlier prototype of Gambit.
 
+<!-- END SUPPRESS -->
 
 [config-examples]: https://github.com/Certora/gambit/blob/master/benchmarks/config-jsons/
 [test6]: https://github.com/Certora/gambit/blob/master/benchmarks/config-jsons/test6.json
