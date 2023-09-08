@@ -136,28 +136,30 @@
 <\!--
   WARNING: AUTO_GENERATED DOCUMENTATION
 
-  The following documentation is automatlically generated from the Gambit
+  The following documentation is automatically generated from the Gambit
   README.md located at https://github.com/Certora/Gambit/README.md. Please view
   this document for instructions on producing this file.
 --\>
 -->
 # Gambit: Mutant Generation for Solidity
 
-Gambit is a state-of-the-art mutation system for Solidity.
-By applying predefined syntax transformations called _mutation operators_ (for
-  example, convert `a + b` to `a - b`) to a Solidity program's source code, Gambit
-  generates variants of the program called _mutants_.
-Mutants can be used to evaluate test suites or specs used for formal
-  verification: each mutant represents a potential bug in the program, and
-  stronger test suites and specifications should detect more mutants.
+Gambit is a state-of-the-art mutant generation system for Solidity.  By applying
+predefined syntax transformations called _mutation operators_ (for example,
+convert `a + b` to `a - b`) to a Solidity program's source code, Gambit
+generates variants of the program called _mutants_.
+Mutants are used to evaluate a test suite or a specification: each mutant
+represents a potential bug in the program, and stronger test suites and
+specifications should detect more mutants as faulty.
 
 ## Requirements
 
 1. Gambit is written in Rust. You'll need to [install Rust and
    Cargo](https://www.rust-lang.org/tools/install) to build Gambit.
-2. Gambit uses `solc`, the Solidity compiler, to generate mutants. You'll need
-   to have a `solc` binary that is compatible with the project you are mutating (see
-   the `--solc` option in `gambit mutate --help`)
+2. Gambit uses the `solc` Solidity compiler to validate generated mutants. By
+  default Gambit looks for `solc` on `$PATH`. Users can specify a particular
+  `solc` executable with the `--solc` option, or disable validation entirely
+  with `gambit mutate --skip_validate` (see `gambit mutate --help` for more
+  details).
 
 ## Installation
 
@@ -174,59 +176,151 @@ from this repository's root. This will build Gambit and install it to a globally
 location on your `PATH`.
 
 You can also build gambit with `cargo build --release` from the root of this
-repository.  This will create a `gambit` binary in `gambit/target/release/`
-which you can manually place on your path or invoke directly (e.g., by calling
-`path/to/gambit/target/release/gambit`).
+repository.  This will create the `target/release/gambit` binary which you can
+manually place on your path or invoke directly.
 
 ## Usage
 
-Gambit has two main commands: `mutate` and `summary`. `gambit mutate` is
-responsible for mutating code, and `gambit summary` is a convenience command for
-summarizing generated mutants in a human-readable way.
+Gambit has two main commands: `mutate` and `summary`. The `mutate` command is
+responsible for mutating code. The `summary` command allows the user to get
+a high level summary of the results of an execution of `gambit mutate`.
 
-Running `gambit mutate` will invoke `solc`, so make
-sure it is visible on your `PATH`. Alternatively, you can specify where Gambit can
-find the Solidity compiler with the option `--solc path/to/solc`, or specify a
-`solc` binary (e.g., `solc8.12`) with the option `--solc solc8.12`.
 
-_**Note:**
-All tests (`cargo test`) are currently run using `solc8.13`. Your tests may fail
-  if your `solc` points at a different version of the compiler.
-_
+<!-- SUPPRESS -->
+## Testing
 
-### Running  `gambit mutate` 
-
-The `gambit mutate` command expects either a `--filename` argument or a `--json`
-argument.  Using `--filename` allows you to specify a specific Solidity file to
-mutate:
-
-```bash
-gambit mutate --filename file.sol
-```
-
-However, if you want to mutate multiple files or apply a more complex set of
-parameters, we recommend using a configuration file via the `--json` option
-instead:
-
-```bash
-gambit mutate --json gambit_conf.json
-```
-
-Run `gambit --help` for more information.
+Gambit has _unit tests_ and _regression tests_. Run unit tests with `cargo
+test`.
 
 _**Note:**
-All relative paths specified in a JSON configuration file are interpreted
-to be relative to the configuration file's parent directory.
+All unit tests (`cargo test`) are currently run using `solc8.13`. Tests may fail
+if `solc` points at a different version of the compiler.
 _
 
-In the following section we provide examples of how to run Gambit using both
-`--filename` and `--json`. We provide more complete documentation in the
-[Configuration Files](#configuration-files) and [CLI-Options](#cli-options) sections below.
+Run regression tests with `scripts/run_regressions.sh`.  This script runs
+`gambit mutate` on all configuration files in `benchmarks/config-jsons` and
+compares the output against the expected output in `resources/regressions`.
+
+_**Note:**
+To update regression tests (e.g., in case of new test cases, new mutation
+operators, altered mutation operators, etc), use the
+`scripts/make_regressions.sh` script.
+-
+
+<!-- END SUPPRESS -->
+
+### The  `mutate` command
+
+The `mutate` command expects a filename `gambit mutate file.sol` or a
+configuration file `gambit mutate --json gambit_conf.json`. The `mutate` command
+does the following:
+
+1. **Parse:** Gambit begins by parsing the specified Solidity files provided on
+   command line or in the configuration file
+
+2. **Function filters:** The `mutate` command provides the `--functions` and
+  `--contract` to allow users to filter which functions should be mutated. When
+  `--functions` is specified, Gambit will only mutate functions with a name
+  contained in the provided list of functions. When `--contract` is specified,
+  Gambit will only mutate functions within the specified contract. If neither
+  option is specified, Gambit will mutate all functions.
+
+3. **Mutation:** Next, Gambit recursively visits the body of each function
+   retained in (2) and applies a set of mutation operators. If no mutation operators are
+   specified then Gambit uses a default set of mutation operators; otherwise,
+   Gambit uses only those mutation operators that are specified.
+
+4. **Validation:** By default Gambit will _validate_ each
+   generated mutant by compiling it with the `solc` compiler. If compilation
+   fails Gambit will not export the mutant. Validation can be skipped with the
+   `--skip_validate` option. To log invalidated mutants, use the `--log_invalid`
+   option.
+
+5. **Down sampling:** If the user provides the `--num_mutants n` argument,
+   Gambit will randomly down sample to `n` mutants.
+  
+6. **Write to disk:** After all mutants are generated, validated, and optionally
+   down sampled, the `mutate` writes the results to disk. This includes 
+   as well as specify several
+
+### The `summary` command
+
+The `summary` command allows the user to see a summary of a `mutate` run:
+
+<pre>
+$ gambit mutate benchmarks/Ops/AOR/AOR.sol
+Generated 27 mutants in 0.41 seconds
+
+$ gambit summary
+
+STD:      5 ( 18.52%)
+AOR:     22 ( 81.48%)
+---------------------
+TOT:     27 (100.00%)
+</pre>
+
+To print the diffs of specific mutants, pass the `--mids` option:
+
+<pre>
+$ gambit summary --mids 1 2
+
+             === Mutant ID: 1 [StatementDeletion] ===
+
+--- original
++++ mutant
+@@ -9,8 +9,9 @@
+     // a * b
+     // a / b
+     // a % b
++    /// StatementDeletion(`return a + b` |==> `assert(true)`) of: `return a + b;`
+     function plus(int256 a, int256 b) public pure returns (int256) {
+-        return a + b;
++        assert(true);
+     }
+
+     // Expect 4 mutants:
+
+Path: mutants/1/benchmarks/Ops/AOR/AOR.sol
+
+
+             === Mutant ID: 2 [ArithmeticOperatorReplacement] ===
+
+--- original
++++ mutant
+@@ -9,8 +9,9 @@
+     // a * b
+     // a / b
+     // a % b
++    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`
+     function plus(int256 a, int256 b) public pure returns (int256) {
+-        return a + b;
++        return a - b;
+     }
+
+     // Expect 4 mutants:
+
+Path: mutants/2/benchmarks/Ops/AOR/AOR.sol
+</pre>
+
+Pass the `--short` option to print a shorter summary of each mutant:
+
+<pre>
+$ gambit summary --mids 1 2 3 4 5 --short
+(1) STD [mutants/1/benchmarks/Ops/AOR/AOR.sol@13:9] return a + b -> assert(true)
+(2) AOR [mutants/2/benchmarks/Ops/AOR/AOR.sol@13:18] + -> -
+(3) AOR [mutants/3/benchmarks/Ops/AOR/AOR.sol@13:18] + -> *
+(4) AOR [mutants/4/benchmarks/Ops/AOR/AOR.sol@13:18] + -> /
+(5) AOR [mutants/5/benchmarks/Ops/AOR/AOR.sol@13:18] + -> %
+</pre>
 
 ## Examples
 
-Unless otherwise noted, examples use code from [benchmarks/](https://github.com/Certora/gambit/tree/master/benchmarks)
-and are run from the root of the [Gambit repository](https://github.com/Certora/gambit).
+In this section we provide examples of how to run Gambit.  We provide more
+complete documentation in the [Configuration Files](#configuration-files) and
+[CLI-Options](#cli-options) sections below.  Unless otherwise noted, examples
+use code from
+[benchmarks/](https://github.com/Certora/gambit/tree/master/benchmarks) and are
+run from the root of the [Gambit repository](https://github.com/Certora/gambit).
 
 ### Example 1: Mutating a single file
 
