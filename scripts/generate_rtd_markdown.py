@@ -7,7 +7,6 @@ Generate RTD version of the Gambit README
 from argparse import ArgumentParser
 from typing import Optional
 import re
-import hashlib
 
 
 def line_is_anchor(line: str) -> bool:
@@ -141,8 +140,6 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
             # replace internal links
             l = replace_internal_references(line)
             lines2.append(l.strip("\n"))
-    signature = hashlib.md5(original.encode()).hexdigest()
-    lines2.append(f"<!-- signature: {signature} -->")
     return "\n".join(lines2) + "\n"
 
 
