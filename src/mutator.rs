@@ -107,30 +107,30 @@ impl std::fmt::Debug for Mutator {
 }
 
 impl From<&MutateParams> for Mutator {
-    fn from(value: &MutateParams) -> Self {
-        let conf = MutatorConf::from(value);
+    fn from(params: &MutateParams) -> Self {
+        let conf = MutatorConf::from(params);
         let mut solc = Solc::new(
-            value.solc.clone(),
-            value
+            params.solc.clone(),
+            params
                 .outdir
                 .clone()
                 .unwrap_or(default_gambit_output_directory())
                 .into(),
         );
-        solc.with_optimize(value.solc_optimize);
+        solc.with_optimize(params.solc_optimize);
 
-        if let Some(basepath) = value.solc_base_path.clone() {
+        if let Some(basepath) = params.solc_base_path.clone() {
             solc.with_basepath(basepath);
         }
-        if let Some(allowpaths) = value.solc_allow_paths.clone() {
+        if let Some(allowpaths) = params.solc_allow_paths.clone() {
             solc.with_allow_paths(allowpaths);
         }
-        if let Some(remappings) = value.solc_remappings.clone() {
+        if let Some(remappings) = params.solc_remappings.clone() {
             solc.with_remappings(remappings);
         }
 
         let mut filenames: Vec<String> = vec![];
-        if let Some(filename) = &value.filename {
+        if let Some(filename) = &params.filename {
             log::info!("Creating Source from filename: {}", filename);
             filenames.push(filename.clone());
         }
@@ -138,20 +138,20 @@ impl From<&MutateParams> for Mutator {
         let mut file_resolver = FileResolver::default();
 
         // Add base path to file resolver
-        if value.import_paths.is_empty() {
+        if params.import_paths.is_empty() {
             print_error(
                 "No import paths found",
                 "Tried to create a Mutator without an import path",
             );
             std::process::exit(1);
         } else {
-            for import_path in value.import_paths.iter() {
+            for import_path in params.import_paths.iter() {
                 file_resolver.add_import_path(&PathBuf::from(import_path));
             }
         }
 
         // Add any remappings to file resolver
-        for rm in &value.import_maps {
+        for rm in &params.import_maps {
             let split_rm: Vec<&str> = rm.split('=').collect();
             if split_rm.len() != 2 {
                 panic!("Invalid remapping: {}", rm);
@@ -164,7 +164,7 @@ impl From<&MutateParams> for Mutator {
             // import paths! Rather than passing in a raw import target, we
             // will manually resolve our target against any import paths
 
-            let target = if let Some(target) = value
+            let target = if let Some(target) = params
                 .import_paths
                 .iter()
                 .filter_map(|p| PathBuf::from(p).join(path).canonicalize().ok())
@@ -177,7 +177,7 @@ impl From<&MutateParams> for Mutator {
                     format!(
                         "Attempted to resolve {} against one of import paths [{}]",
                         path,
-                        value.import_paths.join(", ")
+                        params.import_paths.join(", ")
                     )
                     .as_str(),
                 );
@@ -187,7 +187,7 @@ impl From<&MutateParams> for Mutator {
             file_resolver.add_import_map(OsString::from(map), target);
         }
 
-        if let Some(allow_paths) = &value.solc_allow_paths {
+        if let Some(allow_paths) = &params.solc_allow_paths {
             for allow_path in allow_paths.iter() {
                 file_resolver.add_import_path(&PathBuf::from(allow_path));
             }

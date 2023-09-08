@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use clap::Parser;
 use gambit::{
     default_gambit_output_directory, normalize_mutation_operator_name, normalize_path,
-    print_deprecation_warning, print_experimental_feature_warning, print_version, print_warning,
-    run_mutate, run_summary, Command, MutateParams,
+    print_deprecation_warning, print_error, print_experimental_feature_warning, print_version,
+    print_warning, run_mutate, run_summary, Command, MutateParams,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -495,7 +495,19 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         params.solc_include_paths = vec![];
     }
     if import_paths.is_empty() {
-        import_paths.push(".".to_string());
+        let default_import_path = PathBuf::from(".")
+            .canonicalize()
+            .ok()
+            .map(|x| x.to_str().unwrap().to_string());
+        if let Some(path) = default_import_path {
+            import_paths.push(path);
+        } else {
+            print_error(
+                "Import Path Error",
+                "Could not canonicalize default import path '.'",
+            );
+            std::process::exit(1);
+        }
     }
 
     log::debug!("    [->] Resolved params.import_paths: {:?}", import_paths);
