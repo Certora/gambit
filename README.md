@@ -1,5 +1,3 @@
-# Gambit: Mutant Generation for Solidity
-
 <!-- SUPPRESS --> 
 
 <!-- NOTE: IF YOU EDIT THIS FILE!!!
@@ -143,6 +141,7 @@
   this document for instructions on producing this file.
 --\>
 -->
+# Gambit: Mutant Generation for Solidity
 
 Gambit is a state-of-the-art mutation system for Solidity.
 By applying predefined syntax transformations called _mutation operators_ (for
