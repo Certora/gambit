@@ -329,14 +329,14 @@ pub fn statement_type(stmt: &Statement) -> &str {
     }
 }
 
-pub fn get_sol_path(resolver: &FileResolver, file: &solang::sema::ast::File) -> Option<PathBuf> {
+/// Get the import path, if available, from resolver for the import_no
+pub fn get_sol_path(resolver: &FileResolver, filepath: &Path) -> Option<PathBuf> {
     let import_paths = resolver.get_import_paths();
-    let path = &file.path;
     for import_path in import_paths.iter().filter_map(|p| match p {
-        (None, ip) => ip.canonicalize().ok(),
+        (None, ip) => Some(ip),
         _ => None,
     }) {
-        if let Ok(rel_path) = path.strip_prefix(import_path) {
+        if let Ok(rel_path) = filepath.strip_prefix(import_path) {
             return Some(rel_path.to_path_buf());
         }
     }

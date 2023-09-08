@@ -1,6 +1,6 @@
 use crate::{
-    default_gambit_output_directory, mutation::MutationType, normalize_mutation_operator_name,
-    print_error, Mutant, MutateParams, Mutation, Solc,
+    default_gambit_output_directory, get_sol_path, mutation::MutationType,
+    normalize_mutation_operator_name, print_error, Mutant, MutateParams, Mutation, Solc,
 };
 use clap::ValueEnum;
 use solang::{
@@ -262,6 +262,18 @@ impl Mutator {
 
     /// Mutate a single file.
     fn mutate_file(&mut self, filename: &String) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
+        // Check if we can mutate path
+        let sol_path = get_sol_path(&self.file_resolver, &PathBuf::from(filename));
+        if sol_path.is_none() {
+            let import_paths: Vec<String> = self
+                .file_resolver
+                .get_import_paths()
+                .iter()
+                .map(|p| p.1.to_str().unwrap().to_string())
+                .collect();
+            print_error("File Not In Import Paths", format!("Could not mutate file {}:\nFile could not be resolved against any provided import paths.\nImport Paths: {:?}", filename, import_paths).as_str());
+            std::process::exit(1);
+        }
         log::info!("Parsing file {}", filename);
         let ns = Rc::new(parse_and_resolve(
             OsStr::new(filename),

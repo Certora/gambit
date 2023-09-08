@@ -51,7 +51,7 @@ impl MutantLoc {
         let (line_no, col_no) = file.offset_to_line_column(loc.start());
         let path = file.path.clone();
 
-        let sol_path = if let Some(sol_path) = get_sol_path(resolver, file) {
+        let sol_path = if let Some(sol_path) = get_sol_path(resolver, &file.path) {
             sol_path
         } else if let Ok(can_path) = file.path.canonicalize() {
             print_warning(
