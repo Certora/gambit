@@ -223,10 +223,10 @@ does the following:
   specified, Gambit will only mutate functions within the specified contract. If
   neither option is specified, Gambit will mutate all functions.
 
-3. **Mutation:** Next, Gambit recursively visits the body of each function
-   retained in (2) and applies the mutation operators specified by the user;
-   if no mutation operators were specified then Gambit uses a default set of
-   mutation operators.
+3. **Mutation:** Gambit recursively visits the body of each function retained in
+   (2) and applies the mutation operators specified by the user; if no mutation
+   operators were specified then Gambit uses a default set of mutation
+   operators.
 
 4. **Validation:** By default Gambit will _validate_ each
    generated mutant by compiling it with the `solc` compiler. If compilation
