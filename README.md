@@ -324,22 +324,43 @@ run from the root of the [Gambit repository](https://github.com/Certora/gambit).
 
 ### Example 1: Mutating a single file
 
-To mutate a single file, use the `--filename` option (or `-f`), followed by the
-file to mutate.
+To mutate a single file, call `gambit mutate` with the filename as an argument:
 
 ```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol
+gambit mutate -f benchmarks/Ops/AOR/AOR.sol
 ```
 <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
-Generated 34 mutants in 0.69 seconds
+Generated 27 mutants in 0.42 seconds
 </pre>
 
-_**Note:**
-The mutated file must be located within your current working directory or
-one of its subdirectories. If you want to mutate code in an arbitrary directory,
-use the `--sourceroot` option.
-_
+If the mutated file is not located in your current working directory (or one of
+its subdirectories), you will need to specify an import path. Running:
+
+
+```
+mkdir tmp
+cd tmp
+gambit mutate ../benchmarks/Ops/AOR/AOR.sol
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
+Error: File Not In Import Paths
+   Could not mutate file /Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol:
+   File could not be resolved against any provided import paths.
+   Import Paths: ["/Users/benku/Gambit/tmp"]
+</pre>
+
+By specifying an import path that contains the mutated file with `-I ..` ,
+Gambit is able to resolve the provided filename.
+
+```
+gambit mutate ../benchmarks/Ops/AOR/AOR.sol -I ..
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
+Generated 27 mutants in 0.42 seconds
+</pre>
 
 ### Example 2: Mutating and downsampling
 
@@ -347,9 +368,10 @@ The above command produced 34 mutants which may be more than you need. Gambit
 provides a way to randomly downsample the number of mutants with the
 `--num_mutants` or `-n` option:
 
-```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
 ```
+gambit mutate benchmarks/Ops/AOR/AOR.sol --num_mutants 3
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
 Generated 3 mutants in 0.15 seconds
 </pre>
