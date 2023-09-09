@@ -230,10 +230,11 @@ does the following:
 
 4. **Validation:** By default Gambit will _validate_ each
    generated mutant by compiling it with the `solc` compiler. If compilation
-   fails Gambit will not export the mutant. Validation can be skipped with the
+   fails Gambit will not export the mutant to disk or report it in
+   `gambit_results.json` or `mutants.log`. Validation can be skipped with the
    `--skip_validate` option. To log invalidated mutants, use the `--log_invalid`
    option.
-
+   
 5. **Down sampling:** If the user provides the `--num_mutants n` argument,
    Gambit will randomly down sample to `n` mutants.
   
