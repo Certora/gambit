@@ -138,6 +138,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       
+      - name: PIP install
+        run: pip install ansi
+
       - name: Check that RTD Docs are Up To Date
         run: python3 scripts/check_rtd_docs_up_to_date.py
       
