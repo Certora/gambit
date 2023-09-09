@@ -7,7 +7,6 @@ Generate RTD version of the Gambit README
 from argparse import ArgumentParser
 from typing import Optional
 import re
-import hashlib
 
 
 def line_is_anchor(line: str) -> bool:
@@ -72,6 +71,16 @@ def is_escaped_open_comment(line: str) -> bool:
     return line.strip() == r"<\!--"
 
 
+def is_note_end(line: str) -> bool:
+    """
+    A note ends when a line is ended by an underscore. We double check to ensure
+    that the line doesn't end with two underscores.
+    """
+    l = line.strip()
+    if l.endswith("_"):
+        return len(l) == 1 or l[-2] != "_"
+
+
 def is_escaped_closed_comment(line: str) -> bool:
     return line.strip() == r"--\>"
 
@@ -107,8 +116,9 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
                 f"Illegal note start on line {i+1}: new note tags '_**Note:**' and their closing '_' must be on their own lines"
             )
 
-        elif note_start > -1 and line.strip() == "_":
+        elif is_note_end(line):
             note_start = -1
+            lines2.append(line.rstrip("\n").rstrip("_"))
             lines2.append("```")
 
         elif is_emit(line):
@@ -141,8 +151,6 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
             # replace internal links
             l = replace_internal_references(line)
             lines2.append(l.strip("\n"))
-    signature = hashlib.md5(original.encode()).hexdigest()
-    lines2.append(f"<!-- signature: {signature} -->")
     return "\n".join(lines2) + "\n"
 
 
