@@ -29,28 +29,26 @@
   3. Create a new PR in https://github.com/Certora/Documentation with the new
      Gambit docs
   
+  4. Create a new PR in Gambit repo. Note that CI will check that the RTD
+     documentation is up to date (see section "Checking RTDs are Up To Date"
+     below). If this fails, CI will also fail, and you will be unable to merge
+     into `master` until changes to the Gambit README are propagated to the RTD
+     docs.
+  
+  5. Once the PR from (3) is merged and CI is passing in this repository, merge
+     the PR from (4) into master.
 
 
   ## Checking RTDs are Up To Date
 
-
-  In addition to translating this document to the RTD format,
-  `generate_rtd_markdown.py` also adds the md5 checksum of the original
-  `README.md` contents to an HTML comment in the translated `gambit.md`:
-
-  ```
-  <\!-- signature: CHECKSUM --\> 
-  ```
-
-  You can check to ensure that the current version of `docs/gambit/gambit.md` in
-  the Certora Documentation repo is up to date with the version of the
-  `README.md` in your working tree by running
-
-  To check that this file and RTD Gambit docs are in sync, run:
+  To check that the RTD Gambit docs are in sync with Gambit's README, run
 
   ```
   python scripts/check_rtd_docs_upt_to_date.py
   ```
+
+  This will translate the Gambit README to a string, pull the RTD docs from the
+  Github Repo, and do a equality check on the two strings.
   
   You can optionally specify a `--branch` argument to choose another branch in
   the Certora Documentation repo (default is `'master'`)
@@ -107,17 +105,17 @@
      Some note goes here
      ```
 
-     We don't have access tho this here, so I've implemented a simple system,
+     We don't have access to this here, so I've implemented a simple system,
      where all notes begin with a line containing:
 
      ```markdown
      _**Note:**
      ```
 
-     and end with a line containing only:
+     and end with a line ending with `_`:
 
      ```markdown
-     _
+     and this is the last line of my note._
      ```
 
      So, a full note would look like:
@@ -125,7 +123,8 @@
      ```markdown
      _**Note:**
      This is a note. The opening tag is on its own line, and the closing italic
-     is on its own line. This is to make parsing easy, and to keep diffs minimal!
+     is at the end of the final line. This is to make parsing easy, and to keep
+     diffs minimal!_
      ```
      
 -->
