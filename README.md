@@ -224,9 +224,9 @@ does the following:
   neither option is specified, Gambit will mutate all functions.
 
 3. **Mutation:** Next, Gambit recursively visits the body of each function
-   retained in (2) and applies a set of mutation operators. If no mutation operators are
-   specified then Gambit uses a default set of mutation operators; otherwise,
-   Gambit uses only those mutation operators that are specified.
+   retained in (2) and applies the mutation operators specified by the user;
+   if no mutation operators were specified then Gambit uses a default set of
+   mutation operators.
 
 4. **Validation:** By default Gambit will _validate_ each
    generated mutant by compiling it with the `solc` compiler. If compilation
