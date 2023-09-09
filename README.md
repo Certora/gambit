@@ -194,8 +194,7 @@ test`.
 
 _**Note:**
 All unit tests (`cargo test`) are currently run using `solc8.13`. Tests may fail
-if `solc` points at a different version of the compiler.
-_
+if `solc` points at a different version of the compiler._
 
 Run regression tests with `scripts/run_regressions.sh`.  This script runs
 `gambit mutate` on all configuration files in `benchmarks/config-jsons` and
@@ -204,8 +203,7 @@ compares the output against the expected output in `resources/regressions`.
 _**Note:**
 To update regression tests (e.g., in case of new test cases, new mutation
 operators, altered mutation operators, etc), use the
-`scripts/make_regressions.sh` script.
--
+`scripts/make_regressions.sh` script.-
 
 <!-- END SUPPRESS -->
 
@@ -339,8 +337,7 @@ $ gambit summary --mids 1 2 3 4 5 --short
 
 _**Note:**
 The `summary` command is currently experimental, and its output and interface
-may change in future releases.
-_
+may change in future releases._
 
 ## Examples
 
@@ -407,8 +404,7 @@ Generated 3 mutants in 0.15 seconds
 
 ### Example 3: Viewing Gambit results
 _**Note:**
-This example assumes you've just completed Example 2.
-_
+This example assumes you've just completed Example 2._
 
 Gambit outputs all of its results in `gambit_out`:
 
@@ -502,8 +498,7 @@ paths (both original and mutated) are reported relative to this source root.
 
 _**Note:**
 If Gambit encounters a source file that does not belong to the source root it
-will print an error message and exit.
-_
+will print an error message and exit._
 
 _When running `gambit mutate` with the `--filename` option,
 source root defaults to the current working directory.
@@ -597,8 +592,7 @@ examples.
 
 _**Note:**
 Any paths provided by the configuration file are resolved relative to the
-configuration file's parent directory.
-_
+configuration file's parent directory._
 
 <!-- ANCHOR: (configuration-files)= -->
 ## Configuration Files
