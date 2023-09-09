@@ -243,6 +243,30 @@ does the following:
    down sampled, the `mutate` writes the results to disk. This includes 
    as well as specify several
 
+#### Specifying Import Paths and Remappings
+
+Gambit resolves imports while parsing, and this requires that you specify any
+import paths and remappings that you would pass to `solc`.
+
+Instead of `solc`'s `--base-name` and `--input-path` arguments, Gambit uses
+a simpler scheme and replaces both of these with `--import_path` (`-I`). For instance,
+if the `solc` invocation is `solc C.sol --base-name . --input-path modules` ,
+then the Gambit invocation becomes `gambit mutate C.sol -I . -I modules`.
+
+Remappings are specified with the `--import_map` (`-m`) argument. If the `solc`
+invocation is `solc C.sol @openzeppelin=node_modules/@openzeppelin`, then the
+Gambit invocation becomes `gambit mutate C.sol -m
+@openzeppelin=node_modules/@openzeppelin`.
+
+#### Performing Mutant Validation
+
+Gambit uses provided import paths and import remappings to invoke `solc`. For
+instance, if you invoke `gambit mutate C.sol -I A/ -I B/ -I C/ -m @x=y/@x`, then
+Gambit will validate a generated mutant by calling
+`solc MutatedC.sol --base-path A/ --include-path B/ --include-path C/ @x=y/@x`.
+If you need to specify a solc `--allow-paths` argument, use the `mutate`
+command's `--solc_allow_paths` argument.
+
 ### The `summary` command
 
 The `summary` command allows the user to see a summary of a `mutate` run:
@@ -312,6 +336,11 @@ $ gambit summary --mids 1 2 3 4 5 --short
 (4) AOR [mutants/4/benchmarks/Ops/AOR/AOR.sol@13:18] + -> /
 (5) AOR [mutants/5/benchmarks/Ops/AOR/AOR.sol@13:18] + -> %
 </pre>
+
+_**Note:**
+The `summary` command is currently experimental, and its output and interface
+may change in future releases.
+_
 
 ## Examples
 
