@@ -203,7 +203,7 @@ compares the output against the expected output in `resources/regressions`.
 _**Note:**
 To update regression tests (e.g., in case of new test cases, new mutation
 operators, altered mutation operators, etc), use the
-`scripts/make_regressions.sh` script.-
+`scripts/make_regressions.sh` script._
 
 <!-- END SUPPRESS -->
 
