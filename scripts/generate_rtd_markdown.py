@@ -116,9 +116,9 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
                 f"Illegal note start on line {i+1}: new note tags '_**Note:**' and their closing '_' must be on their own lines"
             )
 
-        elif is_note_end(line):
+        elif note_start > -1 and is_note_end(line):
             note_start = -1
-            lines2.append(line.rstrip("\n").rstrip("_"))
+            lines2.append(line.rstrip().rstrip("_"))
             lines2.append("```")
 
         elif is_emit(line):
