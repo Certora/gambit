@@ -66,13 +66,13 @@ def check_rtd_docs_up_to_date(branch="master", colors=True) -> int:
         return 127
 
     print()
-    if our_readme_contents == their_readme_contents:
+    our_translated_readme_contents = translate_readme_to_rtd(OUR_README_PATH)
+    if our_translated_readme_contents == their_readme_contents:
         print(f"Docs are in sync!")
         return 0
     else:
         print(f"Docs are out of sync!")
         print()
-        our_translated_readme_contents = translate_readme_to_rtd(OUR_README_PATH)
         print("Unified diff: Local vs Remote")
         print("=============================")
         print()
