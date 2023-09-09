@@ -217,11 +217,11 @@ does the following:
    command line or in the configuration file
 
 2. **Function filters:** The `mutate` command provides the `--functions` and
-  `--contract` to allow users to filter which functions should be mutated. When
-  `--functions` is specified, Gambit will only mutate functions with a name
-  contained in the provided list of functions. When `--contract` is specified,
-  Gambit will only mutate functions within the specified contract. If neither
-  option is specified, Gambit will mutate all functions.
+  `--contract` filters to allow users to filter which functions should be
+  mutated. When `--functions` is specified, Gambit will only mutate functions
+  with a name contained in the provided list of functions. When `--contract` is
+  specified, Gambit will only mutate functions within the specified contract. If
+  neither option is specified, Gambit will mutate all functions.
 
 3. **Mutation:** Next, Gambit recursively visits the body of each function
    retained in (2) and applies a set of mutation operators. If no mutation operators are
