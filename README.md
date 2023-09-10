@@ -329,7 +329,7 @@ For projects that have complex dependencies and imports, you may need to:
   gambit mutate --filename path/to/file.sol --solc_include_path PATH
   ```
 
-* **Use optimization:** To run the solidity compiler with optimizations
+* **Use optimization:** To run the Solidity compiler with optimizations
   (`solc`'s `--optimize` argument), use `--solc_optimize`:
 
   ```bash
@@ -442,7 +442,7 @@ The configuration file is a JSON file containing the command line arguments for
 
 In addition to specifying the command line arguments, you can list the specific
 mutants that you want to apply, the specific functions you wish to mutate, and
-more.  See the [`benchmark/config-jsons` directory][config-examples] for
+more. See the [`benchmark/config-jsons` directory][config-examples] for
 examples.
 
 _**Note:**
@@ -566,15 +566,15 @@ This has the following structure:
 | `--skip_validate`     | only generate mutants without validating them by compilation                                                                 |
 
 Gambit also supports _pass-through arguments_, which are arguments that are
-passed directly to the solidity compiler. All pass-through arguments are
+passed directly to the Solidity compiler. All pass-through arguments are
 prefixed with `solc_`:
 
 | Option                | Description                                                                     |
 | :-------------------- | :------------------------------------------------------------------------------ |
+| `--solc_allow_paths`  | passes a value to `solc`'s `--allow-paths` argument                             |
 | `--solc_base_path`    | passes a value to `solc`'s `--base-path` argument                               |
 | `--solc_include_path` | passes a value to `solc`'s `--include-path` argument                            |
 | `--solc_remappings`   | passes a value to directly to `solc`: this should be of the form `prefix=path`. |
-| `--solc_allow_paths`  | passes a value to `solc`'s `--allow-paths` argument                             |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
