@@ -247,16 +247,20 @@ TODO: Fix this
 
 | Option               | Description                                                                                                                  |
 | :------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
-| `--outdir`           | specify Gambit's output directory (defaults to `gambit_out`)                                                                 |
-| `--no_overwrite`     | do not overwrite an output directory; if the output directory exists, print an error and exit                                |
-| `--num_mutants`      | randomly downsample to a given number of mutants.                                                                            |
-| `--seed`             | specify a random seed. For reproducibility, Gambit defaults to using the seed `0`. To randomize the seed use `--random_seed` |
-| `--random_seed`      | use a random seed. Note that this overrides any value specified by `--seed`                                                  |
 | `--contract`         | specify a specific contract name to mutate; by default mutate all contracts                                                  |
 | `--functions`        | specify one or more functions to mutate; by default mutate all functions                                                     |
+| `--log_invalid`      | log any invalid mutants found during validation                                                                              |
 | `--mutations`        | specify one or more mutation operators to use; only generates mutants that are created using the specified operators         |
+| `--no_export`        | do not export mutant sources to output directory                                                                             |
+| `--no_overwrite`     | do not overwrite an output directory; if the output directory exists, print an error and exit                                |
+| `--num_mutants`      | randomly downsample to a given number of mutants.                                                                            |
+| `--outdir`           | specify Gambit's output directory (defaults to `gambit_out`)                                                                 |
+| `--random_seed`      | use a random seed. Note that this overrides any value specified by `--seed`                                                  |
+| `--seed`             | specify a random seed. For reproducibility, Gambit defaults to using the seed `0`. To randomize the seed use `--random_seed` |
 | `--skip_validate`    | only generate mutants without validating them by compilation                                                                 |
+| `--solc`             | specify a `solc` binary to use during validation                                                                             |
 | `--solc_allow_paths` | passes a value to `solc`'s `--allow-paths` argument                                                                          |
+
 
 
 <!-- ANCHOR: (running-mutate-with-a-configuration-file)= -->
