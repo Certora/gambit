@@ -361,7 +361,7 @@ location without affecting the build configuration.
 `gambit_out`). Here is an example:
 
 ```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 5
+gambit mutate benchmarks/Ops/AOR/AOR.sol -n 5
 tree gambit_out -L 2
 ```
 <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
@@ -404,7 +404,7 @@ invocation is `solc C.sol @openzeppelin=node_modules/@openzeppelin`, then the
 Gambit invocation becomes `gambit mutate C.sol -m
 @openzeppelin=node_modules/@openzeppelin`.
 
-#### Performing Mutant Validation
+#### Mutant Validation
 
 Gambit uses provided import paths and import remappings to invoke `solc`. For
 instance, if you invoke `gambit mutate C.sol -I A/ -I B/ -I C/ -m @x=y/@x`, then
@@ -417,12 +417,19 @@ command's `--solc_allow_paths` argument.
 
 The `summary` command allows the user to see a summary of a `mutate` run:
 
+```
+gambit mutate benchmarks/Ops/AOR/AOR.sol
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
 <pre>
-$ gambit mutate benchmarks/Ops/AOR/AOR.sol
 Generated 27 mutants in 0.41 seconds
+</pre>
 
-$ gambit summary
-
+```
+gambit summary
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
 STD:      5 ( 18.52%)
 AOR:     22 ( 81.48%)
 ---------------------
@@ -431,9 +438,11 @@ TOT:     27 (100.00%)
 
 To print the diffs of specific mutants, pass the `--mids` option:
 
-<pre>
+```
 $ gambit summary --mids 1 2
-
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
              === Mutant ID: 1 [StatementDeletion] ===
 
 --- original
@@ -474,8 +483,11 @@ Path: mutants/2/benchmarks/Ops/AOR/AOR.sol
 
 Pass the `--short` option to print a shorter summary of each mutant:
 
-<pre>
+```
 $ gambit summary --mids 1 2 3 4 5 --short
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
 (1) STD [mutants/1/benchmarks/Ops/AOR/AOR.sol@13:9] return a + b -> assert(true)
 (2) AOR [mutants/2/benchmarks/Ops/AOR/AOR.sol@13:18] + -> -
 (3) AOR [mutants/3/benchmarks/Ops/AOR/AOR.sol@13:18] + -> *
