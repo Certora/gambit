@@ -185,32 +185,17 @@ responsible for mutating code. The `summary` command allows the user to get
 a high level summary of the results of an execution of `gambit mutate`.
 
 
-<!-- SUPPRESS -->
-## Testing
+<!-- ANCHOR: (the-mutate-command)= -->
+## The `mutate` Command
 
-Gambit has _unit tests_ and _regression tests_. Run unit tests with `cargo
-test`.
+Gambit's `mutate` command expects mutation parameters. By default, mutation
+parameters are specified with [command line
+arguments](#running-mutate-with-command-line-arguments), but users can also
+supply a [configuration file](#running-mutate-with-a-configuration-file) with
+the `--json` argument.
 
-_**Note:**
-All unit tests (`cargo test`) are currently run using `solc8.13`. Tests may fail
-if `solc` points at a different version of the compiler._
 
-Run regression tests with `scripts/run_regressions.sh`.  This script runs
-`gambit mutate` on all configuration files in `benchmarks/config-jsons` and
-compares the output against the expected output in `resources/regressions`.
-
-_**Note:**
-To update regression tests (e.g., in case of new test cases, new mutation
-operators, altered mutation operators, etc), use the
-`scripts/make_regressions.sh` script._
-
-<!-- END SUPPRESS -->
-
-### The  `mutate` command
-
-The `mutate` command expects a filename `gambit mutate file.sol` or a
-configuration file `gambit mutate --json gambit_conf.json`. The `mutate` command
-does the following:
+When a user invokes `mutate`, Gambit does the following:
 
 1. **Parse:** Gambit begins by parsing the specified Solidity files provided on
    command line or in the configuration file
@@ -240,6 +225,141 @@ does the following:
 6. **Write to disk:** After all mutants are generated, validated, and optionally
    down sampled, the `mutate` writes the results to disk. This includes 
    as well as specify several
+
+<!-- ANCHOR: (running-mutate-with-command-line-arguments)= -->
+### Running  `mutate` with Command Line Arguments
+
+By default the `mutate` command expects mutation parameters to be specified
+on the command line.
+
+```
+gambit mutate FILENAME [ARGS...]
+```
+
+Gambit's `mutate` CLI supports the following options:
+
+TODO: Fix this
+
+| Option               | Description                                                                                                                  |
+| :------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
+| `--outdir`           | specify Gambit's output directory (defaults to `gambit_out`)                                                                 |
+| `--no_overwrite`     | do not overwrite an output directory; if the output directory exists, print an error and exit                                |
+| `--num_mutants`      | randomly downsample to a given number of mutants.                                                                            |
+| `--seed`             | specify a random seed. For reproducibility, Gambit defaults to using the seed `0`. To randomize the seed use `--random_seed` |
+| `--random_seed`      | use a random seed. Note that this overrides any value specified by `--seed`                                                  |
+| `--contract`         | specify a specific contract name to mutate; by default mutate all contracts                                                  |
+| `--functions`        | specify one or more functions to mutate; by default mutate all functions                                                     |
+| `--mutations`        | specify one or more mutation operators to use; only generates mutants that are created using the specified operators         |
+| `--skip_validate`    | only generate mutants without validating them by compilation                                                                 |
+| `--solc_allow_paths` | passes a value to `solc`'s `--allow-paths` argument                                                                          |
+
+
+
+
+
+<!-- ANCHOR: (running-mutate-with-a-configuration-file)= -->
+### Running `mutate` with a Configuration File
+
+Gambit allows the user to specify mutation parameters in a JSON file, allowing
+the user to store complex parameters, or even multiple parameters at once.
+To run `mutate` with a configuration file, use:
+
+```
+gambit mutate --json CONFIGURATION_JSON
+```
+
+
+A set of mutate parameters are stored as a JSON object mapping option names to values:
+
+```json
+{
+  "filename": "contracts/ERC20.sol",
+  "outdir": "gambit_out",
+  "no_overwrite": true,
+  "num_mutants": 5,
+  "import_paths": ["contracts/imports"],
+  "import_maps": ["@openzeppelin=node_modules/@openzeppelin"]
+}
+```
+
+Configuration files allow you to save complex configurations and perform
+multiple mutations at once. Gambit uses a simple JSON object format to store
+mutation options, where each `--option VALUE` specified on the CLI is
+represented as a `"option": VALUE` key/value pair in the JSON object.  Boolean
+`--flag`s are enabled by storing them as true: `"flag": true`. For instance,
+`--no_overwrite` would be written as `"no_overwrite": true`.
+
+Gambit also supports using multiple configurations in the same file: instead of
+a single JSON object, your configuration file should contain an array of objects:
+
+```json
+[
+    {
+        "filename": "Foo.sol",
+        "contract": "C",
+        "functions": ["bar", "baz"],
+        "solc": "solc8.12",
+        "solc_optimize": true
+    },
+    {
+        "filename": "Blip.sol",
+        "contract": "D",
+        "functions": ["bang"],
+        "solc": "solc8.12"
+        "mutations": [
+          "binary-op-mutation",
+          "swap-arguments-operator-mutation"
+        ]
+    }
+]
+```
+
+This configuration file will perform all mutations on `Foo.sol`'s functions
+`bar` and `baz` in the contract `C`, and only `binary-op-mutation` and
+`swap-arguments-operator-mutation` mutations on the function `bang` in the
+contract `D`.  Both will compile using the Solidity compiler version `solc5.12`.
+
+#### Paths in Configuration Files
+
+Relative paths in a Gambit configuration file are _relative to the parent
+directory of the configuration file_. So if the JSON file listed above was moved
+to the `benchmarks/` directory the `"filename"` would need to be updated to
+`BinaryOpMutation/BinaryOpMutation.sol`.
+
+<!-- ANCHOR: (results-directory)= -->
+## Results Directory
+
+`gambit mutate` produces all results in an output directory (default:
+`gambit_out`). Here is an example:
+
+```bash
+gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 5
+tree gambit_out -L 2
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
+Generated 5 mutants in 0.15 seconds
+
+gambit_out
+├── gambit_results.json
+├── input_json
+├── mutants
+│   ├── 1
+│   ├── 2
+│   ├── 3
+│   ├── 4
+│   └── 5
+└── mutants.log
+
+</pre>
+
+This has the following structure:
++ `gambit_results.json`: a JSON file with detailed results
++ `input_json/`: intermediate files produced by `solc` that are used during mutation
++ `mutants/`: exported mutants. Each mutant is in its own directory named after
+  its mutant ID (mid) 1, 2, 3, ...
++ `mutants.log`: a log file with all mutant information. This is similar to
+  `results.json` but in a different format and with different information
 
 #### Specifying Import Paths and Remappings
 
@@ -338,6 +458,27 @@ $ gambit summary --mids 1 2 3 4 5 --short
 _**Note:**
 The `summary` command is currently experimental, and its output and interface
 may change in future releases._
+
+<!-- SUPPRESS -->
+## Testing
+
+Gambit has _unit tests_ and _regression tests_. Run unit tests with `cargo
+test`.
+
+_**Note:**
+All unit tests (`cargo test`) are currently run using `solc8.13`. Tests may fail
+if `solc` points at a different version of the compiler._
+
+Run regression tests with `scripts/run_regressions.sh`.  This script runs
+`gambit mutate` on all configuration files in `benchmarks/config-jsons` and
+compares the output against the expected output in `resources/regressions`.
+
+_**Note:**
+To update regression tests (e.g., in case of new test cases, new mutation
+operators, altered mutation operators, etc), use the
+`scripts/make_regressions.sh` script._
+
+<!-- END SUPPRESS -->
 
 ## Examples
 
@@ -510,103 +651,6 @@ _**Note:**
 Any paths provided by the configuration file are resolved relative to the
 configuration file's parent directory._
 
-<!-- ANCHOR: (configuration-files)= -->
-## Configuration Files
-Configuration files allow you to save complex configurations and perform
-multiple mutations at once. Gambit uses a simple JSON object format to store
-mutation options, where each `--option VALUE` specified on the CLI is
-represented as a `"option": VALUE` key/value pair in the JSON object.  Boolean
-`--flag`s are enabled by storing them as true: `"flag": true`. For instance,
-`--no_overwrite` would be written as `"no_overwrite": true`.
-
-As an example, consider the command from Example 1:
-
-```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol
-```
-
-To execute this using a configuration file you would write the following to
-`example-1.json` to the root of this repository and run `gambit mutate --json
-example-1.json`
-
-```json
-{
-  "filename": "benchmarks/BinaryOpMutation/BinaryOpMutation.sol"
-}
-```
-
-Gambit also supports using multiple configurations in the same file: instead of
-a single JSON object, your configuration file should contain an array of objects:
-
-```json
-[
-    {
-        "filename": "Foo.sol",
-        "contract": "C",
-        "functions": ["bar", "baz"],
-        "solc": "solc8.12",
-        "solc_optimize": true
-    },
-    {
-        "filename": "Blip.sol",
-        "contract": "D",
-        "functions": ["bang"],
-        "solc": "solc8.12"
-        "mutations": [
-          "binary-op-mutation",
-          "swap-arguments-operator-mutation"
-        ]
-    }
-]
-```
-
-This configuration file will perform all mutations on `Foo.sol`'s functions
-`bar` and `baz` in the contract `C`, and only `binary-op-mutation` and
-`swap-arguments-operator-mutation` mutations on the function `bang` in the
-contract `D`.  Both will compile using the Solidity compiler version `solc5.12`.
-
-### Paths in Configuration Files
-
-Relative paths in a Gambit configuration file are _relative to the parent
-directory of the configuration file_. So if the JSON file listed above was moved
-to the `benchmarks/` directory the `"filename"` would need to be updated to
-`BinaryOpMutation/BinaryOpMutation.sol`.
-
-<!-- ANCHOR: (results-directory)= -->
-## Results Directory
-
-`gambit mutate` produces all results in an output directory (default:
-`gambit_out`). Here is an example:
-
-```bash
-gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 5
-tree gambit_out -L 2
-```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
-Generated 5 mutants in 0.15 seconds
-
-gambit_out
-├── gambit_results.json
-├── input_json
-├── mutants
-│   ├── 1
-│   ├── 2
-│   ├── 3
-│   ├── 4
-│   └── 5
-└── mutants.log
-
-</pre>
-
-This has the following structure:
-+ `gambit_results.json`: a JSON file with detailed results
-+ `input_json/`: intermediate files produced by `solc` that are used during mutation
-+ `mutants/`: exported mutants. Each mutant is in its own directory named after
-  its mutant ID (mid) 1, 2, 3, ...
-+ `mutants.log`: a log file with all mutant information. This is similar to
-  `results.json` but in a different format and with different information
-
 <!-- ANCHOR: (cli-options)= -->
 ## CLI Options
 
@@ -625,17 +669,8 @@ This has the following structure:
 | `--functions`         | specify one or more functions to mutate; by default mutate all functions                                                     |
 | `--mutations`         | specify one or more mutation operators to use; only generates mutants that are created using the specified operators         |
 | `--skip_validate`     | only generate mutants without validating them by compilation                                                                 |
+| `--solc_allow_paths`  | passes a value to `solc`'s `--allow-paths` argument                                                                          |
 
-Gambit also supports _pass-through arguments_, which are arguments that are
-passed directly to the Solidity compiler. All pass-through arguments are
-prefixed with `solc_`:
-
-| Option                | Description                                                                     |
-| :-------------------- | :------------------------------------------------------------------------------ |
-| `--solc_allow_paths`  | passes a value to `solc`'s `--allow-paths` argument                             |
-| `--solc_base_path`    | passes a value to `solc`'s `--base-path` argument                               |
-| `--solc_include_path` | passes a value to `solc`'s `--include-path` argument                            |
-| `--solc_remappings`   | passes a value to directly to `solc`: this should be of the form `prefix=path`. |
 
 ## Mutation Operators
 Gambit implements the following mutation operators
