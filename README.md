@@ -180,9 +180,10 @@ manually place on your path or invoke directly.
 
 ## Usage
 
-Gambit has two main commands: `mutate` and `summary`. The `mutate` command is
-responsible for mutating code. The `summary` command allows the user to get
-a high level summary of the results of an execution of `gambit mutate`.
+Gambit has two main commands: the [`mutate` command](#the-mutate-command) and 
+the [`summary` command](#the-summary-command). The `mutate` command is
+responsible for mutating code. The `summary` command allows the user to get a
+high level summary of the results of an execution of `gambit mutate`.
 
 
 <!-- ANCHOR: (the-mutate-command)= -->
@@ -378,43 +379,8 @@ Gambit will validate a generated mutant by calling
 If you need to specify a solc `--allow-paths` argument, use the `mutate`
 command's `--solc_allow_paths` argument.
 
-<!-- ANCHOR: (results-directory)= -->
-## Results Directory
-
-`gambit mutate` produces all results in an output directory (default:
-`gambit_out`). Here is an example:
-
-```bash
-gambit mutate benchmarks/Ops/AOR/AOR.sol -n 5
-tree gambit_out -L 2
-```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
-Generated 5 mutants in 0.15 seconds
-
-gambit_out
-├── gambit_results.json
-├── input_json
-├── mutants
-│   ├── 1
-│   ├── 2
-│   ├── 3
-│   ├── 4
-│   └── 5
-└── mutants.log
-
-</pre>
-
-This has the following structure:
-+ `gambit_results.json`: a JSON file with detailed results
-+ `input_json/`: intermediate files produced by `solc` that are used during mutation
-+ `mutants/`: exported mutants. Each mutant is in its own directory named after
-  its mutant ID (mid) 1, 2, 3, ...
-+ `mutants.log`: a log file with all mutant information. This is similar to
-  `results.json` but in a different format and with different information
-
-
-### The `summary` command
+<!-- ANCHOR: (the-summary-command)= -->
+## The `summary` command
 
 The `summary` command allows the user to see a summary of a `mutate` run:
 
@@ -499,6 +465,42 @@ $ gambit summary --mids 1 2 3 4 5 --short
 _**Note:**
 The `summary` command is currently experimental, and its output and interface
 may change in future releases._
+
+<!-- ANCHOR: (results-directory)= -->
+## Results Directory
+
+`gambit mutate` produces all results in an output directory (default:
+`gambit_out`). Here is an example:
+
+```bash
+gambit mutate benchmarks/Ops/AOR/AOR.sol -n 5
+tree gambit_out -L 2
+```
+<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+<pre>
+Generated 5 mutants in 0.15 seconds
+
+gambit_out
+├── gambit_results.json
+├── input_json
+├── mutants
+│   ├── 1
+│   ├── 2
+│   ├── 3
+│   ├── 4
+│   └── 5
+└── mutants.log
+
+</pre>
+
+This has the following structure:
++ `gambit_results.json`: a JSON file with detailed results
++ `input_json/`: intermediate files produced by `solc` that are used during mutation
++ `mutants/`: exported mutants. Each mutant is in its own directory named after
+  its mutant ID (mid) 1, 2, 3, ...
++ `mutants.log`: a log file with all mutant information. This is similar to
+  `results.json` but in a different format and with different information
+
 
 <!-- SUPPRESS -->
 ## Testing
