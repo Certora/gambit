@@ -188,14 +188,15 @@ a high level summary of the results of an execution of `gambit mutate`.
 <!-- ANCHOR: (the-mutate-command)= -->
 ## The `mutate` Command
 
-Gambit's `mutate` command expects mutation parameters. By default, mutation
-parameters are specified with [command line
-arguments](#running-mutate-with-command-line-arguments), but users can also
-supply a [configuration file](#running-mutate-with-a-configuration-file) with
-the `--json` argument.
+Gambit's `mutate` command expects user-provided _mutation parameters_ describing
+which files to mutate, which mutation operators to apply, and several other
+options. By default, these mutation parameters are specified by the user with
+[command line arguments](#running-mutate-with-command-line-arguments). To handle
+more complex use cases, and to allow for easy reproducibility, Gambit
+can read mutation parameters from a [JSON configuration
+file](#running-mutate-with-a-configuration-file) with the `--json` argument.
 
-
-When a user invokes `mutate`, Gambit does the following:
+The `mutate` command does the following:
 
 1. **Parse:** Gambit begins by parsing the specified Solidity files provided on
    command line or in the configuration file
@@ -236,6 +237,10 @@ on the command line.
 gambit mutate FILENAME [ARGS...]
 ```
 
+
+<!-- ANCHOR: (mutate-cli-arguments) -->
+#### `mutate` CLI Arguments
+
 Gambit's `mutate` CLI supports the following options:
 
 TODO: Fix this
@@ -254,9 +259,6 @@ TODO: Fix this
 | `--solc_allow_paths` | passes a value to `solc`'s `--allow-paths` argument                                                                          |
 
 
-
-
-
 <!-- ANCHOR: (running-mutate-with-a-configuration-file)= -->
 ### Running `mutate` with a Configuration File
 
@@ -269,7 +271,8 @@ gambit mutate --json CONFIGURATION_JSON
 ```
 
 
-A set of mutate parameters are stored as a JSON object mapping option names to values:
+A set of mutation parameters are stored as a JSON object mapping option names to
+values:
 
 ```json
 {
@@ -277,20 +280,51 @@ A set of mutate parameters are stored as a JSON object mapping option names to v
   "outdir": "gambit_out",
   "no_overwrite": true,
   "num_mutants": 5,
-  "import_paths": ["contracts/imports"],
-  "import_maps": ["@openzeppelin=node_modules/@openzeppelin"]
+  "import_paths": ["imports1", "imports2"],
+  "import_maps": ["a=x/a", "b=x/b"]
 }
 ```
 
-Configuration files allow you to save complex configurations and perform
-multiple mutations at once. Gambit uses a simple JSON object format to store
-mutation options, where each `--option VALUE` specified on the CLI is
-represented as a `"option": VALUE` key/value pair in the JSON object.  Boolean
-`--flag`s are enabled by storing them as true: `"flag": true`. For instance,
-`--no_overwrite` would be written as `"no_overwrite": true`.
+Each key in the above JSON object corresponds to a [CLI
+argument](#mutate-cli-arguments) describe above with the following exceptions:
 
-Gambit also supports using multiple configurations in the same file: instead of
-a single JSON object, your configuration file should contain an array of objects:
+1. `--import_path` vs `"import_paths"`: The CLI expects import paths to be given
+   one at a time:
+
+   ```
+   gambit mutate --import_path path1 --import_path path2
+   ```
+
+   The JSON format takes a vector of import paths:
+
+   ```json
+   {
+      "import_paths": ["imports1", "imports2"]
+   }
+   ```
+
+   _Notice that `--import_path` is singular and `"import_paths"` is plural._
+
+2. `--import_map` vs `"import_maps"`: Like import paths, The CLI expects import
+   maps to be given one at a time:
+
+   ```
+   gambit mutate --import_map a=x/a --import_map b=x/b
+   ```
+
+   The JSON format takes a vector of import maps:
+
+   ```json
+   {
+      "import_maps": ["a=x/a", "b=x/b"]
+   }
+   ```
+
+   _Notice that `--import_map` is singular and `"import_maps"` is plural._
+
+Gambit also supports specifying multiple sets of mutation parameters in a file.
+Instead of a single JSON object, your configuration file should contain an
+array of objects:
 
 ```json
 [
@@ -306,25 +340,15 @@ a single JSON object, your configuration file should contain an array of objects
         "contract": "D",
         "functions": ["bang"],
         "solc": "solc8.12"
-        "mutations": [
-          "binary-op-mutation",
-          "swap-arguments-operator-mutation"
-        ]
     }
 ]
 ```
 
-This configuration file will perform all mutations on `Foo.sol`'s functions
-`bar` and `baz` in the contract `C`, and only `binary-op-mutation` and
-`swap-arguments-operator-mutation` mutations on the function `bang` in the
-contract `D`.  Both will compile using the Solidity compiler version `solc5.12`.
-
 #### Paths in Configuration Files
 
 Relative paths in a Gambit configuration file are _relative to the parent
-directory of the configuration file_. So if the JSON file listed above was moved
-to the `benchmarks/` directory the `"filename"` would need to be updated to
-`BinaryOpMutation/BinaryOpMutation.sol`.
+directory of the configuration file_. This allows Gambit to be run from any
+location without affecting the build configuration.
 
 <!-- ANCHOR: (results-directory)= -->
 ## Results Directory
