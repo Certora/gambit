@@ -354,6 +354,30 @@ Relative paths in a Gambit configuration file are _relative to the parent
 directory of the configuration file_. This allows Gambit to be run from any
 location without affecting the build configuration.
 
+### Import Paths and Remappings
+
+Gambit resolves imports while parsing, and this requires that you specify any
+import paths and remappings that you would pass to `solc`.
+
+Instead of `solc`'s `--base-name` and `--input-path` arguments, Gambit uses
+a simpler scheme and replaces both of these with `--import_path` (`-I`). For instance,
+if the `solc` invocation is `solc C.sol --base-name . --input-path modules` ,
+then the Gambit invocation becomes `gambit mutate C.sol -I . -I modules`.
+
+Remappings are specified with the `--import_map` (`-m`) argument. If the `solc`
+invocation is `solc C.sol @openzeppelin=node_modules/@openzeppelin`, then the
+Gambit invocation becomes `gambit mutate C.sol -m
+@openzeppelin=node_modules/@openzeppelin`.
+
+### Mutant Validation
+
+Gambit uses provided import paths and import remappings to invoke `solc`. For
+instance, if you invoke `gambit mutate C.sol -I A/ -I B/ -I C/ -m @x=y/@x`, then
+Gambit will validate a generated mutant by calling
+`solc MutatedC.sol --base-path A/ --include-path B/ --include-path C/ @x=y/@x`.
+If you need to specify a solc `--allow-paths` argument, use the `mutate`
+command's `--solc_allow_paths` argument.
+
 <!-- ANCHOR: (results-directory)= -->
 ## Results Directory
 
@@ -389,29 +413,6 @@ This has the following structure:
 + `mutants.log`: a log file with all mutant information. This is similar to
   `results.json` but in a different format and with different information
 
-#### Specifying Import Paths and Remappings
-
-Gambit resolves imports while parsing, and this requires that you specify any
-import paths and remappings that you would pass to `solc`.
-
-Instead of `solc`'s `--base-name` and `--input-path` arguments, Gambit uses
-a simpler scheme and replaces both of these with `--import_path` (`-I`). For instance,
-if the `solc` invocation is `solc C.sol --base-name . --input-path modules` ,
-then the Gambit invocation becomes `gambit mutate C.sol -I . -I modules`.
-
-Remappings are specified with the `--import_map` (`-m`) argument. If the `solc`
-invocation is `solc C.sol @openzeppelin=node_modules/@openzeppelin`, then the
-Gambit invocation becomes `gambit mutate C.sol -m
-@openzeppelin=node_modules/@openzeppelin`.
-
-#### Mutant Validation
-
-Gambit uses provided import paths and import remappings to invoke `solc`. For
-instance, if you invoke `gambit mutate C.sol -I A/ -I B/ -I C/ -m @x=y/@x`, then
-Gambit will validate a generated mutant by calling
-`solc MutatedC.sol --base-path A/ --include-path B/ --include-path C/ @x=y/@x`.
-If you need to specify a solc `--allow-paths` argument, use the `mutate`
-command's `--solc_allow_paths` argument.
 
 ### The `summary` command
 
