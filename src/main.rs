@@ -460,7 +460,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         params.solc_base_path
     );
     if let Some(ref base_path) = params.solc_base_path {
-        print_deprecation_warning("--solc_base_path", "1.0.0", "Use --import_path/-I instead");
+        print_deprecation_warning("--solc_base_path", "1.0.0", "Use --import_paths");
         let base_path = match PathBuf::from(&base_path).canonicalize() {
             Ok(p) => p.to_str().unwrap().to_string(),
             Err(_) => {
@@ -475,11 +475,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     }
 
     if !params.solc_include_paths.is_empty() {
-        print_deprecation_warning(
-            "--solc_include_path",
-            "1.0.0",
-            "Use --import_path/-I instead",
-        );
+        print_deprecation_warning("--solc_include_path", "1.0.0", "Use --import_paths instead");
         for include_path in params.solc_include_paths.iter() {
             let include_path = match PathBuf::from(&include_path).canonicalize() {
                 Ok(p) => p.to_str().unwrap().to_string(),
@@ -518,7 +514,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     }
 
     if let Some(ref remappings) = params.solc_remappings {
-        print_deprecation_warning("--solc_remapping", "1.0.0", "Use --import_map/-m instead");
+        print_deprecation_warning("--solc_remapping", "1.0.0", "Use --import_maps instead");
         for remapping in remappings.iter() {
             import_maps.push(remapping.clone());
         }
