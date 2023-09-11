@@ -492,18 +492,18 @@ operators, altered mutation operators, etc), use the
 ## Mutation Operators
 Gambit implements the following mutation operators
 
-| Mutation Operator                    | Description                                              | Example                                        |
-| ------------------------------------ | -------------------------------------------------------- | ---------------------------------------------- |
-| **binary-op-mutation**               | Replace a binary operator with another                   | `a+b` -> `a-b`                                 |
-| **unary-operator-mutation**          | Replace a unary operator with another                    | `~a` -> `-a`                                   |
-| **require-mutation**                 | Alter the condition of a `require` statement             | `require(some_condition())` -> `require(true)` |
-| **assignment-mutation**              | Replaces the right hand side of an assignment            | `x = foo();` -> `x = -1;`                      |
-| **delete-expression-mutation**       | Replaces an expression with a no-op (`assert(true)`)     | `foo();` -> `assert(true);`                    |
-| **if-cond-mutation**                 | Mutate the conditional of an `if` statement              | `if (C) {...}` -> `if (true) {...}`            |
-| **swap-arguments-operator-mutation** | Swap the order of non-commutative operators              | `a - b` -> `b - a`                             |
-| **elim-delegate-mutation**           | Change a `delegatecall()` to a `call()`                  | `_c.delegatecall(...)` -> `_c.call(...)`       |
-| **function-call-mutation**           | **(Disabled)** Changes arguments of a function           | `add(a, b)` -> `add(a, a)`                     |
-| **swap-arguments-function-mutation** | **(Disabled)** Swaps the order of a function's arguments | `add(a, b)` -> `add(b, a)`                     |
+| Mutation Operator                   | Description                                                     | Example                                      |
+| ----------------------------------- | --------------------------------------------------------------- | -------------------------------------------- |
+| **arithmetic-operator-replacement** | Replace an arithmetic operator with another                     | `a + b` -> `a - b`                           |
+| **bitwise-operator-replacement**    | Replace a bitwise operator with another                         | `a ^ b` -> `a & b`                           |
+| **elim-delegate-call**              | Change a `delegatecall()` to a `call()`                         | `_c.delegatecall(...)` -> `_c.call(...)`     |
+| **expression-value-repalcement**    | **(Experimental)** Replace expression with a value of same type | `a + b * 3` -> `0`                           |
+| **literal-value-replacement**       | Replace a literal value with another                            | `1` -> `0`                                   |
+| **logical-operator-replacement**    | Replace a logical expression                                    | `a && b` -> `false`                          |
+| **relational-operator-replacement** | Replace a relational expression                                 | `a < b` -> `true`                            |
+| **shift-operator-replacement**      | Replace a shift operator with another                           | `a << b` -> `a >> b`                         |
+| **unary-operator-replacement**      | Replace a unary operator with another                           | `-b` -> `~b`                                 |
+| **statement-deletion**              | Replace a statement with a no-op (`assert(true)`)               | `self.checkInvariants();` -> `assert(true);` |
 
 For more details on each mutation type, refer to the [full documentation](https://docs.certora.com/en/latest/docs/gambit/gambit.html#mutation-types).
 
