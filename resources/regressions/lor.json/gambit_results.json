@@ -74,7 +74,7 @@
   {
     "col": 16,
     "description": "LogicalOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `x < y`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return x < y;\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `x < y`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return x < y;\n     }\n \n     function not(bool a) public pure returns (bool) {\n",
     "id": "7",
     "line": 19,
     "name": "mutants/7/Ops/LOR/LOR.sol",
@@ -86,7 +86,7 @@
   {
     "col": 16,
     "description": "LogicalOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `a != (x >= y)`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return a != (x >= y);\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `a != (x >= y)`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return a != (x >= y);\n     }\n \n     function not(bool a) public pure returns (bool) {\n",
     "id": "8",
     "line": 19,
     "name": "mutants/8/Ops/LOR/LOR.sol",
@@ -98,7 +98,7 @@
   {
     "col": 16,
     "description": "LogicalOperatorReplacement",
-    "diff": "--- original\n+++ mutant\n@@ -15,7 +15,8 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `true`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return true;\n     }\n }\n",
+    "diff": "--- original\n+++ mutant\n@@ -15,8 +15,9 @@\n     }\n \n     // Expect three mutants, x < y, a != (x >= y), true\n+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `true`) of: `return (x < y) || (a != (x >= y));`\n     function more_or(bool a, int x, int y) public pure returns (bool) {\n-        return (x < y) || (a != (x >= y));\n+        return true;\n     }\n \n     function not(bool a) public pure returns (bool) {\n",
     "id": "9",
     "line": 19,
     "name": "mutants/9/Ops/LOR/LOR.sol",
@@ -106,5 +106,29 @@
     "orig": "(x < y) || (a != (x >= y))",
     "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
     "repl": "true"
+  },
+  {
+    "col": 16,
+    "description": "LogicalOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -19,7 +19,8 @@\n         return (x < y) || (a != (x >= y));\n     }\n \n+    /// LogicalOperatorReplacement(`!a` |==> `true`) of: `return !a;`\n     function not(bool a) public pure returns (bool) {\n-        return !a;\n+        return true;\n     }\n }\n",
+    "id": "10",
+    "line": 23,
+    "name": "mutants/10/Ops/LOR/LOR.sol",
+    "op": "LOR",
+    "orig": "!a",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "repl": "true"
+  },
+  {
+    "col": 16,
+    "description": "LogicalOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -19,7 +19,8 @@\n         return (x < y) || (a != (x >= y));\n     }\n \n+    /// LogicalOperatorReplacement(`!a` |==> `false`) of: `return !a;`\n     function not(bool a) public pure returns (bool) {\n-        return !a;\n+        return false;\n     }\n }\n",
+    "id": "11",
+    "line": 23,
+    "name": "mutants/11/Ops/LOR/LOR.sol",
+    "op": "LOR",
+    "orig": "!a",
+    "original": "/Users/benku/Gambit/benchmarks/Ops/LOR/LOR.sol",
+    "repl": "false"
   }
 ]

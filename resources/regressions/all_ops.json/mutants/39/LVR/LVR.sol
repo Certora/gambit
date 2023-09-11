@@ -17,15 +17,15 @@ contract LVR {
     }
 
     // Expect 2 mutant: 0, 2
+    /// LiteralValueReplacement(`1` |==> `0`) of: `uint256 one = 1;`
     function unsigned_one() public pure returns (uint256) {
-        uint256 one = 1;
+        uint256 one = 0;
         return one;
     }
 
     // Expect 2 mutants: 0, 1
-    /// LiteralValueReplacement(`-1` |==> `0`) of: `int256 neg_one = -1;`
     function signed_neg_one() public pure returns (int256) {
-        int256 neg_one = 0;
+        int256 neg_one = -1;
         return neg_one;
     }
 

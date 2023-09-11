@@ -742,6 +742,9 @@ fn logical_op_replacement(
         Expression::Or { left, right, .. } => {
             vec![("LHS", left.loc()), ("RHS", right.loc()), ("true", loc)]
         }
+        Expression::Not { .. } => {
+            vec![("true", expr.loc()), ("false", expr.loc())]
+        }
         _ => {
             return vec![];
         }

@@ -18,4 +18,8 @@ contract LOR {
     function more_or(bool a, int x, int y) public pure returns (bool) {
         return (x < y) || (a != (x >= y));
     }
+
+    function not(bool a) public pure returns (bool) {
+        return !a;
+    }
 }

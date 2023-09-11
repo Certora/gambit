@@ -20,9 +20,9 @@ contract ROR {
     }
 
     // Expect 3 mutants: x > y, x == y, true
-    /// RelationalOperatorReplacement(`x >= y` |==> `true`) of: `return x >= y;`
+    /// RelationalOperatorReplacement(`>=` |==> `>`) of: `return x >= y;`
     function more_equal(uint256 x, uint256 y) public pure returns (bool) {
-        return true;
+        return x > y;
     }
 
     // Expect 3 mutants: x >= y, x <= y, false
