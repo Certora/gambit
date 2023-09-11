@@ -266,17 +266,16 @@ pub enum MutationType {
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
-            MutationType::LiteralValueReplacement => "LiteralValueReplacement",
-            MutationType::BitwiseOperatorReplacement => "ConditionalOperatorReplacement",
-            MutationType::RelationalOperatorReplacement => "RelationalOperatorReplacement",
             MutationType::ArithmeticOperatorReplacement => "ArithmeticOperatorReplacement",
-            MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
-            MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
-            MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
-            MutationType::ExpressionValueReplacement => "ExpressionValueReplacement",
-            MutationType::StatementDeletion => "StatementDeletion",
-
+            MutationType::BitwiseOperatorReplacement => "ConditionalOperatorReplacement",
             MutationType::ElimDelegateCall => "ElimDelegateCall",
+            MutationType::ExpressionValueReplacement => "ExpressionValueReplacement",
+            MutationType::LiteralValueReplacement => "LiteralValueReplacement",
+            MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
+            MutationType::RelationalOperatorReplacement => "RelationalOperatorReplacement",
+            MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
+            MutationType::StatementDeletion => "StatementDeletion",
+            MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
         };
         str.into()
     }
@@ -477,19 +476,16 @@ fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Loc {
             let op_end = op_start + op.len();
             base.loc().with_start(op_start).with_end(op_end)
         }
-        Expression::PreIncrement { loc, expr, .. } | Expression::PreDecrement { loc, expr, .. } => {
+        Expression::PreIncrement { loc, .. } | Expression::PreDecrement { loc, .. } => {
             loc.with_end(loc.start() + get_operator(expr).len())
         }
-        Expression::PostIncrement { loc, expr, .. }
-        | Expression::PostDecrement { loc, expr, .. } => {
+        Expression::PostIncrement { loc, .. } | Expression::PostDecrement { loc, .. } => {
             loc.with_start(loc.end() - get_operator(expr).len())
         }
 
-        Expression::Not { loc, expr, .. }
-        | Expression::BitwiseNot { loc, expr, .. }
-        | Expression::Negate { loc, expr, .. } => {
-            loc.with_end(loc.start() + get_operator(expr).len())
-        }
+        Expression::Not { loc, .. }
+        | Expression::BitwiseNot { loc, .. }
+        | Expression::Negate { loc, .. } => loc.with_end(loc.start() + get_operator(expr).len()),
 
         Expression::ConditionalOperator {
             cond, true_option, ..
@@ -967,14 +963,14 @@ fn unary_op_replacement(
     source: &Arc<str>,
 ) -> Vec<Mutant> {
     let loc = expr.loc();
-    let unary_op = get_operator(expr);
-    let replacements: Vec<&&str> = ["-", "~"].iter().filter(|x| **x != unary_op).collect();
 
     if loc.try_file_no().is_none() {
         return vec![];
     }
     let muts = match expr {
         Expression::BitwiseNot { .. } | Expression::Negate { .. } => {
+            let unary_op = get_operator(expr);
+            let replacements: Vec<&&str> = ["-", "~"].iter().filter(|x| **x != unary_op).collect();
             let op_loc = get_op_loc(expr, source);
             let muts = replacements
                 .iter()
@@ -984,8 +980,8 @@ fn unary_op_replacement(
                         namespace.clone(),
                         op_loc,
                         *op,
-                        "~".to_string(),
-                        format!(" {} ", r),
+                        unary_op.to_string(),
+                        format!("{}", r),
                     )
                 })
                 .collect();
