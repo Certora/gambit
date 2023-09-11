@@ -290,42 +290,6 @@ values:
 }
 ```
 
-Each key in the above JSON object corresponds to a [CLI
-argument](#mutate-cli-arguments) describe above with the following exceptions:
-
-1. `--import_path` vs `"import_paths"`: The CLI expects import paths to be given
-   one at a time:
-
-   ```
-   gambit mutate --import_path path1 --import_path path2
-   ```
-
-   The JSON format takes a vector of import paths:
-
-   ```json
-   {
-      "import_paths": ["imports1", "imports2"]
-   }
-   ```
-
-   _Notice that `--import_path` is singular and `"import_paths"` is plural._
-
-2. `--import_map` vs `"import_maps"`: Like import paths, The CLI expects import
-   maps to be given one at a time:
-
-   ```
-   gambit mutate --import_map a=x/a --import_map b=x/b
-   ```
-
-   The JSON format takes a vector of import maps:
-
-   ```json
-   {
-      "import_maps": ["a=x/a", "b=x/b"]
-   }
-   ```
-
-   _Notice that `--import_map` is singular and `"import_maps"` is plural._
 
 Gambit also supports specifying multiple sets of mutation parameters in a file.
 Instead of a single JSON object, your configuration file should contain an
@@ -361,22 +325,23 @@ Gambit resolves imports while parsing, and this requires that you specify any
 import paths and remappings that you would pass to `solc`.
 
 Instead of `solc`'s `--base-name` and `--input-path` arguments, Gambit uses
-a simpler scheme and replaces both of these with `--import_path` (`-I`). For instance,
-if the `solc` invocation is `solc C.sol --base-name . --input-path modules` ,
-then the Gambit invocation becomes `gambit mutate C.sol -I . -I modules`.
+a simpler scheme and replaces both of these with a single `--import_paths`
+argument. For instance, if the `solc` invocation is `solc C.sol --base-name .
+--input-path modules` , then the Gambit invocation becomes `gambit mutate C.sol
+--import_paths . modules`.
 
-Remappings are specified with the `--import_map` (`-m`) argument. If the `solc`
+Remappings are specified with the `--import_maps` argument. If the `solc`
 invocation is `solc C.sol @openzeppelin=node_modules/@openzeppelin`, then the
-Gambit invocation becomes `gambit mutate C.sol -m
+Gambit invocation becomes `gambit mutate C.sol --import_maps
 @openzeppelin=node_modules/@openzeppelin`.
 
 ### Mutant Validation
 
 Gambit uses provided import paths and import remappings to invoke `solc`. For
-instance, if you invoke `gambit mutate C.sol -I A/ -I B/ -I C/ -m @x=y/@x`, then
-Gambit will validate a generated mutant by calling
-`solc MutatedC.sol --base-path A/ --include-path B/ --include-path C/ @x=y/@x`.
-If you need to specify a solc `--allow-paths` argument, use the `mutate`
+instance, if you invoke `gambit mutate C.sol --import_paths A B C --import_maps
+@x=y/@x`, then Gambit will validate a generated mutant by calling `solc
+MutatedC.sol --base-path A/ --include-path B/ --include-path C/ @x=y/@x`.  If
+you need to specify a solc `--allow-paths` argument, use the `mutate`
 command's `--solc_allow_paths` argument.
 
 <!-- ANCHOR: (the-summary-command)= -->
