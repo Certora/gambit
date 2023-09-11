@@ -72,7 +72,7 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
     // struct. The second case is syntactic sugar for an array with a
     // single object.
     //
-    // To tell the difference we deserialzie as a `serde_json::Value`
+    // To tell the difference we deserialize as a `serde_json::Value`
     // and check if it's an array or an object and create a
     // `Vec<MutateParams>` based on this.
     let json_path = &params.json.ok_or("No JSON Path")?;
@@ -412,7 +412,7 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     log::debug!("    [.] Resolved params.outdir to {}", outdir);
 
     log::debug!(
-        "    [.] Resolving params.solc_allowpaths: {:?}",
+        "    [.] Resolving params.solc_allow_paths: {:?}",
         params.solc_allow_paths
     );
     let solc_allowpaths = params.solc_allow_paths.map(|aps| {
@@ -428,12 +428,12 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
             .collect()
     });
     log::debug!(
-        "    [.] Resolved params.solc_allowpaths to {:?}",
+        "    [.] Resolved params.solc_allow_paths to {:?}",
         solc_allowpaths
     );
 
     log::debug!(
-        "    [.] Resolving params.import_paths: {:?}",
+        "    [.] Resolving params.solc_base_path: {:?}",
         params.solc_base_path
     );
 
