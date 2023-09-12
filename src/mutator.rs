@@ -311,13 +311,6 @@ impl Mutator {
         };
 
         let file_path = resolved.full_path.clone();
-        log::info!(
-            "Resolved {} to {:?} with import path {:?}",
-            filename,
-            resolved,
-            self.file_resolver
-                .get_import_path(resolved.import_no.unwrap())
-        );
         // mutate functions
         for function in ns.functions.iter() {
             let start_no_mutants = self.mutants.len();
