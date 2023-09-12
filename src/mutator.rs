@@ -111,7 +111,7 @@ impl From<&MutateParams> for Mutator {
     fn from(params: &MutateParams) -> Self {
         let conf = MutatorConf::from(params);
         let mut solc = Solc::new(
-            params.solc.clone(),
+            params.solc.clone().unwrap_or_else(|| "solc".to_string()),
             params
                 .outdir
                 .clone()

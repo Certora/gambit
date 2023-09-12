@@ -134,7 +134,10 @@ pub fn run_mutate(
             // TODO: Separate out Filtering from Validation
 
             // Check if we are filtering
-            let mut solc = Solc::new(params.solc.clone(), outdir_path.clone());
+            let mut solc = Solc::new(
+                params.solc.clone().unwrap_or_else(|| "solc".to_string()),
+                outdir_path.clone(),
+            );
             solc.with_vfs_roots_from_params(params);
             let mut validator = Validator { solc };
             log::debug!("Validator: {:?}", validator);

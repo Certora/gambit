@@ -8,7 +8,6 @@ static DEFAULT_SEED: u64 = 0;
 static DEFAULT_SKIP_VALIDATE: bool = false;
 static DEFAULT_LOG_INVALID: bool = false;
 static DEFAULT_SOLC_OPTIMIZE: bool = false;
-static DEFAULT_SOLC: &str = "solc";
 
 fn default_no_export_mutants() -> bool {
     DEFAULT_NO_EXPORT_MUTANTS
@@ -38,8 +37,8 @@ fn default_solc_optimize() -> bool {
     DEFAULT_SOLC_OPTIMIZE
 }
 
-fn default_solc() -> String {
-    DEFAULT_SOLC.to_string()
+fn default_solc() -> Option<String> {
+    None
 }
 
 fn default_source_root() -> Option<String> {
@@ -138,9 +137,9 @@ pub struct MutateParams {
     pub no_overwrite: bool,
 
     /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
-    #[arg(long, default_value = "solc", conflicts_with = "json")]
+    #[arg(long, default_value = "solc")]
     #[serde(default = "default_solc")]
-    pub solc: String,
+    pub solc: Option<String>,
 
     /// Run solc with the `--optimize` flag
     #[arg(long, default_value = "false", conflicts_with = "json")]
