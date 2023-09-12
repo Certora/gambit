@@ -23,53 +23,54 @@
 23,BOR,BOR/BOR.sol,10:18,|,&
 24,BOR,BOR/BOR.sol,16:18,&,|
 25,BOR,BOR/BOR.sol,22:18,^,&
-26,LOR,LOR/LOR.sol,9:16,a && b,a
-27,LOR,LOR/LOR.sol,9:16,a && b,b
-28,LOR,LOR/LOR.sol,9:16,a && b,false
-29,LOR,LOR/LOR.sol,14:16,a || b,a
-30,LOR,LOR/LOR.sol,14:16,a || b,b
-31,LOR,LOR/LOR.sol,14:16,a || b,true
-32,LOR,LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),x < y
-33,LOR,LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),a != (x >= y)
-34,LOR,LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),true
-35,LOR,LOR/LOR.sol,23:16,!a,true
-36,LOR,LOR/LOR.sol,23:16,!a,false
-37,LVR,LVR/LVR.sol,15:24,0,1
-38,LVR,LVR/LVR.sol,21:23,1,0
-39,LVR,LVR/LVR.sol,21:23,1,2
-40,LVR,LVR/LVR.sol,27:26,-1,0
-41,LVR,LVR/LVR.sol,27:26,-1,1
-42,LVR,LVR/LVR.sol,27:26,-1,-2
-43,LVR,LVR/LVR.sol,33:26,1,0
-44,LVR,LVR/LVR.sol,33:26,1,-1
-45,LVR,LVR/LVR.sol,33:26,1,2
-46,LVR,LVR/LVR.sol,39:23,0,-1
-47,LVR,LVR/LVR.sol,39:23,0,1
-48,ROR,ROR/ROR.sol,9:18,<,<=
-49,ROR,ROR/ROR.sol,9:18,<,!=
-50,ROR,ROR/ROR.sol,9:16,x < y,false
-51,ROR,ROR/ROR.sol,14:18,<=,<
-52,ROR,ROR/ROR.sol,14:18,<=,==
-53,ROR,ROR/ROR.sol,14:16,x <= y,true
-54,ROR,ROR/ROR.sol,19:18,>,>=
-55,ROR,ROR/ROR.sol,19:18,>,!=
-56,ROR,ROR/ROR.sol,19:16,x > y,false
-57,ROR,ROR/ROR.sol,24:18,>=,>
-58,ROR,ROR/ROR.sol,24:18,>=,==
-59,ROR,ROR/ROR.sol,24:16,x >= y,true
-60,ROR,ROR/ROR.sol,29:18,==,<=
-61,ROR,ROR/ROR.sol,29:18,==,>=
-62,ROR,ROR/ROR.sol,29:16,x == y,false
-63,ROR,ROR/ROR.sol,34:16,x == y,false
-64,ROR,ROR/ROR.sol,39:18,!=,<
-65,ROR,ROR/ROR.sol,39:18,!=,>
-66,ROR,ROR/ROR.sol,39:16,x != y,true
-67,ROR,ROR/ROR.sol,44:16,x != y,true
-68,ROR,ROR/ROR.sol,53:24,>=,>
-69,ROR,ROR/ROR.sol,53:24,>=,==
-70,ROR,ROR/ROR.sol,53:16,(x + y) >= z,true
-71,ROR,ROR/ROR.sol,62:24,!=,<
-72,ROR,ROR/ROR.sol,62:24,!=,>
-73,ROR,ROR/ROR.sol,62:16,(x + y) != z,true
-74,UOR,UOR/UOR.sol,14:16,~,-
-75,UOR,UOR/UOR.sol,19:16,-,~
+26,EDC,EDC/EDC.sol,16:38,delegatecall,call
+27,LOR,LOR/LOR.sol,9:16,a && b,a
+28,LOR,LOR/LOR.sol,9:16,a && b,b
+29,LOR,LOR/LOR.sol,9:16,a && b,false
+30,LOR,LOR/LOR.sol,14:16,a || b,a
+31,LOR,LOR/LOR.sol,14:16,a || b,b
+32,LOR,LOR/LOR.sol,14:16,a || b,true
+33,LOR,LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),x < y
+34,LOR,LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),a != (x >= y)
+35,LOR,LOR/LOR.sol,19:16,(x < y) || (a != (x >= y)),true
+36,LOR,LOR/LOR.sol,23:16,!a,true
+37,LOR,LOR/LOR.sol,23:16,!a,false
+38,LVR,LVR/LVR.sol,15:24,0,1
+39,LVR,LVR/LVR.sol,21:23,1,0
+40,LVR,LVR/LVR.sol,21:23,1,2
+41,LVR,LVR/LVR.sol,27:26,-1,0
+42,LVR,LVR/LVR.sol,27:26,-1,1
+43,LVR,LVR/LVR.sol,27:26,-1,-2
+44,LVR,LVR/LVR.sol,33:26,1,0
+45,LVR,LVR/LVR.sol,33:26,1,-1
+46,LVR,LVR/LVR.sol,33:26,1,2
+47,LVR,LVR/LVR.sol,39:23,0,-1
+48,LVR,LVR/LVR.sol,39:23,0,1
+49,ROR,ROR/ROR.sol,9:18,<,<=
+50,ROR,ROR/ROR.sol,9:18,<,!=
+51,ROR,ROR/ROR.sol,9:16,x < y,false
+52,ROR,ROR/ROR.sol,14:18,<=,<
+53,ROR,ROR/ROR.sol,14:18,<=,==
+54,ROR,ROR/ROR.sol,14:16,x <= y,true
+55,ROR,ROR/ROR.sol,19:18,>,>=
+56,ROR,ROR/ROR.sol,19:18,>,!=
+57,ROR,ROR/ROR.sol,19:16,x > y,false
+58,ROR,ROR/ROR.sol,24:18,>=,>
+59,ROR,ROR/ROR.sol,24:18,>=,==
+60,ROR,ROR/ROR.sol,24:16,x >= y,true
+61,ROR,ROR/ROR.sol,29:18,==,<=
+62,ROR,ROR/ROR.sol,29:18,==,>=
+63,ROR,ROR/ROR.sol,29:16,x == y,false
+64,ROR,ROR/ROR.sol,34:16,x == y,false
+65,ROR,ROR/ROR.sol,39:18,!=,<
+66,ROR,ROR/ROR.sol,39:18,!=,>
+67,ROR,ROR/ROR.sol,39:16,x != y,true
+68,ROR,ROR/ROR.sol,44:16,x != y,true
+69,ROR,ROR/ROR.sol,53:24,>=,>
+70,ROR,ROR/ROR.sol,53:24,>=,==
+71,ROR,ROR/ROR.sol,53:16,(x + y) >= z,true
+72,ROR,ROR/ROR.sol,62:24,!=,<
+73,ROR,ROR/ROR.sol,62:24,!=,>
+74,ROR,ROR/ROR.sol,62:16,(x + y) != z,true
+75,UOR,UOR/UOR.sol,14:16,~,-
+76,UOR,UOR/UOR.sol,19:16,-,~

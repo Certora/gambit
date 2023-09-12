@@ -1,1 +1,98 @@
-[]
+[
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a - b;\n     }\n }\n \n",
+    "id": "1",
+    "line": 11,
+    "name": "mutants/1/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "-"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a * b;\n     }\n }\n \n",
+    "id": "2",
+    "line": 11,
+    "name": "mutants/2/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "*"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a / b;\n     }\n }\n \n",
+    "id": "3",
+    "line": 11,
+    "name": "mutants/3/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "/"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         assert(c[0] == e);\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return a + b;`\n     function add(int8 a, int8 b) public pure returns (int8) {\n-        return a + b;\n+        return a % b;\n     }\n }\n \n",
+    "id": "4",
+    "line": 11,
+    "name": "mutants/4/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "%"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `-`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c - d;\n     }\n }\n",
+    "id": "5",
+    "line": 38,
+    "name": "mutants/5/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "-"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `*`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c * d;\n     }\n }\n",
+    "id": "6",
+    "line": 38,
+    "name": "mutants/6/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "*"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `/`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c / d;\n     }\n }\n",
+    "id": "7",
+    "line": 38,
+    "name": "mutants/7/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "/"
+  },
+  {
+    "col": 18,
+    "description": "ArithmeticOperatorReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -34,7 +34,8 @@\n         Utils.getarray(b, address(this));\n     }\n \n+    /// ArithmeticOperatorReplacement(`+` |==> `%`) of: `return c + d;`\n     function add(int8 c, int8 d) public pure returns (int8) {\n-        return c + d;\n+        return c % d;\n     }\n }\n",
+    "id": "8",
+    "line": 38,
+    "name": "mutants/8/MultipleContracts/C.sol",
+    "op": "AOR",
+    "orig": "+",
+    "original": "MultipleContracts/C.sol",
+    "repl": "%"
+  }
+]

@@ -25,9 +25,9 @@ contract ROR {
     }
 
     // Expect 3 mutants: x >= y, x <= y, false
-    /// RelationalOperatorReplacement(`x == y` |==> `false`) of: `return x == y;`
+    /// RelationalOperatorReplacement(`==` |==> `>=`) of: `return x == y;`
     function equal_ord(uint256 x, uint256 y) public pure returns (bool) {
-        return false;
+        return x >= y;
     }
 
     // Expect 2 mutants: true, false

@@ -10,13 +10,13 @@ contract UOR {
     }
 
     // Expect a single mutant: -x
+    /// UnaryOperatorReplacement(`~` |==> `-`) of: `return ~x;`
     function signed_bw_not(int256 x) public pure returns (int256) {
-        return ~x;
+        return -x;
     }
 
     // Expect a single mutant: ~x
-    /// UnaryOperatorReplacement(`-` |==> `~`) of: `return -x;`
     function signed_neg(int256 x) public pure returns (int256) {
-        return ~x;
+        return -x;
     }
 }

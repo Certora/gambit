@@ -10,9 +10,9 @@ contract LOR {
     }
 
     // Expect three mutants: a, b, true
-    /// LogicalOperatorReplacement(`a || b` |==> `b`) of: `return a || b;`
+    /// LogicalOperatorReplacement(`a || b` |==> `a`) of: `return a || b;`
     function or(bool a, bool b) public pure returns (bool) {
-        return b;
+        return a;
     }
 
     // Expect three mutants, x < y, a != (x >= y), true

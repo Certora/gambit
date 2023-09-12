@@ -25,3 +25,6 @@
 25,AOR,Ops/AOR/AOR.sol,58:18,**,*
 26,AOR,Ops/AOR/AOR.sol,58:18,**,/
 27,AOR,Ops/AOR/AOR.sol,58:18,**,%
+28,STD,MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)
+29,ROR,MultipleContracts/C.sol,29:16,c[0] == e,false
+30,LVR,MultipleContracts/C.sol,29:18,0,1

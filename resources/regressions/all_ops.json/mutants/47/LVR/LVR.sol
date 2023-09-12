@@ -35,9 +35,9 @@ contract LVR {
     }
 
     // Expect 2 mutants: -1, 1
-    /// LiteralValueReplacement(`0` |==> `1`) of: `int256 zero = 0;`
+    /// LiteralValueReplacement(`0` |==> `-1`) of: `int256 zero = 0;`
     function signed_zero() public pure returns (int256) {
-        int256 zero = 1;
+        int256 zero = -1;
         return zero;
     }
 }
