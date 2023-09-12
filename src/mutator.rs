@@ -332,27 +332,28 @@ impl Mutator {
                     continue;
                 }
             }
-            if function.has_body {
-                let contract_name = if let Some(contract_no) = function.contract_no {
-                    let contract = ns.contracts.get(contract_no).unwrap();
-                    format!("{}::", &contract.name)
-                } else {
-                    "".to_string()
-                };
-                log::info!(
-                    "Processing function body for {}{}...",
-                    contract_name,
-                    &function.signature
-                );
-                for statement in function.body.iter() {
-                    statement.recurse(self, mutate_statement);
-                }
-                let end_no_mutants = self.mutants.len();
-                log::info!(
-                    "    ...generated {} mutants",
-                    end_no_mutants - start_no_mutants
-                );
+            if function.is_accessor || function.is_virtual || !function.has_body {
+                continue;
             }
+            let contract_name = if let Some(contract_no) = function.contract_no {
+                let contract = ns.contracts.get(contract_no).unwrap();
+                format!("{}::", &contract.name)
+            } else {
+                "".to_string()
+            };
+            log::info!(
+                "Processing function body for {}{}...",
+                contract_name,
+                &function.signature
+            );
+            for statement in function.body.iter() {
+                statement.recurse(self, mutate_statement);
+            }
+            let end_no_mutants = self.mutants.len();
+            log::info!(
+                "    ...generated {} mutants",
+                end_no_mutants - start_no_mutants
+            );
         }
         self.namespace = None;
         Ok(self.mutants.clone())
