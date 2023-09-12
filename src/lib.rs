@@ -183,7 +183,7 @@ pub fn run_mutate(
                     w.write_record([
                         mid.to_string().as_str(),
                         mutant.op.short_name().as_str(),
-                        mutant.path().to_str().unwrap(),
+                        mutant.sol_path().to_str().unwrap(),
                         line_col.as_str(),
                         mutant.orig.as_str(),
                         mutant.repl.as_str(),
