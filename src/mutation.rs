@@ -31,7 +31,7 @@ pub struct MutantLoc {
     pub path: PathBuf,
     /// The solidity path, relative to its import root, to the original source
     /// file; if a file path is specified absolutely then this is None
-    pub sol_path: Option<PathBuf>,
+    pub sol_path: PathBuf,
 }
 
 impl Debug for MutantLoc {
@@ -81,7 +81,7 @@ impl MutantLoc {
             line_no,
             col_no,
             path,
-            sol_path: Some(sol_path),
+            sol_path,
         }
     }
 }
@@ -137,8 +137,8 @@ impl Mutant {
         &self.mutant_loc.path
     }
 
-    pub fn sol_path(&self) -> Option<&PathBuf> {
-        self.mutant_loc.sol_path.as_ref()
+    pub fn sol_path(&self) -> &PathBuf {
+        &self.mutant_loc.sol_path
     }
 
     pub fn get_line_column(&self) -> (usize, usize) {
