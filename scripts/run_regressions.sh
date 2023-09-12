@@ -74,7 +74,7 @@ run_regressions() {
         rel_conf_path=$(python3 -c "import os.path; print( os.path.relpath('$conf_path', '$(pwd)'))")
         rel_regression_dir=$(python3 -c "import os.path; print( os.path.relpath('$regression_dir', '$(pwd)'))")
 
-        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $rel_conf_path"
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "$GAMBIT_EXECUTABLE mutate --json $rel_conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
         printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
         if diff -q -r gambit_out "$regression_dir" 1>/dev/null; then
