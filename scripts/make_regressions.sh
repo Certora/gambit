@@ -114,8 +114,8 @@ make_regressions() {
             echo "Error: couldn't cd $GAMBIT"
             exit 1
         }
-        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $conf_path"
-        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $conf_path --solc $SOLC"
+        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path" --solc "$SOLC")"
         printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
         exit_code=$?
         if [ $exit_code -ne 0 ]; then
