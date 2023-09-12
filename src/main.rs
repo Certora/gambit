@@ -63,6 +63,82 @@ fn resolve_config_file_paths(
     Ok(result)
 }
 
+fn print_experimental_feature_warnings(params: &MutateParams) {
+    // First, check for fallback mutations
+    if params.fallback_mutations.is_some() {
+        print_experimental_feature_warning("fallback_mutations", "1.0.0");
+    }
+
+    let experimental_mutation_operators = vec![("evr", "1.0.0")]
+        .iter()
+        .map(|item| (normalize_mutation_operator_name(item.0), item.1))
+        .collect::<Vec<(String, &str)>>();
+
+    // Collect all mutation operators
+    let all_mutations = match (&params.mutations, &params.fallback_mutations) {
+        (Some(mutations), None) => mutations.clone(),
+        (None, Some(fallback_mutations)) => fallback_mutations.clone(),
+        (Some(r1), Some(r2)) => r1.into_iter().chain(r2).cloned().collect(),
+        _ => vec![],
+    }
+    .iter()
+    .map(|name| normalize_mutation_operator_name(name))
+    .collect::<Vec<String>>();
+
+    for (mutation, version) in experimental_mutation_operators
+        .iter()
+        .filter(|(experimental_op, _)| all_mutations.contains(experimental_op))
+    {
+        print_experimental_feature_warning(
+            format!("{}:{}", "MutationType", mutation).as_str(),
+            version,
+        )
+    }
+}
+
+fn print_deprecation_warnings(params: &MutateParams, is_cli: bool) {
+    // We want to format parameter names differently depending on if this
+    // parameter was from a CLI invocation or a configuration file
+    let format_param = |p: &str| {
+        if is_cli {
+            format!("--{}", p)
+        } else {
+            p.to_string()
+        }
+    };
+    if params.sourceroot.is_some() {
+        print_deprecation_warning(
+            format_param("sourceroot").as_str(),
+            "1.0.0",
+            "sourceroot is no longer used and will be ignored",
+        );
+    }
+
+    if params.solc_base_path.is_some() {
+        print_deprecation_warning(
+            format_param("solc_base_path").as_str(),
+            "1.0.0",
+            "Use import_path instead",
+        );
+    }
+
+    if !params.solc_include_paths.is_empty() {
+        print_deprecation_warning(
+            format_param("solc_include_path").as_str(),
+            "1.0.0",
+            "Use import_path instead",
+        );
+    }
+
+    if params.solc_remappings.is_some() {
+        print_deprecation_warning(
+            format_param("solc_remapping").as_str(),
+            "1.0.0",
+            "Use import_path instead",
+        );
+    }
+}
+
 fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
     // The user has specified a configuration file.
     //
@@ -121,14 +197,6 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
     }
     .map(|pb| pb.to_str().unwrap().to_string());
 
-    if params.sourceroot.is_some() {
-        print_deprecation_warning(
-            "--sourceroot",
-            "1.0.0",
-            "--sourceroot is no longer used and will be ignored",
-        );
-    }
-
     for (i, p) in mutate_params.iter_mut().enumerate() {
         // Add pass-through args from CLI to each mutate param we deserialized from the config file
 
@@ -148,42 +216,10 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             p.outdir = pass_through_outdir.clone();
         }
 
-        // Check for experimental arguments
-        if p.fallback_mutations.is_some() {
-            print_experimental_feature_warning("fallback_mutations", "1.0.0");
-        }
-        if let Some(ref mutations) = p.mutations {
-            let evr = normalize_mutation_operator_name("evr");
-            for mutation in mutations {
-                if normalize_mutation_operator_name(mutation) == evr {
-                    print_experimental_feature_warning(
-                        "MutationType::ExpressionValueReplacement",
-                        "1.0.0",
-                    );
-                }
-            }
-        }
-        if let Some(ref mutations) = p.fallback_mutations {
-            let evr = normalize_mutation_operator_name("evr");
-            for mutation in mutations {
-                if normalize_mutation_operator_name(mutation) == evr {
-                    print_experimental_feature_warning(
-                        "MutationType::ExpressionValueReplacement",
-                        "1.0.0",
-                    );
-                }
-            }
-        }
-
         log::info!("Configuration {}", i + 1);
 
-        if p.sourceroot.is_some() {
-            print_deprecation_warning(
-                "sourceroot",
-                "1.0.0",
-                "sourceroot is no longer used and will be ignored",
-            );
-        }
+        print_deprecation_warnings(&p, false);
+        print_experimental_feature_warnings(&p);
 
         // PARAM: Filename
         log::info!("    [.] Resolving params.filename");
@@ -273,7 +309,6 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             p.solc_base_path
         );
         if let Some(ref base_path) = p.solc_base_path {
-            print_deprecation_warning("solc_base_path", "1.0.0", "Use import_path instead");
             let base_path = match resolve_config_file_path(base_path, &json_parent_directory) {
                 Ok(p) => p.to_str().unwrap().to_string(),
                 Err(_) => {
@@ -291,7 +326,6 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         }
 
         if !p.solc_include_paths.is_empty() {
-            print_deprecation_warning("solc_include_path", "1.0.0", "Use import_path instead");
             for include_path in p.solc_include_paths.iter() {
                 let include_path =
                     match resolve_config_file_path(include_path, &json_parent_directory) {
@@ -319,7 +353,6 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         }
         log::debug!("    [.] Resolving params.solc_remapping");
         if let Some(ref remappings) = p.solc_remappings {
-            print_deprecation_warning("solc_remapping", "1.0.0", "Use import_map instead");
             for remapping in remappings.iter() {
                 import_maps.push(remapping.clone());
             }
@@ -330,7 +363,7 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
             let default_import_path = json_parent_directory.to_str().unwrap().to_string();
             print_warning(
                 "No `import_paths` specified in config",
-                format!("Adding default import path {}.\nTo fix, add\n    \"import_paths\": [\"{}\"],\nto {}", default_import_path, default_import_path, json_path).as_str(),
+                format!("Adding default import path {}.\nTo fix, add\n    \"import_paths\": [\"SOME_IMPORT_PATH\"],\nto {}", default_import_path, default_import_path).as_str(),
             );
             import_paths.push(default_import_path);
         }
@@ -349,34 +382,8 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
     log::info!("Running CLI MutateParams: {:#?}", &params);
 
-    // Check for experimental arguments
-    if params.fallback_mutations.is_some() {
-        print_experimental_feature_warning("--fallback_mutations", "1.0.0");
-    }
-    if let Some(ref mutations) = params.mutations {
-        let evr = normalize_mutation_operator_name("evr");
-        for mutation in mutations {
-            if normalize_mutation_operator_name(mutation) == evr {
-                print_experimental_feature_warning(
-                    "MutationType::ExpressionValueReplacement",
-                    "1.0.0",
-                );
-            }
-        }
-    }
-    if let Some(ref mutations) = params.fallback_mutations {
-        let evr = normalize_mutation_operator_name("evr");
-        for mutation in mutations {
-            if normalize_mutation_operator_name(mutation) == evr {
-                print_experimental_feature_warning(
-                    "MutationType::ExpressionValueReplacement",
-                    "1.0.0",
-                );
-            }
-        }
-    }
-    // # Path Resolution for CLI Provided Parameters
-    log::info!("    Performing File Resolution");
+    print_deprecation_warnings(&params, true);
+    print_experimental_feature_warnings(&params);
 
     log::debug!("    [.] Resolving params.filename");
     let filename = match params.filename {
@@ -394,13 +401,6 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         }
     };
 
-    if params.sourceroot.is_some() {
-        print_deprecation_warning(
-            "--sourceroot",
-            "1.0.0",
-            "--sourceroot is no longer used and will be ignored",
-        );
-    }
     log::debug!("    [.] Resolving params.outdir {:?}", &params.outdir);
 
     let outdir = normalize_path(&PathBuf::from(
@@ -460,7 +460,6 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
         params.solc_base_path
     );
     if let Some(ref base_path) = params.solc_base_path {
-        print_deprecation_warning("--solc_base_path", "1.0.0", "Use --import_paths");
         let base_path = match PathBuf::from(&base_path).canonicalize() {
             Ok(p) => p.to_str().unwrap().to_string(),
             Err(_) => {
@@ -475,7 +474,6 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     }
 
     if !params.solc_include_paths.is_empty() {
-        print_deprecation_warning("--solc_include_path", "1.0.0", "Use --import_paths instead");
         for include_path in params.solc_include_paths.iter() {
             let include_path = match PathBuf::from(&include_path).canonicalize() {
                 Ok(p) => p.to_str().unwrap().to_string(),
@@ -514,7 +512,6 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     }
 
     if let Some(ref remappings) = params.solc_remappings {
-        print_deprecation_warning("--solc_remapping", "1.0.0", "Use --import_maps instead");
         for remapping in remappings.iter() {
             import_maps.push(remapping.clone());
         }
