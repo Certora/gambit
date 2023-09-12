@@ -1,6 +1,7 @@
 use crate::{
     default_gambit_output_directory, get_sol_path, mutation::MutationType,
-    normalize_mutation_operator_name, print_error, Mutant, MutateParams, Mutation, Solc,
+    normalize_mutation_operator_name, print_error, print_warning, Mutant, MutateParams, Mutation,
+    Solc,
 };
 use clap::ValueEnum;
 use solang::{
@@ -119,14 +120,22 @@ impl From<&MutateParams> for Mutator {
         );
         solc.with_optimize(params.solc_optimize);
 
-        if let Some(basepath) = params.solc_base_path.clone() {
-            solc.with_basepath(basepath);
+        if params.solc_base_path.is_some() {
+            print_warning(
+                "Invalid MutateParams: solc_base_path",
+                "solc_base_path is ignored. Use import_paths instead",
+            );
         }
+
+        if params.solc_remappings.is_some() {
+            print_warning(
+                "Invalid MutateParams: solc_remappings",
+                "solc_remappings is ignored. Use import_maps instead",
+            );
+        }
+
         if let Some(allowpaths) = params.solc_allow_paths.clone() {
             solc.with_allow_paths(allowpaths);
-        }
-        if let Some(remappings) = params.solc_remappings.clone() {
-            solc.with_remappings(remappings);
         }
 
         let mut filenames: Vec<String> = vec![];
