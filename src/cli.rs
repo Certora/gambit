@@ -138,7 +138,7 @@ pub struct MutateParams {
     pub no_overwrite: bool,
 
     /// Solidity binary name, e.g., --solc solc8.10, --solc 7.5, etc.
-    #[arg(long, default_value = "solc")]
+    #[arg(long, default_value = None)]
     #[serde(default = "default_solc")]
     pub solc: Option<String>,
 
