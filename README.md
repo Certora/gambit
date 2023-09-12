@@ -142,13 +142,12 @@
 -->
 # Gambit: Mutant Generation for Solidity
 
-Gambit is a state-of-the-art mutant generation system for Solidity.  By applying
-predefined syntax transformations called _mutation operators_ (for example,
-convert `a + b` to `a - b`) to a Solidity program's source code, Gambit
-generates variants of the program called _mutants_.
-Mutants are used to evaluate a test suite or a specification: each mutant
-represents a potential bug in the program, and stronger test suites and
-specifications should detect more mutants as faulty.
+Gambit is a state-of-the-art mutant generation system for Solidity. Gambit
+injects faults into a Solidity program by applying predefined syntactic
+transformations, called _mutation _operators_, to the program's source code. The
+resulting faulty programs, called _mutants_, are used to evaluate a test suite
+or a specification: each mutant represents a potential bug in the program, and
+stronger test suites and specifications should detect more mutants as faulty.
 
 ## Requirements
 
@@ -324,10 +323,10 @@ location without affecting the build configuration.
 Gambit resolves imports while parsing, and this requires that you specify any
 import paths and remappings that you would pass to `solc`.
 
-Instead of `solc`'s `--base-name` and `--input-path` arguments, Gambit uses
+Instead of `solc`'s `--base-name` and `--import-path` arguments, Gambit uses
 a simpler scheme and replaces both of these with a single `--import_paths`
 argument. For instance, if the `solc` invocation is `solc C.sol --base-name .
---input-path modules` , then the Gambit invocation becomes `gambit mutate C.sol
+--import-path modules` , then the Gambit invocation becomes `gambit mutate C.sol
 --import_paths . modules`.
 
 Remappings are specified with the `--import_maps` argument. If the `solc`
