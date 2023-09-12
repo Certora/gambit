@@ -8,7 +8,7 @@
     "name": "mutants/1/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a + b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "0"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a + b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "1"
   },
   {
@@ -32,7 +32,7 @@
     "name": "mutants/3/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "add(a, b)",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "0"
   },
   {
@@ -44,7 +44,7 @@
     "name": "mutants/4/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "add(a, b)",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "1"
   },
   {
@@ -56,7 +56,7 @@
     "name": "mutants/5/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "result",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "0"
   },
   {
@@ -68,7 +68,7 @@
     "name": "mutants/6/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "result",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "1"
   },
   {
@@ -80,7 +80,7 @@
     "name": "mutants/7/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a < b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "true"
   },
   {
@@ -92,7 +92,7 @@
     "name": "mutants/8/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a < b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "false"
   },
   {
@@ -104,7 +104,7 @@
     "name": "mutants/9/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "c",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "true"
   },
   {
@@ -116,7 +116,7 @@
     "name": "mutants/10/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "c",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "false"
   },
   {
@@ -128,7 +128,7 @@
     "name": "mutants/11/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "b - a",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "0"
   },
   {
@@ -140,7 +140,7 @@
     "name": "mutants/12/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "b - a",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "1"
   },
   {
@@ -152,7 +152,7 @@
     "name": "mutants/13/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a < b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "true"
   },
   {
@@ -164,7 +164,7 @@
     "name": "mutants/14/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a < b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "false"
   },
   {
@@ -176,7 +176,7 @@
     "name": "mutants/15/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a - b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "0"
   },
   {
@@ -188,7 +188,7 @@
     "name": "mutants/16/Ops/EVR/EVR.sol",
     "op": "EVR",
     "orig": "a - b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/EVR/EVR.sol",
+    "original": "Ops/EVR/EVR.sol",
     "repl": "1"
   }
 ]

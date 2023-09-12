@@ -8,7 +8,7 @@
     "name": "mutants/1/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "0",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "1"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "0"
   },
   {
@@ -32,7 +32,7 @@
     "name": "mutants/3/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "2"
   },
   {
@@ -44,7 +44,7 @@
     "name": "mutants/4/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "-1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "0"
   },
   {
@@ -56,7 +56,7 @@
     "name": "mutants/5/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "-1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "1"
   },
   {
@@ -68,7 +68,7 @@
     "name": "mutants/6/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "-1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "-2"
   },
   {
@@ -80,7 +80,7 @@
     "name": "mutants/7/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "0"
   },
   {
@@ -92,7 +92,7 @@
     "name": "mutants/8/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "-1"
   },
   {
@@ -104,7 +104,7 @@
     "name": "mutants/9/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "1",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "2"
   },
   {
@@ -116,7 +116,7 @@
     "name": "mutants/10/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "0",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "-1"
   },
   {
@@ -128,7 +128,7 @@
     "name": "mutants/11/Ops/LVR/LVR.sol",
     "op": "LVR",
     "orig": "0",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/LVR/LVR.sol",
+    "original": "Ops/LVR/LVR.sol",
     "repl": "1"
   }
 ]

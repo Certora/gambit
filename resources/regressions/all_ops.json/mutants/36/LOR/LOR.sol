@@ -19,8 +19,8 @@ contract LOR {
         return (x < y) || (a != (x >= y));
     }
 
-    /// LogicalOperatorReplacement(`!a` |==> `true`) of: `return !a;`
+    /// LogicalOperatorReplacement(`!a` |==> `false`) of: `return !a;`
     function not(bool a) public pure returns (bool) {
-        return true;
+        return false;
     }
 }

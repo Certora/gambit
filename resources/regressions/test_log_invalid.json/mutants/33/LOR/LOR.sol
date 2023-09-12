@@ -15,9 +15,9 @@ contract LOR {
     }
 
     // Expect three mutants, x < y, a != (x >= y), true
-    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `x < y`) of: `return (x < y) || (a != (x >= y));`
+    /// LogicalOperatorReplacement(`(x < y) || (a != (x >= y))` |==> `a != (x >= y)`) of: `return (x < y) || (a != (x >= y));`
     function more_or(bool a, int x, int y) public pure returns (bool) {
-        return x < y;
+        return a != (x >= y);
     }
 
     function not(bool a) public pure returns (bool) {

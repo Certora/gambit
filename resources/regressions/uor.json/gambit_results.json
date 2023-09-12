@@ -8,7 +8,7 @@
     "name": "mutants/1/Ops/UOR/UOR.sol",
     "op": "UOR",
     "orig": "~",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol",
+    "original": "Ops/UOR/UOR.sol",
     "repl": "-"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/Ops/UOR/UOR.sol",
     "op": "UOR",
     "orig": "-",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/UOR/UOR.sol",
+    "original": "Ops/UOR/UOR.sol",
     "repl": "~"
   }
 ]

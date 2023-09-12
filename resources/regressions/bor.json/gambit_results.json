@@ -8,7 +8,7 @@
     "name": "mutants/1/Ops/BOR/BOR.sol",
     "op": "BOR",
     "orig": "|",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol",
+    "original": "Ops/BOR/BOR.sol",
     "repl": "&"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/Ops/BOR/BOR.sol",
     "op": "BOR",
     "orig": "&",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol",
+    "original": "Ops/BOR/BOR.sol",
     "repl": "|"
   },
   {
@@ -32,7 +32,7 @@
     "name": "mutants/3/Ops/BOR/BOR.sol",
     "op": "BOR",
     "orig": "^",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/BOR/BOR.sol",
+    "original": "Ops/BOR/BOR.sol",
     "repl": "&"
   }
 ]

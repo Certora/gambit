@@ -11,15 +11,15 @@ contract LVR {
     int256 zero_s = 0;
 
     // Expect 1 mutant: 1
-    /// LiteralValueReplacement(`0` |==> `1`) of: `uint256 zero = 0;`
     function unsigned_zero() public pure returns (uint256) {
-        uint256 zero = 1;
+        uint256 zero = 0;
         return zero;
     }
 
     // Expect 2 mutant: 0, 2
+    /// LiteralValueReplacement(`1` |==> `0`) of: `uint256 one = 1;`
     function unsigned_one() public pure returns (uint256) {
-        uint256 one = 1;
+        uint256 one = 0;
         return one;
     }
 

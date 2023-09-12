@@ -8,7 +8,7 @@
     "name": "mutants/1/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "*"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "+"
   },
   {
@@ -32,7 +32,7 @@
     "name": "mutants/3/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "-"
   },
   {
@@ -44,7 +44,7 @@
     "name": "mutants/4/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "+"
   },
   {
@@ -56,7 +56,7 @@
     "name": "mutants/5/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -68,7 +68,7 @@
     "name": "mutants/6/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -80,7 +80,7 @@
     "name": "mutants/7/AOR/AOR.sol",
     "op": "STD",
     "orig": "return a - b",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "assert(true)"
   },
   {
@@ -92,7 +92,7 @@
     "name": "mutants/8/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -104,7 +104,7 @@
     "name": "mutants/9/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "-"
   },
   {
@@ -116,7 +116,7 @@
     "name": "mutants/10/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "AOR/AOR.sol",
     "repl": "+"
   }
 ]

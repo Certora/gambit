@@ -8,7 +8,7 @@
     "name": "mutants/1/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/ImportMaps/contracts/Contract.sol",
+    "original": "contracts/Contract.sol",
     "repl": "-"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/ImportMaps/contracts/Contract.sol",
+    "original": "contracts/Contract.sol",
     "repl": "*"
   },
   {
@@ -32,7 +32,7 @@
     "name": "mutants/3/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/ImportMaps/contracts/Contract.sol",
+    "original": "contracts/Contract.sol",
     "repl": "/"
   },
   {
@@ -44,7 +44,7 @@
     "name": "mutants/4/contracts/Contract.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/ImportMaps/contracts/Contract.sol",
+    "original": "contracts/Contract.sol",
     "repl": "%"
   }
 ]

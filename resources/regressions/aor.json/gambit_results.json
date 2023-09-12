@@ -8,7 +8,7 @@
     "name": "mutants/1/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "-"
   },
   {
@@ -20,7 +20,7 @@
     "name": "mutants/2/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "*"
   },
   {
@@ -32,7 +32,7 @@
     "name": "mutants/3/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "/"
   },
   {
@@ -44,7 +44,7 @@
     "name": "mutants/4/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "+",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -56,7 +56,7 @@
     "name": "mutants/5/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "+"
   },
   {
@@ -68,7 +68,7 @@
     "name": "mutants/6/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "*"
   },
   {
@@ -80,7 +80,7 @@
     "name": "mutants/7/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "/"
   },
   {
@@ -92,7 +92,7 @@
     "name": "mutants/8/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "-",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -104,7 +104,7 @@
     "name": "mutants/9/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "+"
   },
   {
@@ -116,7 +116,7 @@
     "name": "mutants/10/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "-"
   },
   {
@@ -128,7 +128,7 @@
     "name": "mutants/11/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "/"
   },
   {
@@ -140,7 +140,7 @@
     "name": "mutants/12/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -152,7 +152,7 @@
     "name": "mutants/13/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "+"
   },
   {
@@ -164,7 +164,7 @@
     "name": "mutants/14/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "-"
   },
   {
@@ -176,7 +176,7 @@
     "name": "mutants/15/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "/"
   },
   {
@@ -188,7 +188,7 @@
     "name": "mutants/16/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "**"
   },
   {
@@ -200,7 +200,7 @@
     "name": "mutants/17/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "*",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "%"
   },
   {
@@ -212,7 +212,7 @@
     "name": "mutants/18/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "+"
   },
   {
@@ -224,7 +224,7 @@
     "name": "mutants/19/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "-"
   },
   {
@@ -236,7 +236,7 @@
     "name": "mutants/20/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "*"
   },
   {
@@ -248,7 +248,7 @@
     "name": "mutants/21/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "/"
   },
   {
@@ -260,7 +260,7 @@
     "name": "mutants/22/Ops/AOR/AOR.sol",
     "op": "AOR",
     "orig": "**",
-    "original": "/Users/benku/Gambit/benchmarks/Ops/AOR/AOR.sol",
+    "original": "Ops/AOR/AOR.sol",
     "repl": "%"
   }
 ]
