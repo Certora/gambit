@@ -212,6 +212,9 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         if params.no_overwrite {
             p.no_overwrite = true;
         }
+        if params.solc.is_some() {
+            p.solc = params.solc.clone();
+        }
         if pass_through_outdir.is_some() {
             p.outdir = pass_through_outdir.clone();
         }
