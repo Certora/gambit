@@ -71,9 +71,8 @@ run_regressions() {
         regression_dir="$REGRESSIONS"/"$conf"
 
         # Get relative paths for nice printing
-        rel_conf_path=$(python -c "import os.path; print( os.path.relpath('$conf_path', '$(pwd)'))")
-        rel_regression_dir=$(python -c "import os.path; print( os.path.relpath('$regression_dir', '$(pwd)'))")
-
+        rel_conf_path=$(python3 -c "import os.path; print( os.path.relpath('$conf_path', '$(pwd)'))")
+        rel_regression_dir=$(python3 -c "import os.path; print( os.path.relpath('$regression_dir', '$(pwd)'))")
 
         printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "gambit mutate --json $rel_conf_path"
         stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
