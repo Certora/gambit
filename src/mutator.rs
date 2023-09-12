@@ -144,6 +144,9 @@ impl From<&MutateParams> for Mutator {
             filenames.push(filename.clone());
         }
 
+        // Every mutator has a FileResolver. A FileResolver is a solang-provided
+        // struct that resolves files, performs import resolution, and then
+        // performs type resolution.
         let mut file_resolver = FileResolver::default();
 
         // Add import paths to file resolver
