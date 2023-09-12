@@ -146,7 +146,7 @@ impl From<&MutateParams> for Mutator {
 
         let mut file_resolver = FileResolver::default();
 
-        // Add base path to file resolver
+        // Add import paths to file resolver
         if params.import_paths.is_empty() {
             print_error(
                 "No import paths found",
