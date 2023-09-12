@@ -328,14 +328,28 @@ impl Mutator {
             if function.is_accessor || function.is_virtual || !function.has_body {
                 continue;
             }
-            let contract_name = if let Some(contract_no) = function.contract_no {
+            let contract = if let Some(contract_no) = function.contract_no {
                 let contract = ns.contracts.get(contract_no).unwrap();
-                format!("{}::", &contract.name)
+                Some(format!("{}", &contract.name))
             } else {
-                "".to_string()
+                None
             };
+
+            let contract_name = contract.unwrap_or_else(|| "".to_string());
+            let function_name = function.name.clone();
+            if let Some(ref funcs_to_mutate) = self.conf.funcs_to_mutate {
+                if !funcs_to_mutate.contains(&function_name) {
+                    continue;
+                }
+            }
+            if let Some(ref contract_to_mutate) = self.conf.contract {
+                if &contract_name != contract_to_mutate {
+                    continue;
+                }
+            }
+
             log::info!(
-                "Processing function body for {}{}...",
+                "Processing function body for {}::{}...",
                 contract_name,
                 &function.signature
             );
