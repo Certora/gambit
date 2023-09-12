@@ -59,14 +59,15 @@ fn default_import_paths() -> Vec<String> {
 
 /// Mutate solidity code.
 ///
-/// The `mutate` command requires either a `--filename` or a `--json`
-/// configuration file to be passed, and these are mutually exclusive.
+/// The `mutate` command requires either a filename or a `--json` configuration
+/// file to be passed, and these are mutually exclusive.
 ///
 /// # Examples
-/// 1. `gambit mutate --filename path/to/file.sol` this will apply all mutations to file.sol.
 ///
-/// 2. `gambit mutate --json path/to/config.json`: this runs mutations specified
-///    in the configuration file
+/// 1. `gambit mutate path/to/file.sol` will apply all mutations to file.sol.
+///
+/// 2. `gambit mutate --json path/to/config.json` runs mutations specified in
+/// the configuration file
 ///
 /// Only one filename can be specified from command line at a time, but multiple
 /// files can be specified in a configuration.
