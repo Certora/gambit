@@ -287,8 +287,9 @@ impl Mutator {
             std::process::exit(1);
         }
         log::info!("Parsing file {}", filename);
+        let os_filename = OsStr::new(filename);
         let ns = Rc::new(parse_and_resolve(
-            OsStr::new(filename),
+            os_filename,
             &mut self.file_resolver,
             solang::Target::EVM,
         ));
@@ -298,7 +299,7 @@ impl Mutator {
         log::info!("    {} functions", ns.functions.len());
         self.namespace = Some(ns.clone());
 
-        let resolved = match self.file_resolver.resolve_file(None, OsStr::new(filename)) {
+        let resolved = match self.file_resolver.resolve_file(None, os_filename) {
             Ok(resolved) => resolved,
             Err(e) => {
                 print_error(
