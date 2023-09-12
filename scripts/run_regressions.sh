@@ -28,6 +28,11 @@ GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
 REGRESSIONS="$GAMBIT"/resources/regressions
 TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
+EXPECTED_SOLC_VERSION_NUM="8.13"
+
+if [ -z ${SOLC+x} ]; then
+    SOLC="solc$EXPECTED_SOLC_VERSION_NUM"
+fi
 
 NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
 
@@ -48,6 +53,13 @@ build_release() {
     cargo build --release
 
     cd "$old_dir" || exit 1
+}
+
+check_solc_version() {
+    if ! $SOLC --version | grep "0.""$EXPECTED_SOLC_VERSION_NUM" >/dev/null; then
+        echo "Expected solc version 0.$EXPECTED_SOLC_VERSION_NUM"
+        exit 1
+    fi
 }
 
 run_regressions() {
@@ -74,8 +86,8 @@ run_regressions() {
         rel_conf_path=$(python3 -c "import os.path; print( os.path.relpath('$conf_path', '$(pwd)'))")
         rel_regression_dir=$(python3 -c "import os.path; print( os.path.relpath('$regression_dir', '$(pwd)'))")
 
-        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "$GAMBIT_EXECUTABLE mutate --json $rel_conf_path"
-        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path")"
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "$GAMBIT_EXECUTABLE mutate --json $rel_conf_path --solc $SOLC"
+        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path" --solc "$SOLC")"
         printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
         if diff -q -r gambit_out "$regression_dir" 1>/dev/null; then
             printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$green_check" "$rel_regression_dir"
@@ -119,6 +131,7 @@ summary() {
 }
 
 print_vars
+check_solc_version
 build_release
 run_regressions
 summary

@@ -27,6 +27,11 @@ GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
 REGRESSIONS="$GAMBIT"/resources/regressions
 TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
+EXPECTED_SOLC_VERSION_NUM="8.13"
+
+if [ -z ${SOLC+x} ]; then
+    SOLC="solc$EXPECTED_SOLC_VERSION_NUM"
+fi
 
 NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
 
@@ -61,6 +66,13 @@ double_check_make_regressions() {
             ;;
         esac
     done
+}
+
+check_solc_version() {
+    if ! $SOLC --version | grep "0.""$EXPECTED_SOLC_VERSION_NUM" >/dev/null; then
+        echo "Expected solc version 0.$EXPECTED_SOLC_VERSION_NUM"
+        exit 1
+    fi
 }
 
 build_release() {
@@ -153,6 +165,7 @@ summary() {
 
 double_check_make_regressions
 print_vars
+check_solc_version
 build_release
 clean_state
 setup
