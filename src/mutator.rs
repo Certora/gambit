@@ -350,7 +350,10 @@ impl Mutator {
         &self.mutants
     }
 
-    pub fn apply_operators_to_expression(&mut self, expr: &Expression) {
+    /// Apply all regular mutation operators to an expression, and add those
+    /// mutants to self.mutants. Return the slice of new mutants
+    pub fn apply_operators_to_expression(&mut self, expr: &Expression) -> &[Mutant] {
+        let num_mutants_at_start = self.mutants.len();
         if expr.loc().try_file_no().is_some() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
@@ -361,9 +364,13 @@ impl Mutator {
             }
             self.mutants.append(&mut mutants);
         }
+        return &self.mutants[num_mutants_at_start..self.mutants.len()];
     }
 
-    pub fn apply_fallback_operators_to_expression(&mut self, expr: &Expression) {
+    /// Apply all fallback mutation operators to an expression, and add those
+    /// mutants to self.mutants. Return the slice of new mutants
+    pub fn apply_fallback_operators_to_expression(&mut self, expr: &Expression) -> &[Mutant] {
+        let num_mutants_at_start = self.mutants.len();
         if expr.loc().try_file_no().is_some() {
             let mut mutants = vec![];
             for op in self.fallback_mutation_operators() {
@@ -371,9 +378,13 @@ impl Mutator {
             }
             self.mutants.append(&mut mutants);
         }
+        return &self.mutants[num_mutants_at_start..self.mutants.len()];
     }
 
-    pub fn apply_operators_to_statement(&mut self, stmt: &Statement) {
+    /// Apply all regular mutation operators to a statement, and add those
+    /// mutants to self.mutants. Return the slice of new mutants
+    pub fn apply_operators_to_statement(&mut self, stmt: &Statement) -> &[Mutant] {
+        let num_mutants_at_start = self.mutants.len();
         if stmt.loc().try_file_no().is_some() {
             let mut mutants = vec![];
             for op in self.mutation_operators() {
@@ -381,6 +392,7 @@ impl Mutator {
             }
             self.mutants.append(&mut mutants);
         }
+        return &self.mutants[num_mutants_at_start..self.mutants.len()];
     }
 }
 
