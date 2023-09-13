@@ -183,9 +183,9 @@ location on your `PATH`.
 ## Usage
 
 Gambit has two main commands: the [`mutate` command](#the-mutate-command), which
-is responsible for generating mutants, and the [`summary`
-command](#the-summary-command), which allows the user to get a high-level
-summary of a `gambit mutate` execution.
+is responsible for generating mutants, and the
+[`summary` command](#the-summary-command), which allows the user to get a
+high-level summary of a `gambit mutate` execution.
 
 
 <!-- ANCHOR: (the-mutate-command)= -->
@@ -196,8 +196,9 @@ which files to mutate, which mutation operators to apply, and several other
 options. By default, these mutation parameters are specified by the user with
 [command line arguments](#running-mutate-with-command-line-arguments). To handle
 more complex use cases, and to allow for easy reproducibility, Gambit
-can read mutation parameters from a [JSON configuration
-file](#running-mutate-with-a-configuration-file) with the `--json` argument.
+can read mutation parameters from a 
+[JSON configuration file](#running-mutate-with-a-configuration-file) with the
+`--json` argument.
 
 The `mutate` command does the following:
 
@@ -234,7 +235,7 @@ The `mutate` command does the following:
 ### Running  `mutate` with command line arguments
 
 By default the `mutate` command expects mutation parameters to be specified
-on the command line.
+on the command line:
 
 ```
 gambit mutate FILENAME [ARGS...]
@@ -245,8 +246,6 @@ gambit mutate FILENAME [ARGS...]
 #### `mutate` command line interface options
 
 Gambit's `mutate` command line interface supports the following options:
-
-TODO: Fix this
 
 | Option               | Description                                                                                                                  |
 | :------------------- | :--------------------------------------------------------------------------------------------------------------------------- |
@@ -320,6 +319,14 @@ array of objects:
 Relative paths in a Gambit configuration file are _relative to the parent
 directory of the configuration file_. This allows Gambit to be run from any
 location without affecting the build configuration.
+
+_**Warning:**
+Remapping targets are **not relative paths**! If you specify a remapping
+`@map=expanded/@map`, the target `expanded/@map` doesn't need to be a valid
+path.  Instead, it needs to be be valid when extending a provided `import_path`.
+So if the only import path is `.`, then `./expanded/@map` has to exist. But if
+import paths `contracts` and `modules` are given, then one of either
+`contracts/expanded/@map` or `modules/expanded/@map` needs to exist._
 
 ### Import Paths and Remappings
 
