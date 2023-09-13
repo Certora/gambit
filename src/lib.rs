@@ -133,6 +133,29 @@ pub fn run_mutate(
             /*                                                   *
              *               FILTER/VALIDATE                     *
              *               ===============                     */
+
+            // We allow users to filter generated mutants down (currently just
+            // by --num_mutants, which randomly downsamples to a specified
+            // number of mutants).
+            //
+            // We also allow users to validate the generated mutants by
+            // compiling them with Solc.
+            //
+            // When we are both filtering and validating there is a cyclic
+            // dependency:
+            //
+            // + Filter depends on Validation: we don't want to filter down to 5
+            //   mutants and have 4 of them be invalid. Therefore, when we
+            //   filter we need to know if a mutant is valid.
+            // + Validation depends on Filter: We don't want to validate 1000
+            //   mutants if we are going to filter down to 5 mutants. Validation
+            //   is by far the most expensive part of Gambit, so skipping
+            //   validation for 90% of the generated mutants is desirable.
+            //   Therefore, when we are filtering and validating, we defer
+            //   validation until the filter tries to produce a mutant
+
+            // Set up our Validator, which is just a wrapper around a Solc
+            // instance.
             let mut solc = Solc::new(
                 params.solc.clone().unwrap_or_else(|| "solc".to_string()),
                 outdir_path.clone(),
@@ -140,7 +163,18 @@ pub fn run_mutate(
             solc.with_vfs_roots_from_params(params);
             let mut validator = Validator { solc };
             log::debug!("Validator: {:?}", validator);
+
+            // There are three cases we consier:
+            // 1. We are downsampling due to `--num_mutants` being supplied by
+            //    the user.
+            //
+            // 2. `--num_mutants` was not specified, and the user requested that
+            //    we skip validation
+            //
+            // 3. `--num_mutants` was not specified and the user did NOT request
+            //    that we skip validation
             let (sampled, invalid) = if let Some(num_mutants) = params.num_mutants {
+                // Case 1: We are downsampling
                 log::info!("Filtering down to {} mutants", num_mutants);
                 log::debug!("  seed: {:?}", params.seed);
                 log::debug!("  validating?: {}", !params.skip_validate);
@@ -163,15 +197,23 @@ pub fn run_mutate(
                 }
                 (sampled, invalid)
             } else if params.skip_validate {
+                // Case 2: We did not downsample and we are skipping validation
                 log::info!("Skipping validation");
                 (mutants, vec![])
             } else {
+                // Case 3: We did not downsample and we are validating
                 let (sampled, invalid) = validator.get_valid_mutants(&mutants);
                 log::info!("Validation resulted in {} valid mutants", sampled.len());
                 log::info!("   and {} invalid mutants", invalid.len());
                 (sampled, invalid)
             };
 
+            // Note: This probably belongs below w/ other mutant writer stuff,
+            // but the invalid mutant info goes out of scope at the end of this
+            // loop. We would want to preserve this by storing it in a map from
+            // output directories to invalid mutants. Then, when we iterate
+            // through outdirectories for mutant writing we could access the
+            // corresponding invalid mutants
             if params.log_invalid {
                 let invalid_log = &outdir_path.join("invalid.log");
                 let mut w = Writer::from_path(invalid_log)?;
