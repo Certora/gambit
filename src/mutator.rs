@@ -224,13 +224,9 @@ impl Mutator {
     }
 
     /// Run all mutations! This is the main external entry point into mutation.
-    /// This function:
-    ///
-    /// 1. Mutates each file
-    /// 2. TODO: Optionally validates (default: yes) all generated/filtered mutants
-    ///
-    /// and returns a Vec of mutants. These are not yet written to disk, and can
-    /// be further validated, suppressed, and downsampled as desired.
+    /// This function mutates each file and returns a Vec of mutants. These are
+    /// not yet written to disk, and can be further validated, suppressed, and
+    /// downsampled as desired.
     pub fn mutate(
         &mut self,
         filenames: Vec<String>,
