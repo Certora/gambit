@@ -349,7 +349,7 @@ Gambit invocation becomes `gambit mutate C.sol --import_maps
 Gambit uses provided import paths and import remappings to invoke `solc`. For
 instance, if you invoke `gambit mutate C.sol --import_paths A B C --import_maps
 @x=y/@x`, then Gambit will validate a generated mutant by calling `solc
-MutatedC.sol --base-path A/ --include-path B/ --include-path C/ @x=y/@x`.  If
+MutatedC.sol --base-path A --include-path B --include-path C @x=y/@x`.  If
 you need to specify a `solc` `--allow-paths` argument, use the `mutate`
 command's `--solc_allow_paths` argument.
 
