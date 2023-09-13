@@ -80,9 +80,6 @@ pub struct Mutator {
     /// Configuration for this mutator
     pub conf: MutatorConf,
 
-    /// The original sources
-    pub filenames: Vec<String>,
-
     /// The mutants, in order of generation
     pub mutants: Vec<Mutant>,
 
@@ -100,7 +97,6 @@ impl std::fmt::Debug for Mutator {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Mutator")
             .field("conf", &self.conf)
-            .field("file_names", &self.filenames)
             .field("mutants", &self.mutants)
             .field("_tmp", &self._tmp)
             .finish()
@@ -136,12 +132,6 @@ impl From<&MutateParams> for Mutator {
 
         if let Some(allowpaths) = params.solc_allow_paths.clone() {
             solc.with_allow_paths(allowpaths);
-        }
-
-        let mut filenames: Vec<String> = vec![];
-        if let Some(filename) = &params.filename {
-            log::info!("Creating Source from filename: {}", filename);
-            filenames.push(filename.clone());
         }
 
         // Every mutator has a FileResolver. A FileResolver is a solang-provided
@@ -205,26 +195,19 @@ impl From<&MutateParams> for Mutator {
             }
         }
 
-        Mutator::new(conf, file_resolver, filenames, solc)
+        Mutator::new(conf, file_resolver, solc)
     }
 }
 
 impl Mutator {
-    pub fn new(
-        conf: MutatorConf,
-        file_resolver: FileResolver,
-        filenames: Vec<String>,
-        solc: Solc,
-    ) -> Mutator {
+    pub fn new(conf: MutatorConf, file_resolver: FileResolver, solc: Solc) -> Mutator {
         log::info!(
-            "Creating mutator:\n   conf: {:#?}\n    sources: {:?}\n    solc: {:#?}",
+            "Creating mutator:\n   conf: {:#?}\n    solc: {:#?}",
             conf,
-            filenames,
             solc
         );
         Mutator {
             conf,
-            filenames,
             mutants: vec![],
             file_resolver,
             namespace: None,
@@ -369,10 +352,6 @@ impl Mutator {
     /// Get a slice of the mutants produced by this mutator
     pub fn mutants(&self) -> &[Mutant] {
         &self.mutants
-    }
-
-    pub fn filenames(&self) -> &Vec<String> {
-        &self.filenames
     }
 
     pub fn apply_operators_to_expression(&mut self, expr: &Expression) {

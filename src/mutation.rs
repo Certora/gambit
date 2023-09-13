@@ -1467,14 +1467,15 @@ contract A {
         ops: &Vec<MutationType>,
         expected: usize,
     ) {
-        let mutator = apply_mutation_to_statements(statements, params, None, ops).unwrap();
+        let (mutator, sol_source) =
+            apply_mutation_to_statements(statements, params, None, ops).unwrap();
         assert_eq!(
             expected,
             mutator.mutants().len(),
             "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
             ops,
             statements.join("   "),
-            mutator.filenames().join(" ")
+            sol_source
         );
     }
 
@@ -1485,7 +1486,8 @@ contract A {
         ops: &Vec<MutationType>,
         expected: &Vec<&str>,
     ) {
-        let mutator = apply_mutation_to_statements(statements, params, None, ops).unwrap();
+        let (mutator, sol_file) =
+            apply_mutation_to_statements(statements, params, None, ops).unwrap();
         let expected_set: HashSet<&str> = expected.iter().map(|s| s.trim()).collect();
         let actuals_set: HashSet<&str> = mutator
             .mutants()
@@ -1517,7 +1519,7 @@ contract A {
             program,
             ansi_term::Color::Green.paint(expected_str),
             ansi_term::Color::Red.paint(actuals_str),
-            mutator.filenames().join(" ")
+            sol_file
         );
 
         assert_eq!(
@@ -1533,7 +1535,7 @@ contract A {
             program,
             ansi_term::Color::Green.paint(expected_str),
             ansi_term::Color::Red.paint(actuals_str),
-            mutator.filenames().join(" ")
+            sol_file
         );
     }
 
@@ -1542,7 +1544,7 @@ contract A {
         params: &Vec<&str>,
         returns: Option<&str>,
         ops: &Vec<MutationType>,
-    ) -> Result<Mutator, Box<dyn error::Error>> {
+    ) -> Result<(Mutator, String), Box<dyn error::Error>> {
         let source = wrap_and_write_solidity_to_temp_file(statements, params, returns).unwrap();
         let prefix = format!(
             "gambit-compile-dir-{}",
@@ -1552,22 +1554,22 @@ contract A {
             .prefix(prefix.as_str())
             .rand_bytes(5)
             .tempdir_in(source.parent().unwrap())?;
-        let mut mutator = make_mutator(ops, &vec![], source, outdir.into_path());
-        let sources = mutator.filenames().clone();
-        mutator.mutate(sources)?;
+        let mut mutator = make_mutator(ops, &vec![], outdir.into_path());
+        let source_name = source.to_str().unwrap().to_string();
+        mutator.mutate(vec![source_name.clone()])?;
 
-        Ok(mutator)
+        Ok((mutator, source_name))
     }
 
     fn _assert_num_mutants_for_source(source: &str, ops: &Vec<MutationType>, expected: usize) {
-        let mutator = apply_mutation_to_source(source, ops).unwrap();
+        let (mutator, sol_file) = apply_mutation_to_source(source, ops).unwrap();
         assert_eq!(
             expected,
             mutator.mutants().len(),
             "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
             ops,
             source,
-            mutator.filenames().join(" ")
+            sol_file
         );
     }
 
@@ -1576,14 +1578,14 @@ contract A {
         ops: &Vec<MutationType>,
         expected: &Vec<&str>,
     ) {
-        let mutator = apply_mutation_to_source(source, ops).unwrap();
+        let (mutator, sol_file) = apply_mutation_to_source(source, ops).unwrap();
         assert_eq!(
             expected.len(),
             mutator.mutants().len(),
             "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {} for more info",
             ops,
             source,
-            mutator.filenames().join(" ")
+            sol_file
         );
 
         let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
@@ -1594,33 +1596,18 @@ contract A {
     fn apply_mutation_to_source(
         source: &str,
         ops: &Vec<MutationType>,
-    ) -> Result<Mutator, Box<dyn error::Error>> {
+    ) -> Result<(Mutator, String), Box<dyn error::Error>> {
         let source = write_solidity_to_temp_file(source.to_string()).unwrap();
+        let source_filename = source.to_str().unwrap().to_string();
         let outdir = Builder::new()
             .prefix("gambit-compile-dir")
             .rand_bytes(5)
             .tempdir()?;
-        let mut mutator = make_mutator(ops, &vec![], source.clone(), outdir.into_path());
-        // let source_os_str = source.as_os_str();
-        // println!("source: {:?}", source_os_str);
-        // let ns = parse_and_resolve(
-        //     source_os_str,
-        //     &mut mutator.file_resolver,
-        //     solang::Target::EVM,
-        // );
-        // println!("FUNCTIONS");
-        // println!("ns: {:?}", ns.files);
-        // for function in ns.functions {
-        //     println!("[{}]:\n", function.name);
-        //     for (i, s) in function.body.iter().enumerate() {
-        //         println!("  {}: {:?}", i + 1, &s);
-        //     }
-        // }
+        let mut mutator = make_mutator(ops, &vec![], outdir.into_path());
         mutator.file_resolver.add_import_path(&PathBuf::from("/"));
-        let sources = mutator.filenames().clone();
-        mutator.mutate(sources)?;
+        mutator.mutate(vec![source_filename.clone()])?;
 
-        Ok(mutator)
+        Ok((mutator, source_filename))
     }
 
     /// Create a mutator for a single file, creating required components (e.g.,
@@ -1628,7 +1615,6 @@ contract A {
     fn make_mutator(
         ops: &Vec<MutationType>,
         fallback: &Vec<MutationType>,
-        filename: PathBuf,
         outdir: PathBuf,
     ) -> Mutator {
         let conf = MutatorConf {
@@ -1638,10 +1624,9 @@ contract A {
             contract: None,
         };
 
-        let sources = vec![filename.to_str().unwrap().to_string()];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
         let mut cache = FileResolver::default();
         cache.add_import_path(&PathBuf::from(""));
-        Mutator::new(conf, cache, sources, solc)
+        Mutator::new(conf, cache, solc)
     }
 }
