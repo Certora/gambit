@@ -81,6 +81,14 @@ def is_note_end(line: str) -> bool:
         return len(l) == 1 or l[-2] != "_"
 
 
+def is_warning_end(line: str) -> bool:
+    """
+    A warning ends when a line is ended by an underscore. We double check to
+    ensure that the line doesn't end with two underscores.
+    """
+    return is_note_end(line)
+
+
 def is_escaped_closed_comment(line: str) -> bool:
     return line.strip() == r"--\>"
 
@@ -92,7 +100,8 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
     lines2 = []
 
     suppress_start = -1  # Track if we are suppressing
-    note_start = -1  # Track if we've started a note
+    admonition_start = -1
+    admonition_start = -1  # Track if we've started a note
     emit_start = -1
     for i, line in enumerate(lines):
         # First, check if we are suppressing
@@ -105,19 +114,36 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
         if anchor is not None:
             lines2.append(anchor)
         elif "_**note:**" == line.strip().lower():
-            if note_start > -1:
+            if admonition_start > -1:
                 raise RuntimeError(
-                    f"Already in note from line {note_start + 1}, cannot start new note on line {i+1}"
+                    f"Already in note from line {admonition_start + 1}, cannot start new note on line {i+1}"
                 )
-            note_start = i
+            admonition_start = i
             lines2.append("```{note}")
         elif "_**note:**" in line.strip().lower():
             raise RuntimeError(
                 f"Illegal note start on line {i+1}: new note tags '_**Note:**' and their closing '_' must be on their own lines"
             )
 
-        elif note_start > -1 and is_note_end(line):
-            note_start = -1
+        elif admonition_start > -1 and is_note_end(line):
+            admonition_start = -1
+            lines2.append(line.rstrip().rstrip("_"))
+            lines2.append("```")
+
+        elif "_**warning:**" == line.strip().lower():
+            if admonition_start > -1:
+                raise RuntimeError(
+                    f"Already in warning from line {admonition_start + 1}, cannot start new warning on line {i+1}"
+                )
+            admonition_start = i
+            lines2.append("```{warning}")
+        elif "_**warning:**" in line.strip().lower():
+            raise RuntimeError(
+                f"Illegal warning start on line {i+1}: new warning tags '_**Warning:**' and their closing '_' must be on their own lines"
+            )
+
+        elif admonition_start > -1 and is_warning_end(line):
+            admonition_start = -1
             lines2.append(line.rstrip().rstrip("_"))
             lines2.append("```")
 
