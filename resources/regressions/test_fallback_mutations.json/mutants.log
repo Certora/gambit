@@ -1,0 +1,4 @@
+1,EVR,Fallback.sol,11:13,num == 0,true
+2,EVR,Fallback.sol,11:13,num == 0,false
+3,EVR,Fallback.sol,14:20,"checkArgumentsAreReplaced(num - 1, addr, !b)",0
+4,EVR,Fallback.sol,14:20,"checkArgumentsAreReplaced(num - 1, addr, !b)",1

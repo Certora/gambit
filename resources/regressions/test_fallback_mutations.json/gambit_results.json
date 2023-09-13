@@ -1,0 +1,50 @@
+[
+  {
+    "col": 13,
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         uint256 num,\n         address addr,\n         bool b\n+    /// ExpressionValueReplacement(`num == 0` |==> `true`) of: `if (num == 0) {`\n     ) public returns (uint256) {\n-        if (num == 0) {\n+        if (true) {\n             return 0;\n         } else {\n             return checkArgumentsAreReplaced(num - 1, addr, !b);\n",
+    "id": "1",
+    "line": 11,
+    "name": "mutants/1/Fallback.sol",
+    "op": "EVR",
+    "orig": "num == 0",
+    "original": "Fallback.sol",
+    "repl": "true"
+  },
+  {
+    "col": 13,
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -7,8 +7,9 @@\n         uint256 num,\n         address addr,\n         bool b\n+    /// ExpressionValueReplacement(`num == 0` |==> `false`) of: `if (num == 0) {`\n     ) public returns (uint256) {\n-        if (num == 0) {\n+        if (false) {\n             return 0;\n         } else {\n             return checkArgumentsAreReplaced(num - 1, addr, !b);\n",
+    "id": "2",
+    "line": 11,
+    "name": "mutants/2/Fallback.sol",
+    "op": "EVR",
+    "orig": "num == 0",
+    "original": "Fallback.sol",
+    "repl": "false"
+  },
+  {
+    "col": 20,
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     ) public returns (uint256) {\n         if (num == 0) {\n             return 0;\n+        /// ExpressionValueReplacement(`checkArgumentsAreReplaced(num - 1, addr, !b)` |==> `0`) of: `return checkArgumentsAreReplaced(num - 1, addr, !b);`\n         } else {\n-            return checkArgumentsAreReplaced(num - 1, addr, !b);\n+            return 0;\n         }\n     }\n }\n",
+    "id": "3",
+    "line": 14,
+    "name": "mutants/3/Fallback.sol",
+    "op": "EVR",
+    "orig": "checkArgumentsAreReplaced(num - 1, addr, !b)",
+    "original": "Fallback.sol",
+    "repl": "0"
+  },
+  {
+    "col": 20,
+    "description": "ExpressionValueReplacement",
+    "diff": "--- original\n+++ mutant\n@@ -10,8 +10,9 @@\n     ) public returns (uint256) {\n         if (num == 0) {\n             return 0;\n+        /// ExpressionValueReplacement(`checkArgumentsAreReplaced(num - 1, addr, !b)` |==> `1`) of: `return checkArgumentsAreReplaced(num - 1, addr, !b);`\n         } else {\n-            return checkArgumentsAreReplaced(num - 1, addr, !b);\n+            return 1;\n         }\n     }\n }\n",
+    "id": "4",
+    "line": 14,
+    "name": "mutants/4/Fallback.sol",
+    "op": "EVR",
+    "orig": "checkArgumentsAreReplaced(num - 1, addr, !b)",
+    "original": "Fallback.sol",
+    "repl": "1"
+  }
+]

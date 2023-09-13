@@ -925,16 +925,16 @@ fn statement_deletion(
         | Statement::For { .. }
         | Statement::DoWhile(..)
         | Statement::Assembly(..)
-        | Statement::TryCatch(..) => vec![],
-
-        // Also, do not mutate underscore statement
-        Statement::Underscore(_) => vec![],
+        | Statement::TryCatch(..)
+        // Also do not delete underscore statement
+        | Statement::Underscore(_) => vec![],
 
         Statement::Expression(..)
         | Statement::Delete(..)
         | Statement::Continue(..)
         | Statement::Break(..)
         | Statement::Revert { .. }
+        | Statement::Return(..)
         | Statement::Emit { .. } => vec![Mutant::new(
             file_resolver,
             namespace,
@@ -942,19 +942,7 @@ fn statement_deletion(
             *op,
             orig,
             "assert(true)".to_string(),
-        )],
-
-        // Returns are special: we should perform some analysis to figure out if
-        // we can delete this without making an invalid program. For now we
-        // delete and hope for the best :)
-        Statement::Return(..) => vec![Mutant::new(
-            file_resolver,
-            namespace,
-            loc,
-            *op,
-            orig,
-            "assert(true)".to_string(),
-        )],
+        )]
     }
 }
 

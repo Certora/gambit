@@ -133,10 +133,6 @@ pub fn run_mutate(
             /*                                                   *
              *               FILTER/VALIDATE                     *
              *               ===============                     */
-
-            // TODO: Separate out Filtering from Validation
-
-            // Check if we are filtering
             let mut solc = Solc::new(
                 params.solc.clone().unwrap_or_else(|| "solc".to_string()),
                 outdir_path.clone(),
