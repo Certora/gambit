@@ -167,22 +167,25 @@ You can download prebuilt Gambit binaries for Mac and Linux from our
 To build Gambit from source, clone [the Gambit repository](https://github.com/Certora/gambit) and run
 
 ```
+cargo build --release
+```
+
+from this repository's root. This will create the `target/release/gambit`
+binary. To install globally, run
+
+```
 cargo install --path .
 ```
 
-from this repository's root. This will build Gambit and install it to a globally visible
+This will build Gambit and install it to a globally visible
 location on your `PATH`.
-
-You can also build gambit with `cargo build --release` from the root of this
-repository.  This will create the `target/release/gambit` binary which you can
-manually place on your path or invoke directly.
 
 ## Usage
 
-Gambit has two main commands: the [`mutate` command](#the-mutate-command) and 
-the [`summary` command](#the-summary-command). The `mutate` command is
-responsible for mutating code. The `summary` command allows the user to get a
-high level summary of the results of an execution of `gambit mutate`.
+Gambit has two main commands: the [`mutate` command](#the-mutate-command), which
+is responsible for generating mutants, and the [`summary`
+command](#the-summary-command), which allows the user to get a high-level
+summary of a `gambit mutate` execution.
 
 
 <!-- ANCHOR: (the-mutate-command)= -->
