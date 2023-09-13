@@ -330,7 +330,7 @@ pub fn statement_type(stmt: &Statement) -> &str {
 }
 
 /// Get the import path, if available, from resolver for the import_no
-pub fn get_sol_path(resolver: &FileResolver, filepath: &Path) -> Option<PathBuf> {
+pub fn get_vfs_path(resolver: &FileResolver, filepath: &Path) -> Option<PathBuf> {
     let import_paths = resolver.get_import_paths();
     for import_path in import_paths.iter().filter_map(|p| match p {
         (None, ip) => Some(ip),

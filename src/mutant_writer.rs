@@ -55,7 +55,7 @@ impl MutantWriter {
             w.write_record([
                 mid.to_string().as_str(),
                 mutant.op.short_name().as_str(),
-                mutant.sol_path().to_str().unwrap(),
+                mutant.vfs_path().to_str().unwrap(),
                 line_col.as_str(),
                 mutant.orig.as_str(),
                 mutant.repl.as_str(),
@@ -81,7 +81,7 @@ impl MutantWriter {
                 "op": mutant.op.short_name(),
                 "id": mid.to_string(),
                 "diff": diff,
-                "original": mutant.sol_path(),
+                "original": mutant.vfs_path(),
                 "orig": &mutant.orig,
                 "repl": &mutant.repl,
                 "line": &mutant.get_line_column().0 + 1,
@@ -113,7 +113,7 @@ impl MutantWriter {
         mutants_dir: &Path,
         mutant: &Mutant,
     ) -> Result<PathBuf, Box<dyn error::Error>> {
-        let filename = mutants_dir.join(mutant.sol_path());
+        let filename = mutants_dir.join(mutant.vfs_path());
         let mutant_contents = mutant.mutant_source()?;
 
         log::debug!("Writing mutant {:?} to {}", mutant, &filename.display());
@@ -183,7 +183,7 @@ impl MutantWriter {
     /// This is computed from the relative path of the original sourcefile, relative to
     /// the specified `sourceroot`, and is computed with `Source.relative_filename()`
     fn get_mutant_filename(mutants_dir: &Path, mid: usize, mutant: &Mutant) -> PathBuf {
-        let rel_filename = mutant.sol_path();
+        let rel_filename = mutant.vfs_path();
         mutants_dir
             .join(Path::new(&mid.to_string()))
             .join(rel_filename)

@@ -1,5 +1,5 @@
 use crate::{
-    default_gambit_output_directory, get_sol_path, mutation::MutationType,
+    default_gambit_output_directory, get_vfs_path, mutation::MutationType,
     normalize_mutation_operator_name, print_error, print_warning, Mutant, MutateParams, Mutation,
     Solc,
 };
@@ -254,8 +254,8 @@ impl Mutator {
     /// Mutate a single file.
     fn mutate_file(&mut self, filename: &String) -> Result<Vec<Mutant>, Box<dyn error::Error>> {
         // Check if we can mutate path
-        let sol_path = get_sol_path(&self.file_resolver, &PathBuf::from(filename));
-        if sol_path.is_none() {
+        let vfs_path = get_vfs_path(&self.file_resolver, &PathBuf::from(filename));
+        if vfs_path.is_none() {
             let import_paths: Vec<String> = self
                 .file_resolver
                 .get_import_paths()

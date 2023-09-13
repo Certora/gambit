@@ -1,4 +1,4 @@
-use crate::{get_indent, get_sol_path, print_error, print_warning, Mutator};
+use crate::{get_indent, get_vfs_path, print_error, print_warning, Mutator};
 use clap::ValueEnum;
 use num_bigint::BigInt;
 use num_traits::{One, Signed, Zero};
@@ -29,9 +29,9 @@ pub struct MutantLoc {
     pub col_no: usize,
     /// The full path to the original source file
     pub path: PathBuf,
-    /// The solidity path, relative to its import root, to the original source
-    /// file; if a file path is specified absolutely then this is None
-    pub sol_path: PathBuf,
+    /// The path in the Virtual File System. This is interpreted as the path of
+    /// the original source file relative to an import root
+    pub vfs_path: PathBuf,
 }
 
 impl Debug for MutantLoc {
@@ -51,8 +51,8 @@ impl MutantLoc {
         let (line_no, col_no) = file.offset_to_line_column(loc.start());
         let path = file.path.clone();
 
-        let sol_path = if let Some(sol_path) = get_sol_path(resolver, &file.path) {
-            sol_path
+        let vfs_path = if let Some(vfs_path) = get_vfs_path(resolver, &file.path) {
+            vfs_path
         } else if let Ok(can_path) = file.path.canonicalize() {
             print_warning(
                 "File Not In Import Paths",
@@ -81,7 +81,7 @@ impl MutantLoc {
             line_no,
             col_no,
             path,
-            sol_path,
+            vfs_path,
         }
     }
 }
@@ -137,8 +137,8 @@ impl Mutant {
         &self.mutant_loc.path
     }
 
-    pub fn sol_path(&self) -> &PathBuf {
-        &self.mutant_loc.sol_path
+    pub fn vfs_path(&self) -> &PathBuf {
+        &self.mutant_loc.vfs_path
     }
 
     pub fn get_line_column(&self) -> (usize, usize) {
