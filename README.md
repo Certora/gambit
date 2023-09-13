@@ -189,7 +189,7 @@ summary of a `gambit mutate` execution.
 
 
 <!-- ANCHOR: (the-mutate-command)= -->
-## The `mutate` Command
+## The `mutate` command
 
 Gambit's `mutate` command expects user-provided _mutation parameters_ describing
 which files to mutate, which mutation operators to apply, and several other
@@ -204,34 +204,34 @@ The `mutate` command does the following:
 1. **Parse:** Gambit begins by parsing the specified Solidity files provided on
    command line or in the configuration file
 
-2. **Function filters:** The `mutate` command provides the `--functions` and
-  `--contract` filters to allow users to filter which functions should be
-  mutated. When `--functions` is specified, Gambit will only mutate functions
-  with a name contained in the provided list of functions. When `--contract` is
-  specified, Gambit will only mutate functions within the specified contract. If
-  neither option is specified, Gambit will mutate all functions.
+2. **Function filters:** The `mutate` command provides two ways to filter which
+  functions are mutated: the `--functions` filter and the `--contract` filter.
+  When `--functions` is specified, Gambit will only mutate functions with a name
+  contained in the provided list of functions. When `--contract` is specified,
+  Gambit will only mutate functions within the specified contract. If neither
+  option is specified, Gambit will mutate all functions.
 
-3. **Mutation:** Gambit recursively visits the body of each function retained in
-   (2) and applies the mutation operators specified by the user; if no mutation
-   operators were specified then Gambit uses a default set of mutation
-   operators.
+3. **Mutation:** Gambit recursively visits the body of each function not
+   filtered out in (2) and applies the mutation operators specified by the user;
+   if no mutation operators were specified then Gambit uses a default set of
+   mutation operators.
 
-4. **Validation:** By default Gambit will _validate_ each
-   generated mutant by compiling it with the `solc` compiler. If compilation
-   fails Gambit will not export the mutant to disk or report it in
-   `gambit_results.json` or `mutants.log`. Validation can be skipped with the
-   `--skip_validate` option. To log invalidated mutants, use the `--log_invalid`
-   option.
+4. **Validation:** By default Gambit will _validate_ each generated mutant by
+   compiling it with the `solc` compiler. If compilation fails Gambit will not
+   export the mutant to disk or report it in `gambit_results.json` or
+   `mutants.log`. Validation can be skipped with the `--skip_validate` option.
+   To log invalidated mutants, use the `--log_invalid` option.
    
-5. **Down sampling:** If the user provides the `--num_mutants n` argument,
-   Gambit will randomly down sample to `n` mutants.
+5. **Random down sampling:** If the user provides the `--num_mutants n`
+   argument, Gambit will randomly down sample to `n` mutants.
   
 6. **Write to disk:** After all mutants are generated, validated, and optionally
-   down sampled, the `mutate` writes the results to disk. This includes 
-   as well as specify several
+   down sampled, the `mutate` command exports the generated mutants and writes
+   to the output directory (`gambit_out` by default), and writes a summary of
+   each mutant to `gambit_out/gambit_results.json`.
 
 <!-- ANCHOR: (running-mutate-with-command-line-arguments)= -->
-### Running  `mutate` with Command Line Arguments
+### Running  `mutate` with command line arguments
 
 By default the `mutate` command expects mutation parameters to be specified
 on the command line.
@@ -241,10 +241,10 @@ gambit mutate FILENAME [ARGS...]
 ```
 
 
-<!-- ANCHOR: (mutate-cli-arguments) -->
-#### `mutate` CLI Arguments
+<!-- ANCHOR: (mutate-command-line-interface-options) -->
+#### `mutate` command line interface options
 
-Gambit's `mutate` CLI supports the following options:
+Gambit's `mutate` command line interface supports the following options:
 
 TODO: Fix this
 
