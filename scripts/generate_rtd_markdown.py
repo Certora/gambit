@@ -175,9 +175,10 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
             )
         else:
             # replace internal links
-            l = replace_internal_references(line)
-            lines2.append(l.strip("\n"))
-    return "\n".join(lines2) + "\n"
+            lines2.append(line.strip("\n"))
+    combined = "\n".join(lines2) + "\n"
+    combined = replace_internal_references(combined)
+    return combined
 
 
 def main():

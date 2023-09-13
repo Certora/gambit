@@ -164,7 +164,8 @@ stronger test suites and specifications should detect more mutants as faulty.
 You can download prebuilt Gambit binaries for Mac and Linux from our
 [releases](https://github.com/Certora/gambit/releases) page.
 
-To build Gambit from source, clone [the Gambit repository](https://github.com/Certora/gambit) and run
+To build Gambit from source, clone [the Gambit
+repository](https://github.com/Certora/gambit) and run
 
 ```
 cargo build --release
@@ -183,9 +184,9 @@ location on your `PATH`.
 ## Usage
 
 Gambit has two main commands: the [`mutate` command](#the-mutate-command), which
-is responsible for generating mutants, and the
-[`summary` command](#the-summary-command), which allows the user to get a
-high-level summary of a `gambit mutate` execution.
+is responsible for generating mutants, and the [`summary`
+command](#the-summary-command), which allows the user to get a high-level
+summary of a `gambit mutate` execution.
 
 
 <!-- ANCHOR: (the-mutate-command)= -->
@@ -514,7 +515,8 @@ Gambit implements the following mutation operators
 | **unary-operator-replacement**      | Replace a unary operator with another                           | `-b` -> `~b`                                 |
 | **statement-deletion**              | Replace a statement with a no-op (`assert(true)`)               | `self.checkInvariants();` -> `assert(true);` |
 
-For more details on each mutation type, refer to the [full documentation](https://docs.certora.com/en/latest/docs/gambit/gambit.html#mutation-types).
+For more details on each mutation type, refer to the [full
+documentation](https://docs.certora.com/en/latest/docs/gambit/gambit.html#mutation-types).
 
 <!-- SUPPRESS -->
 ## Contact
