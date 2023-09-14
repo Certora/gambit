@@ -317,7 +317,7 @@ configuration file:
       "outdir": "gambit_out",
       "num_mutants": 2,
       "functions": ["_update", "_mint"],
-      "mutations": ["relational-operator-replacement", "logical-operator-replacement"],
+      "mutations": ["relational-operator-replacement"],
       "import_paths": ["."]
    }
 ]
@@ -330,7 +330,8 @@ $ gambit mutate --json conf2.json
 Generated 4 mutants in 0.22 seconds
 $ gambit summary
 
-STD:      4 (100.00%)
+ROR:      2 ( 50.00%)
+STD:      2 ( 50.00%)
 ---------------------
 TOT:      4 (100.00%)
 ```
