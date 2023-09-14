@@ -81,6 +81,13 @@ def is_note_end(line: str) -> bool:
         return len(l) == 1 or l[-2] != "_"
 
 
+def is_tag(tag: str, line: str):
+    """
+    Check if a line consists
+    """
+    return line.strip() in (f"<{tag}>", f"</{tag}>")
+
+
 def is_warning_end(line: str) -> bool:
     """
     A warning ends when a line is ended by an underscore. We double check to
@@ -153,6 +160,9 @@ def translate_readme_to_rtd(readme_file_path: str) -> str:
                     f"Cannot start a new emit on line {i+1}: already in an emit started at line {emit_start+1}"
                 )
             emit_start = i
+
+        elif is_tag("pre", line):
+            lines2.append("```")
 
         elif line.strip() == "-->" and emit_start > -1:
             emit_start = -1
