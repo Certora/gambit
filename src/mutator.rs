@@ -278,7 +278,7 @@ impl Mutator {
         log::info!("    {} functions", ns.functions.len());
 
         if ns.diagnostics.any_errors() {
-            ns.print_diagnostics(&self.file_resolver, true);
+            ns.print_diagnostics(&self.file_resolver, false);
             return Err("error".into());
         }
 
