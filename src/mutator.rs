@@ -276,6 +276,12 @@ impl Mutator {
         log::info!("    {} files", ns.files.len());
         log::info!("    {} contracts", ns.contracts.len());
         log::info!("    {} functions", ns.functions.len());
+
+        if ns.diagnostics.any_errors() {
+            ns.print_diagnostics(&self.file_resolver, true);
+            return Err("error".into());
+        }
+
         self.namespace = Some(ns.clone());
 
         let resolved = match self.file_resolver.resolve_file(None, os_filename) {
@@ -304,7 +310,7 @@ impl Mutator {
                     continue;
                 }
             }
-            if function.is_accessor || function.is_virtual || !function.has_body {
+            if function.is_accessor || !function.has_body {
                 continue;
             }
             let contract = if let Some(contract_no) = function.contract_no {
