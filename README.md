@@ -279,40 +279,60 @@ gambit mutate --json CONFIGURATION_JSON
 
 
 A set of mutation parameters are stored as a JSON object mapping option names to
-values:
+values. For instance, if we wanted to mutate the `ERC20` contract from the
+[OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts)
+repository we could use the following configuration file
 
 ```json
 {
-  "filename": "contracts/ERC20.sol",
-  "outdir": "gambit_out",
-  "no_overwrite": true,
-  "num_mutants": 5,
-  "import_paths": ["imports1", "imports2"],
-  "import_maps": ["a=x/a", "b=x/b"]
+   "filename": "contracts/token/ERC20/ERC20.sol",
+   "solc": "solc8.20",
+   "outdir": "gambit_out",
+   "import_paths": ["."]
 }
 ```
 
 
-Gambit also supports specifying multiple sets of mutation parameters in a file.
-Instead of a single JSON object, your configuration file should contain an
-array of objects:
+Gambit also supports specifying multiple sets of mutation parameters in a file,
+and this allows you to create mutant sets that are tailored to your needs.
+For instance, if you wanted to mutate functions `transferFrom` and `_transfer`
+with one set of mutations and functions `_update` and `_mint` with another set
+of mutations, and create exactly 2 mutants for each, you could use the following
+configuration file:
 
 ```json
 [
-    {
-        "filename": "Foo.sol",
-        "contract": "C",
-        "functions": ["bar", "baz"],
-        "solc": "solc8.12",
-        "solc_optimize": true
-    },
-    {
-        "filename": "Blip.sol",
-        "contract": "D",
-        "functions": ["bang"],
-        "solc": "solc8.12"
-    }
+   {
+      "filename": "contracts/token/ERC20/ERC20.sol",
+      "solc": "solc8.20",
+      "outdir": "gambit_out",
+      "num_mutants": 2,
+      "functions": ["transferFrom", "_transfer"],
+      "mutations": ["statement-deletion"],
+      "import_paths": ["."]
+   },
+   {
+      "filename": "contracts/token/ERC20/ERC20.sol",
+      "solc": "solc8.20",
+      "outdir": "gambit_out",
+      "num_mutants": 2,
+      "functions": ["_update", "_mint"],
+      "mutations": ["relational-operator-replacement", "logical-operator-replacement"],
+      "import_paths": ["."]
+   }
 ]
+```
+
+If we store this to `conf2.json`, then we can run it as follows:
+
+```
+$ gambit mutate --json conf2.json
+Generated 4 mutants in 0.22 seconds
+$ gambit summary
+
+STD:      4 (100.00%)
+---------------------
+TOT:      4 (100.00%)
 ```
 
 #### Paths in Configuration Files
@@ -360,31 +380,21 @@ command's `--solc_allow_paths` argument.
 The `summary` command allows the user to see a summary of a `mutate` run:
 
 ```
-gambit mutate benchmarks/Ops/AOR/AOR.sol
-```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
+$ gambit mutate benchmarks/Ops/AOR/AOR.sol
 Generated 27 mutants in 0.41 seconds
-</pre>
 
-```
-gambit summary
-```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
+$ gambit summary
 STD:      5 ( 18.52%)
 AOR:     22 ( 81.48%)
 ---------------------
 TOT:     27 (100.00%)
-</pre>
+```
 
 To print the diffs of specific mutants, pass the `--mids` option:
 
 ```
 $ gambit summary --mids 1 2
-```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
+
              === Mutant ID: 1 [StatementDeletion] ===
 
 --- original
@@ -427,15 +437,13 @@ Pass the `--short` option to print a shorter summary of each mutant:
 
 ```
 $ gambit summary --mids 1 2 3 4 5 --short
-```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
+
 (1) STD [mutants/1/benchmarks/Ops/AOR/AOR.sol@13:9] return a + b -> assert(true)
 (2) AOR [mutants/2/benchmarks/Ops/AOR/AOR.sol@13:18] + -> -
 (3) AOR [mutants/3/benchmarks/Ops/AOR/AOR.sol@13:18] + -> *
 (4) AOR [mutants/4/benchmarks/Ops/AOR/AOR.sol@13:18] + -> /
 (5) AOR [mutants/5/benchmarks/Ops/AOR/AOR.sol@13:18] + -> %
-</pre>
+```
 
 _**Note:**
 The `summary` command is currently experimental, and its output and interface
@@ -447,17 +455,12 @@ may change in future releases._
 `gambit mutate` produces all results in an output directory (default:
 `gambit_out`). Here is an example:
 
-```bash
-gambit mutate benchmarks/Ops/AOR/AOR.sol -n 5
-tree gambit_out -L 2
 ```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
-<pre>
-Generated 5 mutants in 0.15 seconds
-
+$ gambit mutate benchmarks/Ops/AOR/AOR.sol -n 5
+Generated 5 mutants in 0.14 seconds
+$ tree gambit_out -L 2
 gambit_out
 ├── gambit_results.json
-├── input_json
 ├── mutants
 │   ├── 1
 │   ├── 2
@@ -466,11 +469,10 @@ gambit_out
 │   └── 5
 └── mutants.log
 
-</pre>
+```
 
 This has the following structure:
 + `gambit_results.json`: a JSON file with detailed results
-+ `input_json/`: intermediate files produced by `solc` that are used during mutation
 + `mutants/`: exported mutants. Each mutant is in its own directory named after
   its mutant ID (mid) 1, 2, 3, ...
 + `mutants.log`: a log file with all mutant information. This is similar to
