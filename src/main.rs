@@ -69,7 +69,7 @@ fn print_experimental_feature_warnings(params: &MutateParams) {
         print_experimental_feature_warning("fallback_mutations", "1.0.0");
     }
 
-    let experimental_mutation_operators = vec![("evr", "1.0.0")]
+    let experimental_mutation_operators = [("evr", "1.0.0")]
         .iter()
         .map(|item| (normalize_mutation_operator_name(item.0), item.1))
         .collect::<Vec<(String, &str)>>();
@@ -78,7 +78,7 @@ fn print_experimental_feature_warnings(params: &MutateParams) {
     let all_mutations = match (&params.mutations, &params.fallback_mutations) {
         (Some(mutations), None) => mutations.clone(),
         (None, Some(fallback_mutations)) => fallback_mutations.clone(),
-        (Some(r1), Some(r2)) => r1.into_iter().chain(r2).cloned().collect(),
+        (Some(r1), Some(r2)) => r1.iter().chain(r2).cloned().collect(),
         _ => vec![],
     }
     .iter()
@@ -221,8 +221,8 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
 
         log::info!("Configuration {}", i + 1);
 
-        print_deprecation_warnings(&p, false);
-        print_experimental_feature_warnings(&p);
+        print_deprecation_warnings(p, false);
+        print_experimental_feature_warnings(p);
 
         // PARAM: Filename
         log::info!("    [.] Resolving params.filename");

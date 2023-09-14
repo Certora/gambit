@@ -315,12 +315,12 @@ impl Mutator {
             }
             let contract = if let Some(contract_no) = function.contract_no {
                 let contract = ns.contracts.get(contract_no).unwrap();
-                Some(format!("{}", &contract.name))
+                Some(contract.name.to_string())
             } else {
                 None
             };
 
-            let contract_name = contract.unwrap_or_else(|| "".to_string());
+            let contract_name = contract.unwrap_or_default();
             let function_name = function.name.clone();
             if let Some(ref funcs_to_mutate) = self.conf.funcs_to_mutate {
                 if !funcs_to_mutate.contains(&function_name) {
@@ -370,7 +370,7 @@ impl Mutator {
             }
             self.mutants.append(&mut mutants);
         }
-        return &self.mutants[num_mutants_at_start..self.mutants.len()];
+        &self.mutants[num_mutants_at_start..self.mutants.len()]
     }
 
     /// Apply all fallback mutation operators to an expression, and add those
@@ -384,7 +384,7 @@ impl Mutator {
             }
             self.mutants.append(&mut mutants);
         }
-        return &self.mutants[num_mutants_at_start..self.mutants.len()];
+        &self.mutants[num_mutants_at_start..self.mutants.len()]
     }
 
     /// Apply all regular mutation operators to a statement, and add those
@@ -398,7 +398,7 @@ impl Mutator {
             }
             self.mutants.append(&mut mutants);
         }
-        return &self.mutants[num_mutants_at_start..self.mutants.len()];
+        &self.mutants[num_mutants_at_start..self.mutants.len()]
     }
 }
 

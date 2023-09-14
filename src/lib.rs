@@ -118,11 +118,7 @@ pub fn run_mutate(
              *               ======                     */
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);
-            let sources = params
-                .filename
-                .iter()
-                .map(|x| x.clone())
-                .collect::<Vec<String>>();
+            let sources = params.filename.iter().cloned().collect::<Vec<String>>();
             let mutants = mutator.mutate(sources)?.clone();
             log::info!(
                 "(pre filter/validate) Generated {} mutants for {}",
