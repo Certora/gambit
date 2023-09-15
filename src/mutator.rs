@@ -159,34 +159,9 @@ impl From<&MutateParams> for Mutator {
                 panic!("Invalid remapping: {}", rm);
             }
             let map = split_rm[0];
-            let path = split_rm[1];
-            // XXX: This is a hack to deal with a Solang bug, where mapping
-            // targets are canonicalized _before_ they are resolved against
-            // import paths. To work around this _we_ have to resolve against
-            // import paths! Rather than passing in a raw import target, we
-            // will manually resolve our target against any import paths
+            let target = split_rm[1];
 
-            let target = if let Some(target) = params
-                .import_paths
-                .iter()
-                .filter_map(|p| PathBuf::from(p).join(path).canonicalize().ok())
-                .next()
-            {
-                target
-            } else {
-                print_error(
-                    format!("Could not resolve remapping target {}", path).as_str(),
-                    format!(
-                        "Attempted to resolve {} against one of import paths [{}]",
-                        path,
-                        params.import_paths.join(", ")
-                    )
-                    .as_str(),
-                );
-                std::process::exit(1);
-            };
-
-            file_resolver.add_import_map(OsString::from(map), target);
+            file_resolver.add_import_map(OsString::from(map), target.into());
         }
 
         if let Some(allow_paths) = &params.solc_allow_paths {
