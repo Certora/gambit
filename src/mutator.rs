@@ -253,8 +253,12 @@ impl Mutator {
         log::info!("    {} functions", ns.functions.len());
 
         if ns.diagnostics.any_errors() {
-            ns.print_diagnostics(&self.file_resolver, false);
-            return Err("error".into());
+            // ns.print_diagnostics(&self.file_resolver, false);
+            println!(
+                "Error: solang encountered errors while parsing {}",
+                filename
+            );
+            std::process::exit(1);
         }
 
         self.namespace = Some(ns.clone());

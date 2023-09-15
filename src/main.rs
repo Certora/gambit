@@ -12,9 +12,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match Command::parse() {
         Command::Mutate(params) => {
             if params.json.is_some() {
-                run_mutate_on_json(params)?;
+                match run_mutate_on_json(params) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        print_error("Error", format!("{}", e).as_str());
+                        std::process::exit(1);
+                    }
+                };
             } else {
-                run_mutate_on_filename(params)?;
+                match run_mutate_on_filename(params) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        print_error("Error", format!("{}", e).as_str());
+                        std::process::exit(1);
+                    }
+                }
             }
         }
         Command::Summary(params) => {
@@ -378,7 +390,13 @@ fn run_mutate_on_json(params: Box<MutateParams>) -> Result<(), Box<dyn std::erro
         p.import_maps = import_maps;
         p.solc_allow_paths = allow_paths;
     }
-    run_mutate(mutate_params)?;
+    match run_mutate(mutate_params) {
+        Ok(_) => {}
+        Err(e) => {
+            print_error("Error", format!("{}", e).as_str());
+            std::process::exit(1);
+        }
+    }
     Ok(())
 }
 
@@ -533,6 +551,12 @@ fn run_mutate_on_filename(mut params: Box<MutateParams>) -> Result<(), Box<dyn s
     params.import_paths = import_paths;
     params.solc_remappings = None;
 
-    run_mutate(vec![*params])?;
+    match run_mutate(vec![*params]) {
+        Ok(_) => {}
+        Err(e) => {
+            print_error("Error", format!("{}", e).as_str());
+            std::process::exit(1);
+        }
+    }
     Ok(())
 }
