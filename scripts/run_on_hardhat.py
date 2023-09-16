@@ -179,23 +179,21 @@ def make_solc_args(sources=None, import_paths=None, import_maps=None, allow_path
         solc_args.append(import_map)
     return solc_args
 
-def make_solang_parser_args(import_paths=None, import_maps=None, sources=None, target="solana"):
+def make_solang_parser_args(source, import_paths=None, import_maps=None, target="solana"):
     """
     Create a list of solang args for the given compilation configuration
     """
     if import_paths is None or import_paths == []:
         import_paths = default_import_paths
 
-    solang_args = ["compile", "--target", target]
-    if sources is not None:
-        solang_args += sources
-    if import_paths is not None:
+    solang_args = [source]
+    if import_paths is not None and import_paths != []:
+        solang_args.append("--import_paths")
         for import_path in import_paths:
-            solang_args.append("--import-path")
             solang_args.append(import_path)
-    if import_maps is not None:
+    if import_maps is not None and import_maps != []:
+        solang_args.append("--import_maps")
         for import_map in import_maps:
-            solang_args.append("--import-map")
             solang_args.append(import_map)
     return solang_args
 
@@ -257,8 +255,43 @@ def run_solc(project_dir, source_roots, import_paths, import_maps, solc="solc", 
     os.chdir(curdir)
 
 
+def run_solang_parser(project_dir, source_roots, import_paths, import_maps, solang_parser="solang_parser", halt_on_failure=False):
+    print("\n === Running solang_parser ===\n")
+
+    # Change directory to project_dir
+    curdir = os.getcwd()
+    os.chdir(project_dir)
+
+    sources = collect_sources(source_roots)
+    package = parse_package_json("package.json")
+    dependencies = resolve_dependencies(package)
+
+    # Now run solang_parser
+    failures = []
+    successes = []
+
+    print(f"Running solang_parser on {len(sources)} source files:\n")
+    for source in progress_bar.progress_bar(sources):
+        solang_args: List[str] = make_solang_parser_args(source=source, import_paths=import_paths, import_maps=import_maps)
+        # Run solang_parser with provided args
+        command = [solang_parser, *solang_args]
+        output = subprocess.run(command, capture_output=True)
+        if output.returncode != 0:
+            error(f"The following command failed to run on {source}")
+            print(f"    {' '.join(command)}")
+            print()
+            print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
+            print()
+            failures.append((source, output.stderr, output.stdout))
+            if halt_on_failure:
+                print("Halting on fail")
+                break
+        else:
+            successes.append((source, output.stderr, output.stdout))
+
+
 def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, import_maps, run_with_conf=False, halt_on_failure=False):
-    print("Running gambit")
+    print("\n === Running gambit ===\n")
     # Resolve outdir by making it absolute to the CWD
     curdir = os.getcwd()
     outdir = osp.abspath(outdir)
@@ -333,6 +366,9 @@ def main():
     if args.solc:
         run_solc(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure, solc=args.solc)
     
+    if args.solang_parser:
+        run_solang_parser(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
+
     if args.gambit:
         run_gambit(project_dir, source_roots, args.mutations, args.outdir, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
 
