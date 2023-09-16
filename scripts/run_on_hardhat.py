@@ -9,12 +9,20 @@ from typing import List
 import subprocess
 import progress_bar
 
+def warning(msg):
+    print(f"\033[33;1mWarning\033[0m: {msg}")
+
+def error(msg):
+    print(f"\033[31;1mError\033[0m: {msg}")
+
+def info(msg):
+    print(f"\033[34;1mInfo\033[0m: {msg}")
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("project_dir")
     parser.add_argument("source_roots", nargs="*")
-    parser.add_argument("--outdir", default="mutations")
+    parser.add_argument("--outdir", default="gambit_out")
     parser.add_argument("--mutations", default=None, nargs="*")
     parser.add_argument("--package_json", "-p", default="package.json")
     parser.add_argument("--import_paths", "-I", default=None, nargs="*")
@@ -22,6 +30,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--gambit", action="store_true", help="Run gambit on project")
     parser.add_argument("--solc", default=None, help="solc executable to use with the given configuration (by default, solc is not run)")
     parser.add_argument("--solang_parser", action="store_true", help="Run solang_parser on project (get from https://github.com/bkushigian/SolangParse4Debugging)")
+    parser.add_argument("--halt_on_failure", action="store_true", help="Halt on first failure")
     args = parser.parse_args()
     return args
 
@@ -29,24 +38,26 @@ def default_import_paths():
     return [".", "contracts"]
 
 def collect_sources(source_roots):
+    info(f"Collecting Solidity sources from roots: {' ,'.join(source_roots)}")
     # Collect all solidity files from each source root in source_roots
     solidity_files = []
     for source_root in source_roots:
         for root, dirs, files in os.walk(source_root):
             for file in files:
                 if file.endswith(".sol"):
-                    print(f"Found solidity file {file} in {source_root}")
+                    info(f"Found solidity file {file} in {source_root}")
                     solidity_files.append(osp.join(root, file))
+    info(f"Found {len(solidity_files)} solidity files")
     return solidity_files
 
 def parse_package_json(package_json):
     if not osp.exists(package_json):
-        print(f"Error: package.json file {package_json} does not exist")
+        error(f"package.json file {package_json} does not exist")
         sys.exit(1)
     with open(package_json, "r") as f:
         package = json.load(f)
-    dependencies = package["dependencies"]
-    dev_dependencies = package["devDependencies"]
+    dependencies = package["dependencies"] if "dependencies" in package else {}
+    dev_dependencies = package["devDependencies"] if "devDependencies" in package else {}
     return namedtuple("Package", ["dependencies", "dev_dependencies"])(dependencies, dev_dependencies)
     
 def resolve_dependencies(package, dependency_root="node_modules"):
@@ -56,16 +67,20 @@ def resolve_dependencies(package, dependency_root="node_modules"):
     """
     dependencies = package.dependencies
     dev_dependencies = package.dev_dependencies
+    info(f"Found {len(dependencies)} dependencies and {len(dev_dependencies)} dev dependencies")
     all_dependencies = {**dependencies, **dev_dependencies}
     dependency_dirs = []
+    print()
+    info(f"Resolving {len(all_dependencies)} dependencies in {dependency_root}")
     for dependency in all_dependencies:
         dependency_dir = osp.join(dependency_root, dependency)
         if not osp.exists(dependency_dir):
-            print(f"Warning: dependency {dependency} does not exist in {dependency_dir}")
+            warning(f"dependency {dependency} does not exist in {dependency_dir}")
             continue
         dependency_dirs.append(namedtuple("Dependency", ["name", "dir", "remap"])(dependency, dependency_dir, f"{dependency}={dependency_dir}"))
     for d in dependency_dirs:
-        print(f"Dependency {d.name} found at {d.dir}")
+        info(f"Dependency {d.name} found at {d.dir}")
+    print()
     return dependency_dirs
 
 def make_gambit_conf(sources, dependencies, mutations, outdir, import_paths, import_maps):
@@ -192,8 +207,8 @@ def write_gambit_conf(gambit_conf, name="gambit.conf"):
     print("Wrote gambit conf to " + path)
     return path
 
-def run_solc(project_dir, source_roots, import_paths, import_maps, solc, halt_on_fail=False):
-    print("Running solc")
+def run_solc(project_dir, source_roots, import_paths, import_maps, solc="solc", halt_on_failure=False):
+    print("\n === Running solc ===\n")
     curdir = os.getcwd()
     # Change directory to project_dir
     os.chdir(project_dir)
@@ -205,31 +220,44 @@ def run_solc(project_dir, source_roots, import_paths, import_maps, solc, halt_on
     import_maps = [d.remap for d in dependencies] + import_maps
     if import_paths is None or import_paths == []:
         import_paths = default_import_paths()
-    failed = []
-    succeeded = []
+    failures = []
+    successes = []
 
-    print(f"Running solc on {len(sources)} source files")
+    print(f"Running solc on {len(sources)} source files:\n")
     for source in progress_bar.progress_bar(sources):
         solc_args: List[str] = make_solc_args(source, import_paths, import_maps)
         # Run solc with provided args
-        command = ["solc", *solc_args]
+        command = [solc, *solc_args]
         output = subprocess.run(command, capture_output=True)
         if output.returncode != 0:
-            print(f"Following command failed to run on {source}")
+            error(f"The following command failed to run on {source}")
             print(f"    {' '.join(command)}")
             print()
             print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
             print()
-            failed.append((source, output.stderr, output.stdout))
-            if halt_on_fail:
+            failures.append((source, output.stderr, output.stdout))
+            if halt_on_failure:
                 print("Halting on fail")
                 break
         else:
-            succeeded.append((source, output.stderr, output.stdout))
+            successes.append((source, output.stderr, output.stdout))
+
+    print(f"Finished running gambit on {len(sources)} source files")
+    print(f"    {len(successes)} successes")
+    print(f"    {len(failures)} failures")
+    if successes:
+        print(f"Successes:")
+        for source, stderr, stdout in successes:
+            print(f"    [\033[32;1m + \033[0m] {source}")
+    if failures:
+        print(f"Failures:")
+        for source, stderr, stdout in failures:
+            print(f"    [\033[31;1m - \033[0m] {source}")
+    print()
     os.chdir(curdir)
 
 
-def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, import_maps, run_with_conf=False, halt_on_fail=False):
+def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, import_maps, run_with_conf=False, halt_on_failure=False):
     print("Running gambit")
     # Resolve outdir by making it absolute to the CWD
     curdir = os.getcwd()
@@ -261,32 +289,36 @@ def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, impor
             command = ["gambit", *gambit_args]
             output = subprocess.run(command, capture_output=True)
             if output.returncode != 0:
-                print(f"Failed to run on {source}")
+                error(f"Gambit failed on {source}")
                 print(f"    {' '.join(command)}")
-                print()
-                print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
-                print()
+                stderr = output.stderr.decode('utf-8').strip()
+                stdout = output.stdout.decode('utf-8').strip()
+                if stdout or stderr:
+                    print('---------------------------------')
+                if stdout:
+                    print(f"\033[31;1mstdout:\033[0m {output.stdout.decode('utf-8')}")
+                if stderr:
+                    print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
+                if stdout or stderr:
+                    print('---------------------------------')
                 failures.append((source, output.stderr, output.stdout))
-                if halt_on_fail:
+                if halt_on_failure:
                     print("Halting on failure")
                     break
             else:
-                print("Successfully ran gambit on " + source)
-                if output.stdout is not None:
-                    print(f"\033[32;1mstdout:\033[0m {output.stdout.decode('utf-8')}")
-
-                if output.stderr is not None:
-                    print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
+                info("Successfully ran gambit on " + source)
                 successes.append((source, output.stderr, output.stdout))
     print(f"Finished running gambit on {len(sources)} source files")
     print(f"    {len(successes)} successes")
     print(f"    {len(failures)} failures")
-    print(f"Successes:")
-    for source, stderr, stdout in successes:
-        print(f"    [\033[32;1m + \033[0m] {source}")
-    print(f"Failures:")
-    for source, stderr, stdout in failures:
-        print(f"    [\033[31;1m - \033[0m] {source}")
+    if successes:
+        print(f"Successes:")
+        for source, stderr, stdout in successes:
+            print(f"    [\033[32;1m + \033[0m] {source}")
+    if failures:
+        print(f"Failures:")
+        for source, stderr, stdout in failures:
+            print(f"    [\033[31;1m - \033[0m] {source}")
     os.chdir(curdir)
 
 
@@ -297,12 +329,12 @@ def main():
     source_roots = args.source_roots
     if len(source_roots) == 0:
         source_roots = ['contracts']
+
+    if args.solc:
+        run_solc(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure, solc=args.solc)
     
     if args.gambit:
-        run_gambit(project_dir, source_roots, args.mutations, args.outdir, args.import_paths, args.import_maps)
-    
-    if args.solc:
-        run_solc(project_dir, source_roots, args.import_paths, args.import_maps, args.solc)
+        run_gambit(project_dir, source_roots, args.mutations, args.outdir, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
 
 
 main()
