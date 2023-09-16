@@ -253,7 +253,7 @@ impl Mutator {
         log::info!("    {} functions", ns.functions.len());
 
         if ns.diagnostics.any_errors() {
-            // ns.print_diagnostics(&self.file_resolver, false);
+            ns.print_diagnostics(&self.file_resolver, false);
             println!(
                 "Error: solang encountered errors while parsing {}",
                 filename
