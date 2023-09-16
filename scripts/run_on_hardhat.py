@@ -279,10 +279,11 @@ def run_solang_parser(project_dir, source_roots, import_paths, import_maps, sola
         command = [solang_parser, *solang_args]
         output = subprocess.run(command, capture_output=True)
         if output.returncode != 0:
-            error(f"The following command failed to run on {source}")
+            print('--------------------------------------------------------------------------------')
+            error(f"The following command failed to run on \033[36;1m{source}\033[0m\n")
             print(f"    {' '.join(command)}")
             print()
-            print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
+            print(f"stderr:\n{output.stderr.decode('utf-8')}")
             print()
             failures.append((source, output.stderr, output.stdout))
             if halt_on_failure:
@@ -290,6 +291,19 @@ def run_solang_parser(project_dir, source_roots, import_paths, import_maps, sola
                 break
         else:
             successes.append((source, output.stderr, output.stdout))
+    print(f"Finished running solang_parser on {len(sources)} source files")
+    print(f"    {len(successes)} successes")
+    print(f"    {len(failures)} failures")
+    if successes:
+        print(f"Successes:")
+        for source, stderr, stdout in successes:
+            print(f"    [\033[32;1m + \033[0m] {source}")
+    if failures:
+        print(f"Failures:")
+        for source, stderr, stdout in failures:
+            print(f"    [\033[31;1m - \033[0m] {source}")
+    os.chdir(curdir)
+    
 
 
 def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, import_maps, run_with_conf=False, halt_on_failure=False):
