@@ -36,6 +36,19 @@ def parse_args() -> Namespace:
     args = parser.parse_args()
     return args
 
+def print_successes_and_failures(successes, failures):
+    total = len(successes) + len(failures)
+    if successes:
+        print(f"Successes:")
+        for source, stderr, stdout in successes:
+            print(f"    [\033[32;1m + \033[0m] {source}")
+    if failures:
+        print(f"Failures:")
+        for source, stderr, stdout in failures:
+            print(f"    [\033[31;1m - \033[0m] {source}")
+    print(f"    {len(successes)} / {total} successes ({len(successes) / total * 100:.2f}%)")
+    print(f"    {len(failures)} / {total} failures ({len(failures) / total * 100:.2f}%)")
+
 def default_import_paths():
     return [".", "contracts"]
 
@@ -186,7 +199,7 @@ def make_solang_parser_args(source, import_paths=None, import_maps=None, target=
     Create a list of solang args for the given compilation configuration
     """
     if import_paths is None or import_paths == []:
-        import_paths = default_import_paths
+        import_paths = default_import_paths()
 
     solang_args = [source]
     if import_paths is not None and import_paths != []:
@@ -243,17 +256,7 @@ def run_solc(project_dir, source_roots, import_paths, import_maps, solc="solc", 
             successes.append((source, output.stderr, output.stdout))
 
     print(f"Finished running gambit on {len(sources)} source files")
-    print(f"    {len(successes)} successes")
-    print(f"    {len(failures)} failures")
-    if successes:
-        print(f"Successes:")
-        for source, stderr, stdout in successes:
-            print(f"    [\033[32;1m + \033[0m] {source}")
-    if failures:
-        print(f"Failures:")
-        for source, stderr, stdout in failures:
-            print(f"    [\033[31;1m - \033[0m] {source}")
-    print()
+    print_successes_and_failures(successes, failures)
     os.chdir(curdir)
 
 
@@ -267,6 +270,13 @@ def run_solang_parser(project_dir, source_roots, import_paths, import_maps, sola
     sources = collect_sources(source_roots)
     package = parse_package_json("package.json")
     dependencies = resolve_dependencies(package)
+
+    if import_maps is None:
+        import_maps = []
+    import_maps = [d.remap for d in dependencies] + import_maps
+
+    if import_paths is None or import_paths == []:
+        import_paths = default_import_paths()
 
     # Now run solang_parser
     failures = []
@@ -292,16 +302,7 @@ def run_solang_parser(project_dir, source_roots, import_paths, import_maps, sola
         else:
             successes.append((source, output.stderr, output.stdout))
     print(f"Finished running solang_parser on {len(sources)} source files")
-    print(f"    {len(successes)} successes")
-    print(f"    {len(failures)} failures")
-    if successes:
-        print(f"Successes:")
-        for source, stderr, stdout in successes:
-            print(f"    [\033[32;1m + \033[0m] {source}")
-    if failures:
-        print(f"Failures:")
-        for source, stderr, stdout in failures:
-            print(f"    [\033[31;1m - \033[0m] {source}")
+    print_successes_and_failures(successes, failures)
     os.chdir(curdir)
     
 
@@ -357,17 +358,7 @@ def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, impor
             else:
                 info("Successfully ran gambit on " + source)
                 successes.append((source, output.stderr, output.stdout))
-    print(f"Finished running gambit on {len(sources)} source files")
-    print(f"    {len(successes)} successes")
-    print(f"    {len(failures)} failures")
-    if successes:
-        print(f"Successes:")
-        for source, stderr, stdout in successes:
-            print(f"    [\033[32;1m + \033[0m] {source}")
-    if failures:
-        print(f"Failures:")
-        for source, stderr, stdout in failures:
-            print(f"    [\033[31;1m - \033[0m] {source}")
+    print_successes_and_failures(successes, failures)
     os.chdir(curdir)
 
 
@@ -383,6 +374,7 @@ def main():
         run_solc(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure, solc=args.solc)
     
     if args.solang_parser:
+        print(args.import_maps)
         run_solang_parser(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
 
     if args.gambit:
