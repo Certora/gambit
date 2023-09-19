@@ -11,6 +11,90 @@ from typing import List
 import subprocess
 import progress_bar
 
+class ToolRunData:
+    def __init__(self, tool_name, import_paths, import_maps, sources):
+        self.tool_name = tool_name
+        self.import_paths = import_paths
+        self.import_maps = import_maps
+        self.sources = sources
+        self.successes = []
+        self.failures = []
+        self.outputs = {}
+
+    def add_success(self, source, stderr, stdout):
+        self.successes.append(source)
+        self.outputs[source] = (stderr.decode('utf-8'), stdout.decode('utf-8'))
+    
+    def add_failure(self, source, stderr, stdout):
+        self.failures.append(source)
+        self.outputs[source] = (stderr.decode('utf-8'), stdout.decode('utf-8'))
+    
+    def write_to_disk(self, outdir="data_collect"):
+        if not osp.exists(outdir):
+            os.makedirs(outdir)
+        tool_out_dir = osp.join(outdir, self.tool_name)
+        if osp.exists(tool_out_dir):
+            shutil.rmtree(tool_out_dir)
+        os.makedirs(tool_out_dir)
+        outputs_dir = osp.join(tool_out_dir, "outputs")
+        os.makedirs(outputs_dir)
+
+        with open(osp.join(tool_out_dir, "successes.txt"), "w") as f:
+            f.write("\n".join(self.successes))
+
+        with open(osp.join(tool_out_dir, "failures.txt"), "w") as f:
+            f.write("\n".join(self.failures))
+        
+        for source in self.outputs:
+            # Replace slashes with dots in source name
+            source_no_slashes = source.replace("/", ".")
+            stderr, stdout = self.outputs[source]
+            stderr_path = osp.join(outputs_dir, source_no_slashes + ".stderr")
+            stdout_path = osp.join(outputs_dir, source_no_slashes + ".stdout")
+            with open(stderr_path, "w") as f:
+                f.write(stderr)
+            with open(stdout_path, "w") as f:
+                f.write(stdout)
+        
+        with open(osp.join(tool_out_dir, "conf.json"), "w") as f:
+            conf = {
+                "import_paths": self.import_paths,
+                "import_maps": self.import_maps,
+                "sources": self.sources,
+            }
+            json.dump(conf, f, indent=2)
+        
+        with open(osp.join(outdir, f"{self.tool_name}_run_data.json"), "w") as f:
+            data = {
+                "tool_name": self.tool_name,
+                "import_paths": self.import_paths,
+                "import_maps": self.import_maps,
+                "sources": self.sources,
+                "successes": self.successes,
+                "failures": self.failures,
+                "num_sources": len(self.sources),
+                "num_successes": len(self.successes),
+                "num_failures": len(self.failures),
+                "success_rate": len(self.successes) / len(self.sources),
+            }
+            json.dump(data, f, indent=2)
+
+    def print_summary(self):
+        successes = self.successes
+        failures = self.failures
+        total = len(successes) + len(failures)
+        if successes:
+            print(f"Successes for {self.tool_name}:")
+            for source in successes:
+                print(f"    [\033[32;1m + \033[0m] {source}")
+        if failures:
+            print(f"Failures:")
+            for source in failures:
+                print(f"    [\033[31;1m - \033[0m] {source}")
+        print(f"    {len(successes)} / {total} successes ({len(successes) / total * 100:.2f}%)")
+        print(f"    {len(failures)} / {total} failures ({len(failures) / total * 100:.2f}%)")
+
+
 def warning(msg):
     print(f"\033[33;1mWarning\033[0m: {msg}")
 
@@ -23,7 +107,7 @@ def info(msg):
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument("project_dir")
-    parser.add_argument("source_roots", nargs="*")
+    parser.add_argument("source_roots", nargs="*", help="Roots of directories where solidity code is located")
     parser.add_argument("--outdir", default="gambit_out")
     parser.add_argument("--mutations", default=None, nargs="*")
     parser.add_argument("--package_json", "-p", default="package.json")
@@ -33,21 +117,9 @@ def parse_args() -> Namespace:
     parser.add_argument("--solc", default=None, help="solc executable to use with the given configuration (by default, solc is not run)")
     parser.add_argument("--solang_parser", action="store_true", help="Run solang_parser on project (get from https://github.com/bkushigian/SolangParse4Debugging)")
     parser.add_argument("--halt_on_failure", action="store_true", help="Halt on first failure")
+    parser.add_argument("--collect_data", action="store_true", help="Collect data on tool runs")
     args = parser.parse_args()
     return args
-
-def print_successes_and_failures(successes, failures):
-    total = len(successes) + len(failures)
-    if successes:
-        print(f"Successes:")
-        for source, stderr, stdout in successes:
-            print(f"    [\033[32;1m + \033[0m] {source}")
-    if failures:
-        print(f"Failures:")
-        for source, stderr, stdout in failures:
-            print(f"    [\033[31;1m - \033[0m] {source}")
-    print(f"    {len(successes)} / {total} successes ({len(successes) / total * 100:.2f}%)")
-    print(f"    {len(failures)} / {total} failures ({len(failures) / total * 100:.2f}%)")
 
 def default_import_paths():
     return [".", "contracts"]
@@ -233,8 +305,7 @@ def run_solc(project_dir, source_roots, import_paths, import_maps, solc="solc", 
     import_maps = [d.remap for d in dependencies] + import_maps
     if import_paths is None or import_paths == []:
         import_paths = default_import_paths()
-    failures = []
-    successes = []
+    tool_run_data = ToolRunData(solc, import_paths, import_maps, sources)
 
     print(f"Running solc on {len(sources)} source files:\n")
     for source in progress_bar.progress_bar(sources):
@@ -248,16 +319,17 @@ def run_solc(project_dir, source_roots, import_paths, import_maps, solc="solc", 
             print()
             print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
             print()
-            failures.append((source, output.stderr, output.stdout))
+            tool_run_data.add_failure(source, output.stderr, output.stdout)
             if halt_on_failure:
                 print("Halting on fail")
                 break
         else:
-            successes.append((source, output.stderr, output.stdout))
+            tool_run_data.add_success(source, output.stderr, output.stdout)
 
     print(f"Finished running gambit on {len(sources)} source files")
-    print_successes_and_failures(successes, failures)
+    tool_run_data.print_summary()
     os.chdir(curdir)
+    return tool_run_data
 
 
 def run_solang_parser(project_dir, source_roots, import_paths, import_maps, solang_parser="solang_parser", halt_on_failure=False):
@@ -279,8 +351,7 @@ def run_solang_parser(project_dir, source_roots, import_paths, import_maps, sola
         import_paths = default_import_paths()
 
     # Now run solang_parser
-    failures = []
-    successes = []
+    tool_run_data = ToolRunData("solang_parser", import_paths, import_maps, sources)
 
     print(f"Running solang_parser on {len(sources)} source files:\n")
     for source in progress_bar.progress_bar(sources):
@@ -295,15 +366,16 @@ def run_solang_parser(project_dir, source_roots, import_paths, import_maps, sola
             print()
             print(f"stderr:\n{output.stderr.decode('utf-8')}")
             print()
-            failures.append((source, output.stderr, output.stdout))
+            tool_run_data.add_failure(source, output.stderr, output.stdout)
             if halt_on_failure:
                 print("Halting on fail")
                 break
         else:
-            successes.append((source, output.stderr, output.stdout))
+            tool_run_data.add_success
     print(f"Finished running solang_parser on {len(sources)} source files")
-    print_successes_and_failures(successes, failures)
+    tool_run_data.print_summary()
     os.chdir(curdir)
+    return tool_run_data
     
 
 
@@ -325,8 +397,7 @@ def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, impor
     package = parse_package_json("package.json")
     dependencies = resolve_dependencies(package)
 
-    failures = []
-    successes = []
+    tool_run_data = ToolRunData("gambit", import_paths, import_maps, sources)
     if run_with_conf:
         gambit_conf = make_gambit_conf(sources, dependencies, mutations, outdir, import_paths, import_maps)
         path = write_gambit_conf(gambit_conf, name="gambit.conf")
@@ -351,15 +422,16 @@ def run_gambit(project_dir, source_roots, mutations, outdir, import_paths, impor
                     print(f"\033[31;1mstderr:\033[0m {output.stderr.decode('utf-8')}")
                 if stdout or stderr:
                     print('---------------------------------')
-                failures.append((source, output.stderr, output.stdout))
+                tool_run_data.add_failure(source, output.stderr, output.stdout)
                 if halt_on_failure:
                     print("Halting on failure")
                     break
             else:
                 info("Successfully ran gambit on " + source)
-                successes.append((source, output.stderr, output.stdout))
-    print_successes_and_failures(successes, failures)
+                tool_run_data.add_success(source, output.stderr, output.stdout)
+    tool_run_data.print_summary()
     os.chdir(curdir)
+    return tool_run_data
 
 
 def main():
@@ -371,14 +443,20 @@ def main():
         source_roots = ['contracts']
 
     if args.solc:
-        run_solc(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure, solc=args.solc)
+        solc_run_data = run_solc(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure, solc=args.solc)
+        if args.collect_data:
+            solc_run_data.write_to_disk()
     
     if args.solang_parser:
         print(args.import_maps)
-        run_solang_parser(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
+        solang_parser_run_data = run_solang_parser(project_dir, source_roots, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
+        if args.collect_data:
+            solang_parser_run_data.write_to_disk()
 
     if args.gambit:
-        run_gambit(project_dir, source_roots, args.mutations, args.outdir, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
+        gambit_run_data = run_gambit(project_dir, source_roots, args.mutations, args.outdir, args.import_paths, args.import_maps, halt_on_failure=args.halt_on_failure)
+        if args.collect_data:
+            gambit_run_data.write_to_disk()
 
 
 main()
