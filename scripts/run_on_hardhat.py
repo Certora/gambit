@@ -22,14 +22,23 @@ class ToolRunData:
         self.successes = []
         self.failures = []
         self.outputs = {}
+        self.num_errors = {}
 
     def add_success(self, source, stderr, stdout):
         self.successes.append(source)
         self.outputs[source] = (stderr.decode("utf-8"), stdout.decode("utf-8"))
+        self.num_errors[source] = 0
 
     def add_failure(self, source, stderr, stdout):
         self.failures.append(source)
-        self.outputs[source] = (stderr.decode("utf-8"), stdout.decode("utf-8"))
+        stderr = stderr.decode("utf-8")
+        stdout = stdout.decode("utf-8")
+        num_errors = 0
+        for line in strip_ansi_codes(stderr).split("\n"):
+            if line.lower().strip().startswith("error:"):
+                num_errors += 1
+        self.num_errors[source] = num_errors
+        self.outputs[source] = (stderr, stdout)
 
     def write_to_disk(self, outdir="data_collect"):
         if not osp.exists(outdir):
@@ -54,9 +63,19 @@ class ToolRunData:
             stderr_path = osp.join(outputs_dir, source_no_slashes + ".stderr")
             stdout_path = osp.join(outputs_dir, source_no_slashes + ".stdout")
             with open(stderr_path, "w") as f:
-                f.write(stderr)
+                f.write(strip_ansi_codes(stderr))
             with open(stdout_path, "w") as f:
-                f.write(stdout)
+                f.write(strip_ansi_codes(stdout))
+
+        # Write number of errors encountered running on each failed source file,
+        # sorted from least to most errors. Skip successes
+
+        with open(osp.join(tool_out_dir, "num_errors.txt"), "w") as f:
+            sorted_num_failures = sorted(
+                (self.num_errors[source], source) for source in self.failures
+            )
+            for n, s in sorted_num_failures:
+                f.write(f"{s}: {n}\n")
 
         with open(osp.join(tool_out_dir, "conf.json"), "w") as f:
             conf = {
@@ -92,7 +111,9 @@ class ToolRunData:
         if failures:
             print(f"Failures:")
             for source in failures:
-                print(f"    [\033[31;1m - \033[0m] {source}")
+                print(
+                    f"    [\033[31;1m - \033[0m] {source} ({self.num_errors[source]} errors)"
+                )
         print(
             f"    {len(successes)} / {total} successes ({len(successes) / total * 100:.2f}%)"
         )
@@ -369,7 +390,7 @@ def run_solc(
     tool_run_data = ToolRunData(solc, import_paths, import_maps, sources)
 
     print(f"Running solc on {len(sources)} source files:\n")
-    for source in progress_bar.progress_bar(sources):
+    for source in progress_bar.progress_bar(sources, prefix=solc):
         solc_args: List[str] = make_solc_args(source, import_paths, import_maps)
         # Run solc with provided args
         command = [solc, *solc_args]
@@ -422,7 +443,7 @@ def run_solang_parser(
     tool_run_data = ToolRunData("solang_parser", import_paths, import_maps, sources)
 
     print(f"Running solang_parser on {len(sources)} source files:\n")
-    for source in progress_bar.progress_bar(sources):
+    for source in progress_bar.progress_bar(sources, prefix="solang_parser"):
         solang_args: List[str] = make_solang_parser_args(
             source=source, import_paths=import_paths, import_maps=import_maps
         )
@@ -443,7 +464,7 @@ def run_solang_parser(
                 print("Halting on fail")
                 break
         else:
-            tool_run_data.add_success
+            tool_run_data.add_success(source, output.stderr, output.stdout)
     print(f"Finished running solang_parser on {len(sources)} source files")
     tool_run_data.print_summary()
     os.chdir(curdir)
@@ -486,7 +507,7 @@ def run_gambit(
         subprocess.run(["gambit", "mutate", "--json", path])
     else:
         print(f"Running gambit on {len(sources)} source files...")
-        for source in progress_bar.progress_bar(sources):
+        for source in progress_bar.progress_bar(sources, prefix="gambit"):
             gambit_args = make_gambit_args(
                 source, import_paths, import_maps, mutations=mutations, outdir=outdir
             )
