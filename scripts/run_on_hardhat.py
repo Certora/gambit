@@ -524,7 +524,7 @@ def run_solang_parser(
             error(f"The following command failed to run on \033[36;1m{source}\033[0m\n")
             print(f"    {' '.join(command)}")
             print()
-            print(f"stderr:\n{output.stderr.decode('utf-8')}")
+            print(f"stderr:\n{output.stderr.decode('utf-8')[:2400]}")
             print()
             tool_run_data.add_failure(source, output.stderr, output.stdout)
             if halt_on_failure:
