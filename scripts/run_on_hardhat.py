@@ -665,7 +665,7 @@ def main():
     if gambit_run_data is not None:
         summary_md += "## gambit\n"
         summary_md += f"    {gambit_run_data.num_successes()} / {gambit_run_data.num_sources()} successes ({gambit_run_data.success_rate():.2f}%)\n"
-    with open(osp.join(args.outdir, "summary.md"), "w", encoding="utf-8") as f:
+    with open("summary.md", "w", encoding="utf-8") as f:
         f.write(summary_md)
 
 
