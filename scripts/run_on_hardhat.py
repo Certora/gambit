@@ -40,7 +40,48 @@ class ToolRunData:
         self.num_errors[source] = num_errors
         self.outputs[source] = (stderr, stdout)
 
+    def num_successes(self):
+        """Return the number of successful runs of the tool
+
+        Returns:
+            int: number of successful runs
+        """
+        return len(self.successes)
+
+    def num_failures(self):
+        """Return the number of failed runs of the tool
+
+        Returns:
+            int: number of failed runs
+        """
+        return len(self.failures)
+
+    def num_sources(self):
+        """Return the total number of sources
+
+        Returns:
+            int: total number of sources
+        """
+        return len(self.sources)
+
+    def success_rate(self):
+        """Return the success rate of the tool
+
+        Returns:
+            float: success rate
+        """
+        return (
+            100.0 * self.num_successes() / self.num_sources()
+            if self.num_sources()
+            else 100.0
+        )
+
     def write_to_disk(self, outdir="data_collect"):
+        """Write tool run data to disk
+
+        Args:
+            outdir (str, optional): output directory to write data to. Defaults to "data_collect".
+        """
         if not osp.exists(outdir):
             os.makedirs(outdir)
         tool_out_dir = osp.join(outdir, self.tool_name)
@@ -50,34 +91,33 @@ class ToolRunData:
         outputs_dir = osp.join(tool_out_dir, "outputs")
         os.makedirs(outputs_dir)
 
-        with open(osp.join(tool_out_dir, "successes.txt"), "w") as f:
+        with open(osp.join(tool_out_dir, "successes.txt"), "w", encoding="utf-8") as f:
             f.write("\n".join(self.successes))
 
-        with open(osp.join(tool_out_dir, "failures.txt"), "w") as f:
+        with open(osp.join(tool_out_dir, "failures.txt"), "w", encoding="utf-8") as f:
             f.write("\n".join(self.failures))
 
-        for source in self.outputs:
+        for source, (stderr, stdout) in self.outputs.items():
             # Replace slashes with dots in source name
             source_no_slashes = source.replace("/", ".")
-            stderr, stdout = self.outputs[source]
             stderr_path = osp.join(outputs_dir, source_no_slashes + ".stderr")
             stdout_path = osp.join(outputs_dir, source_no_slashes + ".stdout")
-            with open(stderr_path, "w") as f:
+            with open(stderr_path, "w", encoding="utf-8") as f:
                 f.write(strip_ansi_codes(stderr))
-            with open(stdout_path, "w") as f:
+            with open(stdout_path, "w", encoding="utf-8") as f:
                 f.write(strip_ansi_codes(stdout))
 
         # Write number of errors encountered running on each failed source file,
         # sorted from least to most errors. Skip successes
 
-        with open(osp.join(tool_out_dir, "num_errors.txt"), "w") as f:
+        with open(osp.join(tool_out_dir, "num_errors.txt"), "w", encoding="utf-8") as f:
             sorted_num_failures = sorted(
                 (self.num_errors[source], source) for source in self.failures
             )
             for n, s in sorted_num_failures:
                 f.write(f"{s}: {n}\n")
 
-        with open(osp.join(tool_out_dir, "conf.json"), "w") as f:
+        with open(osp.join(tool_out_dir, "conf.json"), "w", encoding="utf-8") as f:
             conf = {
                 "import_paths": self.import_paths,
                 "import_maps": self.import_maps,
@@ -85,7 +125,9 @@ class ToolRunData:
             }
             json.dump(conf, f, indent=2)
 
-        with open(osp.join(outdir, f"{self.tool_name}_run_data.json"), "w") as f:
+        with open(
+            osp.join(outdir, f"{self.tool_name}_run_data.json"), "w", encoding="utf-8"
+        ) as f:
             data = {
                 "tool_name": self.tool_name,
                 "import_paths": self.import_paths,
@@ -101,6 +143,7 @@ class ToolRunData:
             json.dump(data, f, indent=2)
 
     def print_summary(self):
+        """Print a summary of this tool run"""
         successes = self.successes
         failures = self.failures
         total = len(successes) + len(failures)
@@ -109,7 +152,7 @@ class ToolRunData:
             for source in successes:
                 print(f"    [\033[32;1m + \033[0m] {source}")
         if failures:
-            print(f"Failures:")
+            print("Failures:")
             for source in failures:
                 print(
                     f"    [\033[31;1m - \033[0m] {source} ({self.num_errors[source]} errors)"
@@ -185,7 +228,7 @@ def collect_sources(source_roots):
     # Collect all solidity files from each source root in source_roots
     solidity_files = []
     for source_root in source_roots:
-        for root, dirs, files in os.walk(source_root):
+        for root, _, files in os.walk(source_root):
             for file in files:
                 if file.endswith(".sol"):
                     info(f"Found solidity file {file} in {source_root}")
@@ -198,7 +241,7 @@ def parse_package_json(package_json):
     if not osp.exists(package_json):
         error(f"package.json file {package_json} does not exist")
         sys.exit(1)
-    with open(package_json, "r") as f:
+    with open(package_json, "r", encoding="utf-8") as f:
         package = json.load(f)
     dependencies = package["dependencies"] if "dependencies" in package else {}
     dev_dependencies = (
@@ -339,7 +382,7 @@ def make_solc_args(sources=None, import_paths=None, import_maps=None, allow_path
 
 
 def make_solang_parser_args(
-    source, import_paths=None, import_maps=None, target="solana"
+    source, import_paths=None, import_maps=None, _target="solana"
 ):
     """
     Create a list of solang args for the given compilation configuration
@@ -360,8 +403,19 @@ def make_solang_parser_args(
 
 
 def write_gambit_conf(gambit_conf, name="gambit.conf"):
+    """Write a gambit configuration file to disk and return the path it was
+    written to.
+
+    Args:
+        gambit_conf (_type_): _description_
+        name (str, optional): Name of the gambit configuration file to write.
+            Defaults to "gambit.conf".
+
+    Returns:
+        str: _description_
+    """
     path = osp.abspath(name)
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(gambit_conf, f, indent=2)
     print("Wrote gambit conf to " + path)
     return path
@@ -394,7 +448,7 @@ def run_solc(
         solc_args: List[str] = make_solc_args(source, import_paths, import_maps)
         # Run solc with provided args
         command = [solc, *solc_args]
-        output = subprocess.run(command, capture_output=True)
+        output = subprocess.run(command, capture_output=True, check=False)
         if output.returncode != 0:
             error(f"The following command failed to run on {source}")
             print(f"    {' '.join(command)}")
@@ -422,6 +476,19 @@ def run_solang_parser(
     solang_parser="solang_parser",
     halt_on_failure=False,
 ):
+    """Run the solang parser tool
+
+    Args:
+        project_dir (str): todo
+        source_roots: all possible source roots
+        import_paths: roots to the VFS
+        import_maps: a list of remappings
+        solang_parser: solang parser executable. Defaults to "solang_parser".
+        halt_on_failure: halt after first failure. Defaults to False.
+
+    Returns:
+        _type_: _description_
+    """
     print("\n === Running solang_parser ===\n")
 
     # Change directory to project_dir
@@ -449,7 +516,7 @@ def run_solang_parser(
         )
         # Run solang_parser with provided args
         command = [solang_parser, *solang_args]
-        output = subprocess.run(command, capture_output=True)
+        output = subprocess.run(command, capture_output=True, check=False)
         if output.returncode != 0:
             print(
                 "--------------------------------------------------------------------------------"
@@ -504,7 +571,7 @@ def run_gambit(
             sources, dependencies, mutations, outdir, import_paths, import_maps
         )
         path = write_gambit_conf(gambit_conf, name="gambit.conf")
-        subprocess.run(["gambit", "mutate", "--json", path])
+        subprocess.run(["gambit", "mutate", "--json", path], check=False)
     else:
         print(f"Running gambit on {len(sources)} source files...")
         for source in progress_bar.progress_bar(sources, prefix="gambit"):
@@ -513,7 +580,7 @@ def run_gambit(
             )
             # Run gambit with provided args
             command = ["gambit", *gambit_args]
-            output = subprocess.run(command, capture_output=True)
+            output = subprocess.run(command, capture_output=True, check=False)
             if output.returncode != 0:
                 error(f"Gambit failed on {source}")
                 print(f"    {' '.join(command)}")
@@ -547,6 +614,9 @@ def main():
     if len(source_roots) == 0:
         source_roots = ["contracts"]
 
+    sol_run_data = None
+    solang_run_data = None
+    gambit_run_data = None
     if args.solc:
         solc_run_data = run_solc(
             project_dir,
@@ -583,6 +653,20 @@ def main():
         )
         if args.collect_data:
             gambit_run_data.write_to_disk()
+
+    # Write a summary markdown
+    summary_md = ""
+    if solc_run_data is not None:
+        summary_md += "## solc\n"
+        summary_md += f"    {solc_run_data.num_successes()} / {solc_run_data.num_sources()} successes ({solc_run_data.success_rate():.2f}%)\n"
+    if solang_parser_run_data is not None:
+        summary_md += "## solang_parser\n"
+        summary_md += f"    {solang_parser_run_data.num_successes()} / {solang_parser_run_data.num_sources()} successes ({solang_parser_run_data.success_rate():.2f}%)\n"
+    if gambit_run_data is not None:
+        summary_md += "## gambit\n"
+        summary_md += f"    {gambit_run_data.num_successes()} / {gambit_run_data.num_sources()} successes ({gambit_run_data.success_rate():.2f}%)\n"
+    with open(osp.join(args.outdir, "summary.md"), "w", encoding="utf-8") as f:
+        f.write(summary_md)
 
 
 main()
