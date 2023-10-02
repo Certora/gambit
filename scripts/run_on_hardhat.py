@@ -614,8 +614,8 @@ def main():
     if len(source_roots) == 0:
         source_roots = ["contracts"]
 
-    sol_run_data = None
-    solang_run_data = None
+    solc_run_data = None
+    solang_parser_run_data = None
     gambit_run_data = None
     if args.solc:
         solc_run_data = run_solc(
