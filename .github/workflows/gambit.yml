@@ -36,15 +36,15 @@ jobs:
         run: make all_linux
 
       - name: Rename gambit binary
-        # if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
-        run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-ubuntu-20
+        if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
+        run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
 
       - name: Upload artifact to action
         uses: actions/upload-artifact@v3
-        # if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
+        if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         with:
-          name: gambit-ubuntu-20
-          path: ./target/x86_64-unknown-linux-gnu/release/gambit-ubuntu-20
+          name: gambit-linux-${{ env.TAG }}
+          path: ./target/x86_64-unknown-linux-gnu/release/gambit-linux-${{ env.TAG }}
 
   build-mac:
     runs-on: macos-latest
