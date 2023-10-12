@@ -8,7 +8,7 @@ env:
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       TAG: ${{ github.ref_name }}
     steps:
