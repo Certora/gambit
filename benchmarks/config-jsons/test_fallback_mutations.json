@@ -1,0 +1,13 @@
+[
+    {
+        "filename": "../FallbackMutations/Fallback.sol",
+        "import_paths": [
+            "../FallbackMutations"
+        ],
+        "solc": "solc8.13",
+        "mutations": [],
+        "fallback_mutations": [
+            "evr"
+        ]
+    }
+]

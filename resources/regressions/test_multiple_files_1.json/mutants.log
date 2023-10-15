@@ -1,0 +1,30 @@
+1,STD,Ops/AOR/AOR.sol,13:9,return a + b,assert(true)
+2,AOR,Ops/AOR/AOR.sol,13:18,+,-
+3,AOR,Ops/AOR/AOR.sol,13:18,+,*
+4,AOR,Ops/AOR/AOR.sol,13:18,+,/
+5,AOR,Ops/AOR/AOR.sol,13:18,+,%
+6,STD,Ops/AOR/AOR.sol,22:9,return a - b,assert(true)
+7,AOR,Ops/AOR/AOR.sol,22:18,-,+
+8,AOR,Ops/AOR/AOR.sol,22:18,-,*
+9,AOR,Ops/AOR/AOR.sol,22:18,-,/
+10,AOR,Ops/AOR/AOR.sol,22:18,-,%
+11,STD,Ops/AOR/AOR.sol,34:9,return ((a)) * b,assert(true)
+12,AOR,Ops/AOR/AOR.sol,34:22,*,+
+13,AOR,Ops/AOR/AOR.sol,34:22,*,-
+14,AOR,Ops/AOR/AOR.sol,34:22,*,/
+15,AOR,Ops/AOR/AOR.sol,34:22,*,%
+16,STD,Ops/AOR/AOR.sol,47:9,return ((a)) * b,assert(true)
+17,AOR,Ops/AOR/AOR.sol,47:22,*,+
+18,AOR,Ops/AOR/AOR.sol,47:22,*,-
+19,AOR,Ops/AOR/AOR.sol,47:22,*,/
+20,AOR,Ops/AOR/AOR.sol,47:22,*,**
+21,AOR,Ops/AOR/AOR.sol,47:22,*,%
+22,STD,Ops/AOR/AOR.sol,58:9,return a ** b,assert(true)
+23,AOR,Ops/AOR/AOR.sol,58:18,**,+
+24,AOR,Ops/AOR/AOR.sol,58:18,**,-
+25,AOR,Ops/AOR/AOR.sol,58:18,**,*
+26,AOR,Ops/AOR/AOR.sol,58:18,**,/
+27,AOR,Ops/AOR/AOR.sol,58:18,**,%
+28,STD,MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)
+29,ROR,MultipleContracts/C.sol,29:16,c[0] == e,false
+30,LVR,MultipleContracts/C.sol,29:18,0,1

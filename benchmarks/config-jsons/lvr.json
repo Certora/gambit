@@ -1,0 +1,11 @@
+[
+    {
+        "filename": "../Ops/LVR/LVR.sol",
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [
+            "lvr"
+        ]
+    }
+]

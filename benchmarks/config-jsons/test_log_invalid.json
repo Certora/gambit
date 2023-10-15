@@ -1,0 +1,72 @@
+[
+    {
+        "filename": "../Ops/AOR/AOR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "AOR"
+        ],
+        "log_invalid": true
+    },
+    {
+        "filename": "../Ops/BOR/BOR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "BOR"
+        ],
+        "log_invalid": true
+    },
+    {
+        "filename": "../Ops/EDC/EDC.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "EDC"
+        ],
+        "log_invalid": true
+    },
+    {
+        "filename": "../Ops/LOR/LOR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "LOR"
+        ],
+        "log_invalid": true
+    },
+    {
+        "filename": "../Ops/LVR/LVR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "LVR"
+        ],
+        "log_invalid": true
+    },
+    {
+        "filename": "../Ops/ROR/ROR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "ROR"
+        ],
+        "log_invalid": true
+    },
+    {
+        "filename": "../Ops/UOR/UOR.sol",
+        "import_paths": [
+            "../Ops"
+        ],
+        "mutations": [
+            "UOR"
+        ],
+        "log_invalid": true
+    }
+]

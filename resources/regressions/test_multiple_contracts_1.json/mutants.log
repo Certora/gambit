@@ -1,0 +1,14 @@
+1,STD,MultipleContracts/C.sol,7:9,assert(c[0] == e),assert(true)
+2,ROR,MultipleContracts/C.sol,7:16,c[0] == e,false
+3,LVR,MultipleContracts/C.sol,7:18,0,1
+4,LVR,MultipleContracts/C.sol,23:21,10,0
+5,LVR,MultipleContracts/C.sol,23:21,10,11
+6,AOR,MultipleContracts/C.sol,24:25,**,+
+7,AOR,MultipleContracts/C.sol,24:25,**,-
+8,AOR,MultipleContracts/C.sol,24:25,**,*
+9,AOR,MultipleContracts/C.sol,24:25,**,/
+10,AOR,MultipleContracts/C.sol,24:25,**,%
+11,STD,MultipleContracts/C.sol,25:9,return res,assert(true)
+12,STD,MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)
+13,ROR,MultipleContracts/C.sol,29:16,c[0] == e,false
+14,LVR,MultipleContracts/C.sol,29:18,0,1

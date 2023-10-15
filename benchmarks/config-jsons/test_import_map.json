@@ -1,0 +1,14 @@
+[
+    {
+        "filename": "../ImportMaps/contracts/Contract.sol",
+        "import_paths": [
+            "../ImportMaps"
+        ],
+        "import_maps": [
+            "@lib=node_modules/lib"
+        ],
+        "mutations": [
+            "aor"
+        ]
+    }
+]

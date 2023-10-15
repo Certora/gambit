@@ -1,0 +1,11 @@
+[
+    {
+        "filename": "../Ops/BOR/BOR.sol",
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [
+            "bor"
+        ]
+    }
+]

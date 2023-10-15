@@ -1,22 +1,57 @@
-use std::{collections::HashSet, error, path::PathBuf};
+use std::{
+    collections::{HashMap, HashSet},
+    error,
+    path::PathBuf,
+};
 
 use serde_json::Value;
 
-use crate::SummaryParams;
+use crate::{print_experimental_feature_warning, SummaryParams};
+
+struct MutantSummaryEntry {
+    mid: String,
+    mutant_export_location: String,
+    diff: String,
+    op_long: String,
+    op_short: String,
+    line: String,
+    col: String,
+    orig: String,
+    repl: String,
+}
+
+/// How should summary operate?
+pub enum SummaryMode {
+    /// Print high level stats and exit
+    PrintStatistics,
+    /// Print MIDs specified by `--mids` flag
+    PrintSomeMids(Vec<String>),
+    /// Print All MIDs
+    PrintAllMids,
+}
 
 /// Summarize an existing mutation run (see the [SummaryParams][SummaryParams]
 /// struct for detailed documentation)
 ///
 /// [SummaryParams]:crate::cli::SummaryParams
 pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
+    print_experimental_feature_warning("gambit summary", "1.0.0");
     let mutation_dir = PathBuf::from(params.mutation_directory);
     let gambit_results_json_path = mutation_dir.join("gambit_results.json");
+    let short = params.short;
+    let summary_mode = if let Some(mids) = params.mids {
+        SummaryMode::PrintSomeMids(mids.clone())
+    } else if params.print_all_mids {
+        SummaryMode::PrintAllMids
+    } else {
+        SummaryMode::PrintStatistics
+    };
 
     if !&mutation_dir.is_dir() {
-        log::error!("Missing mutation directory: `{}`", mutation_dir.display());
-        log::error!("Suggestions:");
-        log::error!("  [+] Run `gambit mutate` to generate mutants");
-        log::error!("  [+] Use the `--mutation-directory` flag to specify a different location");
+        println!("Missing mutation directory: `{}`", mutation_dir.display());
+        println!("Suggestions:");
+        println!("  [+] Run `gambit mutate` to generate mutants");
+        println!("  [+] Use the `--mutation-directory` flag to specify a different location");
         std::process::exit(1);
     } else if !&gambit_results_json_path.is_file() {
         log::error!(
@@ -51,27 +86,28 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
                 std::process::exit(1);
             }
             let v = v.as_array().unwrap();
-            match params.mids {
-                Some(mids) => {
+            let mutant_summary_entries = v
+                .iter()
+                .enumerate()
+                .map(|(i, m)| get_mutant_summary(i, m))
+                .collect::<Vec<Option<MutantSummaryEntry>>>();
+            match summary_mode {
+                SummaryMode::PrintStatistics => print_statistics(&mutant_summary_entries),
+                SummaryMode::PrintSomeMids(mids) => {
+                    // Make as a set for fast lookup
                     let mids: HashSet<String> = HashSet::from_iter(mids.iter().cloned());
-                    for (i, value) in v.iter().enumerate() {
-                        let mid = value
-                            .as_object()
-                            .expect("Expected an object")
-                            .get("id")
-                            .expect("Expected mutant to have `id` field")
-                            .as_str()
-                            .expect("Expected `id` field to be a string")
-                            .to_string();
-                        if mids.contains(&mid) {
-                            print_mutant_summary(i, value);
+                    for (_, m) in mutant_summary_entries.iter().enumerate() {
+                        if let Some(e) = m {
+                            if mids.contains(&e.mid) {
+                                print_mutant_summary(m, short);
+                            }
                         }
                     }
                 }
-                None => {
-                    v.iter().enumerate().for_each(|(i, m)| {
-                        print_mutant_summary(i, m);
-                    });
+                SummaryMode::PrintAllMids => {
+                    for m in mutant_summary_entries {
+                        print_mutant_summary(&m, short)
+                    }
                 }
             }
         }
@@ -80,19 +116,8 @@ pub fn summarize(params: SummaryParams) -> Result<(), Box<dyn error::Error>> {
     Ok(())
 }
 
-/// Print a mutant summary, or a warning if a value is poorly formed.
-///
-/// # Arguments
-///
-/// * `i` - the index of the mutated JSON in the `gambit_results.json`. This is
-///   used for debug purposes
-/// * `mutant_json` - the JSON object from `gambit_results.json` that we are
-///   going to summarize. This must have the following keys:
-///   - `"id"`: this must map to an integer value
-///   - `"diff"`: this must map to a string value
-///   - `"name"`: this must map to a string value
-///   - `"description"`: this must map to a string value
-fn print_mutant_summary(i: usize, mutant_json: &Value) {
+/// Get the `MutantSummary` associated with id `i`
+fn get_mutant_summary(i: usize, mutant_json: &Value) -> Option<MutantSummaryEntry> {
     let missing_field_msg = |field_name: &str, i: usize, json: &Value| {
         format!(
             "Missing `\"{}\"` field in entry {} of JSON: {}",
@@ -115,24 +140,47 @@ fn print_mutant_summary(i: usize, mutant_json: &Value) {
             .unwrap_or_else(|| panic!("{}", missing_field_msg("name", i, mutant_json)))
             .as_str()
             .expect("`name` field should be a string");
-        let desc = m
+        let op_long = m
             .get("description")
             .unwrap_or_else(|| panic!("{}", missing_field_msg("description", i, mutant_json)))
             .as_str()
             .expect("`description` field should be as string");
-
-        println!(
-            "\n\n             === {}: {} [{}] ===\n",
-            ansi_term::Color::Blue.bold().paint("Mutant ID"),
-            ansi_term::Style::new().bold().paint(mid.to_string()),
-            ansi_term::Style::new().paint(desc)
-        );
-        crate::util::print_colorized_unified_diff(diff.to_string());
-        println!(
-            "\n{}: {}",
-            ansi_term::Style::new().bold().paint("Path"),
-            name
-        );
+        let op_short = m
+            .get("op")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("op", i, mutant_json)))
+            .as_str()
+            .expect("`op` field should be as string");
+        let orig = m
+            .get("orig")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("orig", i, mutant_json)))
+            .as_str()
+            .expect("`orig` field should be as string");
+        let repl = m
+            .get("repl")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("repl", i, mutant_json)))
+            .as_str()
+            .expect("`repl` field should be as string");
+        let line = m
+            .get("line")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("line", i, mutant_json)))
+            .as_i64()
+            .expect("`line` field should be an int");
+        let col = m
+            .get("col")
+            .unwrap_or_else(|| panic!("{}", missing_field_msg("col", i, mutant_json)))
+            .as_i64()
+            .expect("`col` field should be an int");
+        return Some(MutantSummaryEntry {
+            mid: mid.to_string(),
+            mutant_export_location: name.to_string(),
+            diff: diff.to_string(),
+            op_long: op_long.to_string(),
+            op_short: op_short.to_string(),
+            line: line.to_string(),
+            col: col.to_string(),
+            orig: orig.to_string(),
+            repl: repl.to_string(),
+        });
     } else {
         log::warn!(
             "Expected an object at entry {} but found {}",
@@ -140,4 +188,78 @@ fn print_mutant_summary(i: usize, mutant_json: &Value) {
             mutant_json
         );
     }
+    None
+}
+
+/// Print a mutant summary, or a warning if a value is poorly formed.
+///
+/// # Arguments
+///
+/// * `i` - the index of the mutated JSON in the `gambit_results.json`. This is
+///   used for debug purposes
+/// * `mutant_json` - the JSON object from `gambit_results.json` that we are
+///   going to summarize. This must have the following keys:
+///   - `"id"`: this must map to an integer value
+///   - `"diff"`: this must map to a string value
+///   - `"name"`: this must map to a string value
+///   - `"description"`: this must map to a string value
+fn print_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>, short: bool) {
+    if short {
+        print_short_mutant_summary(mutant_summary);
+    } else {
+        print_long_mutant_summary(mutant_summary);
+    }
+}
+
+fn print_short_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>) {
+    if let Some(summary) = mutant_summary {
+        println!(
+            "({}) {} [{}@{}:{}] {} -> {}",
+            ansi_term::Style::new().bold().paint(&summary.mid),
+            ansi_term::Color::Blue.bold().paint(&summary.op_short),
+            ansi_term::Style::new()
+                .italic()
+                .paint(&summary.mutant_export_location),
+            &summary.line,
+            &summary.col,
+            ansi_term::Color::Green.paint(&summary.orig),
+            ansi_term::Color::Red.bold().paint(&summary.repl),
+        )
+    }
+}
+
+fn print_long_mutant_summary(mutant_summary: &Option<MutantSummaryEntry>) {
+    if let Some(s) = mutant_summary {
+        println!(
+            "\n\n             === {}: {} [{}] ===\n",
+            ansi_term::Color::Blue.bold().paint("Mutant ID"),
+            ansi_term::Style::new().bold().paint(&s.mid),
+            ansi_term::Style::new().paint(&s.op_long)
+        );
+        crate::util::print_colorized_unified_diff(s.diff.clone());
+        println!(
+            "\n{}: {}",
+            ansi_term::Style::new().bold().paint("Path"),
+            s.mutant_export_location
+        );
+    }
+}
+
+fn print_statistics(summaries: &[Option<MutantSummaryEntry>]) {
+    let mut op_freq: HashMap<String, usize> = HashMap::new();
+    let total_mutants = summaries.iter().filter(|s| s.is_some()).count();
+    for summary in summaries.iter().flatten() {
+        let op = summary.op_short.clone();
+        op_freq.insert(op.clone(), op_freq.get(&op).unwrap_or(&0) + 1);
+    }
+    for (op, freq) in op_freq.iter() {
+        println!(
+            "{}: {:6} ({:>6.2}%)",
+            op,
+            freq,
+            100.0 * (*freq as f64) / (total_mutants as f64)
+        );
+    }
+    println!("---------------------");
+    println!("TOT: {:6} (100.00%)", total_mutants,);
 }

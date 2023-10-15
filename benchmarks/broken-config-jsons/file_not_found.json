@@ -1,0 +1,11 @@
+[
+    {
+        "filename": "I don't exist.sol",
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [
+            "aor"
+        ]
+    }
+]

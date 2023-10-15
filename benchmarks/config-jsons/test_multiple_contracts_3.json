@@ -1,0 +1,18 @@
+[
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "import_paths": [
+            ".."
+        ],
+        "contract": "Utils",
+        "solc": "solc"
+    },
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "import_paths": [
+            ".."
+        ],
+        "contract": "C",
+        "solc": "solc"
+    }
+]

@@ -1,0 +1,11 @@
+[
+    {
+        "filename": "../Ops/EDC/EDC.sol",
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [
+            "edc"
+        ]
+    }
+]

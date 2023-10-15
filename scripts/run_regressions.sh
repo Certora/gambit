@@ -19,64 +19,119 @@
 # `resources/regressions/XXXXX`) relative to this script's parent directory.
 
 SCRIPTS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-GAMBIT="$SCRIPTS/.."
+green_check=""
+red_x=""
+# shellcheck disable=SC1091
+source "$SCRIPTS/util.sh"
+GAMBIT="$(cd "$SCRIPTS"/.. && pwd)"
+GAMBIT_EXECUTABLE="$GAMBIT/target/release/gambit"
 CONFIGS="$GAMBIT/benchmarks/config-jsons"
 REGRESSIONS="$GAMBIT"/resources/regressions
-echo "scripts: $SCRIPTS"
-echo "gambit: $GAMBIT"
-echo "configs: $CONFIGS"
-echo "regressions: $REGRESSIONS"
+TMP_REGRESSIONS="$GAMBIT"/resources/tmp_regressions
+EXPECTED_SOLC_VERSION_NUM="8.13"
 
-[ -e "$REGRESSIONS" ] || {
-    echo "No regressions exist!"
-}
+if [ -z ${SOLC+x} ]; then
+    SOLC="solc$EXPECTED_SOLC_VERSION_NUM"
+fi
+
+NUM_CONFIGS=$(ls "$CONFIGS" | wc -l | xargs)
 
 passed=()
 failed=()
-echo "Running tests..."
-cd "$GAMBIT" || {
-    echo "Error: couldn't cd $GAMBIT"
-    exit 1
+
+print_vars() {
+    echo "scripts: $SCRIPTS"
+    echo "gambit: $GAMBIT"
+    echo "configs: $CONFIGS"
+    echo "regressions: $REGRESSIONS"
+    echo "temporary regressions: $TMP_REGRESSIONS"
 }
-for conf_path in "$CONFIGS"/*; do
-    echo
-    echo
-    printf "\033[1m- Conf path: %s\033[0m\n" "$conf_path"
 
-    conf=$(basename "$conf_path")
-    regression_dir="$REGRESSIONS"/"$conf"
+build_release() {
+    old_dir=$(pwd)
+    cd "$GAMBIT" || exit 1
+    cargo build --release
 
-    printf "  \033[1mRunning:\033[0m %s\n" "gambit mutate --json $conf_path"
-    stdout="$(cargo run -- mutate --json "$conf_path")"
-    printf "  \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$stdout"
-    printf "  \033[1mDiffing\033[0m gambit_out and %s\n" "$regression_dir"
-    bash "$SCRIPTS"/remove_sourceroots.sh gambit_out/gambit_results.json
-    if diff -q -r gambit_out "$regression_dir"; then
-        printf "  \033[92mSUCCESS\033[0m\n"
-        passed+=("$conf")
-    else
-        printf "  \033[91mFAILED:\033[0m %s\n" "$conf"
-        failed+=("$conf")
+    cd "$old_dir" || exit 1
+}
+
+check_solc_version() {
+    if ! $SOLC --version | grep "0.""$EXPECTED_SOLC_VERSION_NUM" >/dev/null; then
+        echo "Expected solc version 0.$EXPECTED_SOLC_VERSION_NUM"
+        exit 1
     fi
-    rm -rf gambit_out
+}
 
-done
+run_regressions() {
+    echo "Running regression tests on $NUM_CONFIGS configurations"
 
-printf "\n\n\033[96mREGRESSION SUMMARY\033[0m\n"
-printf "\033[96m==================\033[0m\n\n"
+    starting_dir=$(pwd)
+    cd "$GAMBIT" || {
+        echo "Error: couldn't cd $GAMBIT"
+        exit 1
+    }
 
-printf "\033[92mPassed:\033[0m %s of %s tests\n" ${#passed[@]} $((${#failed[@]} + ${#passed[@]}))
-printf "\033[92m-------\033[0m\n"
+    conf_idx=0
 
-for conf in "${passed[@]}"; do
-    printf "\033[92m[+]\033[0m %s\n" "$conf"
-done
+    for conf_path in "$CONFIGS"/*; do
+        conf_idx=$((conf_idx + 1))
+        echo
+        echo
+        printf "\033[1mConfiguration %s/%s:\033[0m %s\n" "$conf_idx" "$NUM_CONFIGS" "$(basename "$conf_path")"
 
-printf "\n"
+        conf=$(basename "$conf_path")
+        regression_dir="$REGRESSIONS"/"$conf"
 
-printf "\033[91mFailed:\033[0m %s of %s tests\n" ${#failed[@]} $((${#failed[@]} + ${#passed[@]}))
-printf "\033[91m-------\033[0m\n"
+        # Get relative paths for nice printing
+        rel_conf_path=$(python3 -c "import os.path; print( os.path.relpath('$conf_path', '$(pwd)'))")
+        rel_regression_dir=$(python3 -c "import os.path; print( os.path.relpath('$regression_dir', '$(pwd)'))")
 
-for conf in "${failed[@]}"; do
-    printf "\033[91m[-]\033[0m %s\n" "$conf"
-done
+        printf "  %s \033[1mRunning:\033[0m %s\n" "$green_check" "$GAMBIT_EXECUTABLE mutate --json $rel_conf_path --solc $SOLC"
+        stdout="$("$GAMBIT_EXECUTABLE" mutate --json "$conf_path" --solc "$SOLC")"
+        printf "  %s \033[1mGambit Output:\033[0m '\033[3m%s\033[0m'\n" "$green_check" "$stdout"
+        if diff -q -r gambit_out "$regression_dir" 1>/dev/null; then
+            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$green_check" "$rel_regression_dir"
+            printf "  %s No regressions in %s\n" "$green_check" "$conf"
+            passed+=("$conf")
+        else
+            printf "  %s \033[1mDiffed:\033[0m gambit_out and %s\n" "$red_x" "$rel_regression_dir"
+            diff -r gambit_out/mutants "$regression_dir"/mutants
+            printf "  %s Found a regression in \033[3m%s\033[0m\n" "$red_x" "$conf"
+            failed+=("$conf")
+        fi
+        rm -rf gambit_out
+
+    done
+
+    cd "$starting_dir" || exit 1
+
+}
+
+summary() {
+
+    printf "\n\n\033[96mREGRESSION SUMMARY\033[0m\n"
+    printf "\033[96m==================\033[0m\n\n"
+
+    printf "\033[92mPassed:\033[0m %s of %s tests\n" ${#passed[@]} $((${#failed[@]} + ${#passed[@]}))
+    printf "\033[92m-------\033[0m\n"
+
+    for conf in "${passed[@]}"; do
+        printf "%s %s\n" "$green_check" "$conf"
+    done
+
+    printf "\n"
+
+    printf "\033[91mFailed:\033[0m %s of %s tests\n" ${#failed[@]} $((${#failed[@]} + ${#passed[@]}))
+    printf "\033[91m-------\033[0m\n"
+
+    for conf in "${failed[@]}"; do
+        printf "%s %s\n" "$red_x" "$conf"
+    done
+
+}
+
+print_vars
+check_solc_version
+build_release
+run_regressions
+summary

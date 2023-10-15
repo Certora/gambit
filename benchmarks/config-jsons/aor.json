@@ -1,0 +1,11 @@
+[
+    {
+        "filename": "../Ops/AOR/AOR.sol",
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [
+            "aor"
+        ]
+    }
+]

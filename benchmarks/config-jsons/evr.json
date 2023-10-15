@@ -1,0 +1,12 @@
+[
+    {
+        "filename": "../Ops/EVR/EVR.sol",
+        "import_paths": [
+            ".."
+        ],
+        "mutations": [],
+        "fallback_mutations": [
+            "evr"
+        ]
+    }
+]

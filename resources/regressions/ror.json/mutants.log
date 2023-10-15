@@ -1,0 +1,26 @@
+1,ROR,Ops/ROR/ROR.sol,9:18,<,<=
+2,ROR,Ops/ROR/ROR.sol,9:18,<,!=
+3,ROR,Ops/ROR/ROR.sol,9:16,x < y,false
+4,ROR,Ops/ROR/ROR.sol,14:18,<=,<
+5,ROR,Ops/ROR/ROR.sol,14:18,<=,==
+6,ROR,Ops/ROR/ROR.sol,14:16,x <= y,true
+7,ROR,Ops/ROR/ROR.sol,19:18,>,>=
+8,ROR,Ops/ROR/ROR.sol,19:18,>,!=
+9,ROR,Ops/ROR/ROR.sol,19:16,x > y,false
+10,ROR,Ops/ROR/ROR.sol,24:18,>=,>
+11,ROR,Ops/ROR/ROR.sol,24:18,>=,==
+12,ROR,Ops/ROR/ROR.sol,24:16,x >= y,true
+13,ROR,Ops/ROR/ROR.sol,29:18,==,<=
+14,ROR,Ops/ROR/ROR.sol,29:18,==,>=
+15,ROR,Ops/ROR/ROR.sol,29:16,x == y,false
+16,ROR,Ops/ROR/ROR.sol,34:16,x == y,false
+17,ROR,Ops/ROR/ROR.sol,39:18,!=,<
+18,ROR,Ops/ROR/ROR.sol,39:18,!=,>
+19,ROR,Ops/ROR/ROR.sol,39:16,x != y,true
+20,ROR,Ops/ROR/ROR.sol,44:16,x != y,true
+21,ROR,Ops/ROR/ROR.sol,53:24,>=,>
+22,ROR,Ops/ROR/ROR.sol,53:24,>=,==
+23,ROR,Ops/ROR/ROR.sol,53:16,(x + y) >= z,true
+24,ROR,Ops/ROR/ROR.sol,62:24,!=,<
+25,ROR,Ops/ROR/ROR.sol,62:24,!=,>
+26,ROR,Ops/ROR/ROR.sol,62:16,(x + y) != z,true

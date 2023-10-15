@@ -1,0 +1,10 @@
+1,AOR,AOR/AOR.sol,13:18,+,*
+2,AOR,AOR/AOR.sol,22:18,-,+
+3,AOR,AOR/AOR.sol,34:22,*,-
+4,AOR,AOR/AOR.sol,47:22,*,+
+5,AOR,AOR/AOR.sol,47:22,*,%
+6,AOR,AOR/AOR.sol,13:18,+,%
+7,STD,AOR/AOR.sol,22:9,return a - b,assert(true)
+8,AOR,AOR/AOR.sol,34:22,*,%
+9,AOR,AOR/AOR.sol,47:22,*,-
+10,AOR,AOR/AOR.sol,58:18,**,+

@@ -1,0 +1,4 @@
+1,AOR,contracts/Contract.sol,9:18,+,-
+2,AOR,contracts/Contract.sol,9:18,+,*
+3,AOR,contracts/Contract.sol,9:18,+,/
+4,AOR,contracts/Contract.sol,9:18,+,%

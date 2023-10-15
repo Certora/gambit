@@ -1,7 +1,4 @@
-mod ast;
 use std::{collections::HashMap, fs, path::PathBuf, time::Instant};
-
-pub use ast::*;
 
 mod cli;
 pub use cli::*;
@@ -10,6 +7,7 @@ mod compile;
 pub use compile::*;
 
 mod filter;
+use csv::Writer;
 pub use filter::*;
 
 mod mutation;
@@ -21,9 +19,6 @@ pub use mutant_writer::*;
 mod mutator;
 pub use mutator::*;
 
-mod source;
-pub use source::*;
-
 mod summary;
 pub use summary::*;
 
@@ -33,8 +28,13 @@ pub use test_util::*;
 mod util;
 pub use util::*;
 
-/// Execute the `mutate` command. This returns a mapping from output directories
+/// Execute the `mutate` command and return a mapping from output directories
 /// to generated mutants.
+///
+/// `gambit mutate` runs on a vector of mutate parameters. Each mutate parameter
+/// specifies an output directory. Parameters with the same output directory are
+/// grouped and run together, and will have unique mutant ids between them.
+/// Mutant ids may be shared between mutants with different output directories.
 pub fn run_mutate(
     mutate_params: Vec<MutateParams>,
 ) -> Result<HashMap<String, Vec<Mutant>>, Box<dyn std::error::Error>> {
@@ -118,8 +118,8 @@ pub fn run_mutate(
              *               ======                     */
             log::info!("Creating mutator");
             let mut mutator = Mutator::from(params);
-            log::info!("Generating mutants");
-            let mutants = mutator.mutate()?.clone();
+            let sources = params.filename.iter().cloned().collect::<Vec<String>>();
+            let mutants = mutator.mutate(sources)?.clone();
             log::info!(
                 "(pre filter/validate) Generated {} mutants for {}",
                 &mutants.len(),
@@ -130,10 +130,47 @@ pub fn run_mutate(
              *               FILTER/VALIDATE                     *
              *               ===============                     */
 
-            // TODO: Separate out Filtering from Validation
+            // We allow users to filter generated mutants down (currently just
+            // by --num_mutants, which randomly downsamples to a specified
+            // number of mutants).
+            //
+            // We also allow users to validate the generated mutants by
+            // compiling them with Solc.
+            //
+            // When we are both filtering and validating there is a cyclic
+            // dependency:
+            //
+            // + Filter depends on Validation: we don't want to filter down to 5
+            //   mutants and have 4 of them be invalid. Therefore, when we
+            //   filter we need to know if a mutant is valid.
+            // + Validation depends on Filter: We don't want to validate 1000
+            //   mutants if we are going to filter down to 5 mutants. Validation
+            //   is by far the most expensive part of Gambit, so skipping
+            //   validation for 90% of the generated mutants is desirable.
+            //   Therefore, when we are filtering and validating, we defer
+            //   validation until the filter tries to produce a mutant
 
-            // Check if we are filtering
-            let mutants = if let Some(num_mutants) = params.num_mutants {
+            // Set up our Validator, which is just a wrapper around a Solc
+            // instance.
+            let mut solc = Solc::new(
+                params.solc.clone().unwrap_or_else(|| "solc".to_string()),
+                outdir_path.clone(),
+            );
+            solc.with_vfs_roots_from_params(params);
+            let mut validator = Validator { solc };
+            log::debug!("Validator: {:?}", validator);
+
+            // There are three cases we consier:
+            // 1. We are downsampling due to `--num_mutants` being supplied by
+            //    the user.
+            //
+            // 2. `--num_mutants` was not specified, and the user requested that
+            //    we skip validation
+            //
+            // 3. `--num_mutants` was not specified and the user did NOT request
+            //    that we skip validation
+            let (sampled, invalid) = if let Some(num_mutants) = params.num_mutants {
+                // Case 1: We are downsampling
                 log::info!("Filtering down to {} mutants", num_mutants);
                 log::debug!("  seed: {:?}", params.seed);
                 log::debug!("  validating?: {}", !params.skip_validate);
@@ -142,29 +179,66 @@ pub fn run_mutate(
                 } else {
                     Some(params.seed)
                 };
-                let filter = RandomDownSampleFilter::new(seed, !params.skip_validate);
-                let mutants = filter.filter_mutants(&mutator, num_mutants)?;
-                log::info!("Filtering resulted in {} mutants", mutants.len());
-                mutants
+                let mut filter =
+                    RandomDownSampleFilter::new(seed, !params.skip_validate, validator);
+                let (sampled, invalid) = filter.filter_mutants(&mutator, num_mutants)?;
+                if !params.skip_validate {
+                    log::info!(
+                        "Filtering and Validation resulted in {} valid mutants",
+                        sampled.len()
+                    );
+                    log::info!("   and {} invalid mutants", invalid.len());
+                } else {
+                    log::info!("Filtering resulted in {} mutants", sampled.len());
+                }
+                (sampled, invalid)
             } else if params.skip_validate {
+                // Case 2: We did not downsample and we are skipping validation
                 log::info!("Skipping validation");
-                mutants
+                (mutants, vec![])
             } else {
-                let mutants = mutator.get_valid_mutants(&mutants);
-                log::info!("Validation resulted in {} mutants", mutants.len());
-                mutants
+                // Case 3: We did not downsample and we are validating
+                let (sampled, invalid) = validator.get_valid_mutants(&mutants);
+                log::info!("Validation resulted in {} valid mutants", sampled.len());
+                log::info!("   and {} invalid mutants", invalid.len());
+                (sampled, invalid)
             };
-            total_num_mutants += mutants.len();
-            log::info!("Adding {} mutants to global mutant pool", mutants.len());
 
-            let mut mutants: Vec<(Mutant, bool)> =
-                mutants.iter().map(|m| (m.clone(), export)).collect();
+            // Note: This probably belongs below w/ other mutant writer stuff,
+            // but the invalid mutant info goes out of scope at the end of this
+            // loop. We would want to preserve this by storing it in a map from
+            // output directories to invalid mutants. Then, when we iterate
+            // through outdirectories for mutant writing we could access the
+            // corresponding invalid mutants
+            if params.log_invalid {
+                let invalid_log = &outdir_path.join("invalid.log");
+                let mut w = Writer::from_path(invalid_log)?;
+                for (i, mutant) in invalid.iter().enumerate() {
+                    let (line_no, col_no) = mutant.get_line_column();
+                    let mid = i + 1;
+                    let line_col = format!("{}:{}", line_no, col_no);
+                    w.write_record([
+                        mid.to_string().as_str(),
+                        mutant.op.short_name().as_str(),
+                        mutant.vfs_path().to_str().unwrap(),
+                        line_col.as_str(),
+                        mutant.orig.as_str(),
+                        mutant.repl.as_str(),
+                    ])?;
+                }
+            }
+
+            total_num_mutants += sampled.len();
+            log::info!("Adding {} mutants to global mutant pool", sampled.len());
+
+            let mut sampled: Vec<(Mutant, bool)> =
+                sampled.iter().map(|m| (m.clone(), export)).collect();
 
             if !mutants_by_out_dir.contains_key(outdir) {
                 mutants_by_out_dir.insert(outdir.clone(), vec![]);
             }
             let ms: &mut Vec<(Mutant, bool)> = mutants_by_out_dir.get_mut(outdir).unwrap();
-            ms.append(&mut mutants);
+            ms.append(&mut sampled);
         }
     }
 
@@ -195,4 +269,8 @@ pub fn run_summary(params: SummaryParams) -> Result<(), Box<dyn std::error::Erro
     log::info!("Running Gambit Summary");
     log::debug!("Summary parameters: {:?}", params);
     summarize(params)
+}
+
+pub fn print_version() {
+    println!("Gambit version: {}", env!("CARGO_PKG_VERSION"))
 }

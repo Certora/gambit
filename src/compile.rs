@@ -1,9 +1,6 @@
-use crate::invoke_command;
-use crate::SolAST;
-use serde_json::Value;
+use crate::{invoke_command, MutateParams};
 use std::{
-    error,
-    fs::File,
+    env, error,
     path::{Path, PathBuf},
 };
 
@@ -13,12 +10,8 @@ type CompilerRet = (i32, Vec<u8>, Vec<u8>);
 /// helper functions. The main object of interest in this module is `Solc`.
 
 /// compilation constants
-static INPUT_JSON: &str = "input_json";
-static ALLOWPATHS: &str = "--allow-paths";
-static INCLUDEPATH: &str = "--include-path";
-static BASEPATH: &str = "--base-path";
+static ALLOWPATH: &str = "--allow-paths";
 static OPTIMIZE: &str = "--optimize";
-static DOT_JSON: &str = ".json";
 
 /// Compilation configurations. This exists across compilations of individual
 /// files
@@ -26,12 +19,20 @@ static DOT_JSON: &str = ".json";
 pub struct Solc {
     /// The solc executable string
     pub solc: String,
+    /// The output directory for solc to compile to (-o|--output-dir in solc)
     output_directory: PathBuf,
+    /// The root of the virtual filesystem (--base-path in solc)
     basepath: Option<String>,
+    /// Make additional source directory availabe to the default import callback (--include-path in solc)
+    include_paths: Vec<String>,
+    /// Allow a given path for imports (--allow-paths in solc)
     allow_paths: Option<Vec<String>>,
-    include_path: Option<String>,
+    /// Specify remappings (xyz=/path/to/xyz in solc)
     remappings: Option<Vec<String>>,
+    /// Enable optimization flag (--optimize in solc)
     optimize: bool,
+    /// Bypass all other flags and manually specify raw arguments passed to solc
+    raw_args: Option<Vec<String>>,
 }
 
 impl Solc {
@@ -40,11 +41,23 @@ impl Solc {
             solc,
             output_directory,
             basepath: None,
+            include_paths: vec![],
             allow_paths: None,
-            include_path: None,
             remappings: None,
             optimize: false,
+            raw_args: None,
         }
+    }
+
+    pub fn with_vfs_roots_from_params(&mut self, params: &MutateParams) -> &Self {
+        if !params.import_paths.is_empty() {
+            self.with_basepath(params.import_paths.get(0).unwrap().clone());
+            for path in params.import_paths[1..].iter() {
+                self.with_include_path(path.clone());
+            }
+        }
+        self.with_remappings(params.import_maps.clone());
+        self
     }
 
     pub fn output_directory(&self) -> &Path {
@@ -58,18 +71,32 @@ impl Solc {
         }
     }
 
+    pub fn with_output_directory(&mut self, output_directory: PathBuf) -> &Self {
+        self.output_directory = output_directory;
+        self
+    }
+
     pub fn with_basepath(&mut self, basepath: String) -> &Self {
         self.basepath = Some(basepath);
         self
     }
 
-    pub fn with_allow_paths(&mut self, allow_paths: Vec<String>) -> &Self {
-        self.allow_paths = Some(allow_paths);
+    pub fn with_include_path(&mut self, include_path: String) -> &Self {
+        self.include_paths.push(include_path);
         self
     }
 
-    pub fn with_include_path(&mut self, include_path: String) -> &Self {
-        self.include_path = Some(include_path);
+    pub fn with_import_path(&mut self, import_path: String) -> &Self {
+        if self.basepath.is_none() {
+            self.basepath = Some(import_path);
+        } else {
+            self.include_paths.push(import_path);
+        }
+        self
+    }
+
+    pub fn with_allow_paths(&mut self, allow_paths: Vec<String>) -> &Self {
+        self.allow_paths = Some(allow_paths);
         self
     }
 
@@ -82,80 +109,18 @@ impl Solc {
         self.optimize = optimize;
         self
     }
+
+    pub fn with_raw_args(&mut self, raw_args: Vec<String>) -> &Self {
+        self.raw_args = Some(raw_args);
+        self
+    }
 }
 
 impl Solc {
-    /// Compile a solidity file to an AST
-    ///
-    /// This method:
-    /// 1. Creates a new directory in `self.conf.output_directory` to store the
-    ///    compiled AST file
-    /// 2. Invokes solc with flags derived from `self.conf`
-    /// 3. Copies the AST file to a JSON file in the same directory
-    /// 4. Reads the JSON into a SolAST struct and returns it
-    pub fn compile_ast(&self, solidity_file: &Path) -> Result<SolAST, Box<dyn error::Error>> {
-        log::debug!(
-            "Invoking AST compilation (--stop-after parse) on {}",
-            solidity_file.display()
-        );
-        let outdir = &self.output_directory;
-        let mk_dir_result = Self::make_ast_dir(solidity_file, outdir.as_path());
-        let (ast_dir, ast_path, json_path) = match mk_dir_result {
-            Ok(x) => x,
-            Err(e) => {
-                log::error!(
-                    "Error: Failed to run make_ast_dir({}, {})\nEncountered error {}",
-                    solidity_file.display(),
-                    outdir.as_path().display(),
-                    e
-                );
-                return Err(e);
-            }
-        };
-
-        match self.invoke_compiler(solidity_file, &ast_dir, false) {
-            Ok((code, stdout, stderr)) => {
-                if code != 0 {
-                    log::error!(
-                        "Solidity compiler returned exit code {} on file `{}`",
-                        code,
-                        solidity_file.display()
-                    );
-                    log::error!("stdout: {}", String::from_utf8(stdout).unwrap());
-                    log::error!("stderr: {}", String::from_utf8(stderr).unwrap());
-                }
-            }
-            Err(e) => {
-                log::error!(
-                "Failed to compile source with invoke_compiler({}, {}, {}) \nEncountered error {}",
-                solidity_file.display(),
-                ast_dir.display(),
-                true,
-                e
-            );
-                return Err(e);
-            }
-        }
-        std::fs::copy(&ast_path, &json_path)?;
-        log::debug!("Wrote AST to {}", &ast_path.display());
-        log::debug!("Wrote AST as JSON to {}", &json_path.display());
-
-        let json_f = File::open(&json_path)?;
-        let ast_json: Value = serde_json::from_reader(json_f)?;
-        log::debug!("Deserialized JSON AST from {}", &json_path.display());
-        Ok(SolAST {
-            element: Some(ast_json),
-        })
-    }
-
     /// Invoke the full solidity compiler and return the exit code, stdout, and stderr
-    pub fn compile(
-        &self,
-        solidity_file: &Path,
-        outdir: &Path,
-    ) -> Result<CompilerRet, Box<dyn error::Error>> {
+    pub fn compile(&self, solidity_file: &Path) -> Result<CompilerRet, Box<dyn error::Error>> {
         log::debug!("Invoking full compilation on {}", solidity_file.display());
-        self.invoke_compiler(solidity_file, outdir, false)
+        self.invoke_compiler(solidity_file)
     }
 
     /// Perform the actual compilation by invoking a process. This is a wrapper
@@ -169,13 +134,8 @@ impl Solc {
     /// (e.g., when doing an initial compilation of an original unmutated
     /// solidity file), and getting detailed information on why such a
     /// compilation failed is important!
-    fn invoke_compiler(
-        &self,
-        solidity_file: &Path,
-        ast_dir: &Path,
-        stop_after_parse: bool,
-    ) -> Result<CompilerRet, Box<dyn error::Error>> {
-        let flags = self.make_compilation_flags(solidity_file, ast_dir, stop_after_parse);
+    fn invoke_compiler(&self, solidity_file: &Path) -> Result<CompilerRet, Box<dyn error::Error>> {
+        let flags = self.make_compilation_flags(solidity_file);
         let flags: Vec<&str> = flags.iter().map(|s| s as &str).collect();
         let pretty_flags = flags
             .iter()
@@ -184,8 +144,9 @@ impl Solc {
             .join(" ");
 
         log::debug!(
-            "Invoking solc on {}: `{} {}`",
+            "Invoking solc on {} from {}: `{} {}`",
             solidity_file.display(),
+            env::current_dir()?.display(),
             self.solc,
             pretty_flags,
         );
@@ -220,105 +181,41 @@ impl Solc {
         }
     }
 
-    /// A helper function to create the directory where the AST (.ast) and it's
-    /// json representation (.ast.json) are stored.
-    ///
-    /// # Arguments
-    ///
-    /// * `solidity_file` - Solidity file that is going to be compiled
-    /// * `output_directory` - The output directory
-    ///
-    /// # Returns
-    ///
-    /// This returns a 3-tuple:
-    /// * `ast_dir` - the path to the directory of the solidity AST
-    /// * `ast_path` - the solidity AST file (contained inside `sol_ast_dir`)
-    /// * `json_path` - the solidity AST JSON file (contained inside
-    ///   `sol_ast_dir`)
-    fn make_ast_dir(
-        solidity_file: &Path,
-        output_directory: &Path,
-    ) -> Result<(PathBuf, PathBuf, PathBuf), Box<dyn error::Error>> {
-        let extension = solidity_file.extension();
-        if extension.is_none() || !extension.unwrap().eq("sol") {
-            panic!("Invalid Extension: {}", solidity_file.display());
-        }
-
-        let input_json_dir = output_directory.join(INPUT_JSON);
-        if input_json_dir.exists() {
-            log::debug!("{} already exists", input_json_dir.display());
-        } else {
-            log::debug!("{} doesn't exist", input_json_dir.display());
-        }
-
-        let filename = PathBuf::from(solidity_file.file_name().unwrap());
-        let sol_ast_dir = input_json_dir
-            .join(filename)
-            .parent()
-            .unwrap()
-            .to_path_buf();
-
-        std::fs::create_dir_all(&sol_ast_dir)?;
-        log::debug!("Created AST directory {}", input_json_dir.display());
-
-        let ast_fnm = Path::new(solidity_file)
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_owned()
-            + "_json.ast";
-        let ast_path = sol_ast_dir.join(&ast_fnm);
-        let json_path = sol_ast_dir.join(ast_fnm + DOT_JSON);
-        Ok((sol_ast_dir, ast_path, json_path))
-    }
-
     /// Create the compilation flags for compiling `solidity_file` in `ast_dir`
-    fn make_compilation_flags(
-        &self,
-        solidity_file: &Path,
-        ast_dir: &Path,
-        stop_after_parse: bool,
-    ) -> Vec<String> {
-        let mut flags: Vec<String> = vec![
-            "--ast-compact-json".into(),
-            solidity_file.to_str().unwrap().into(),
-            "--output-dir".into(),
-            ast_dir.to_str().unwrap().into(),
-            "--overwrite".into(),
-        ];
-        if stop_after_parse {
-            flags.push("--stop-after".into());
-            flags.push("parsing".into());
-        }
+    fn make_compilation_flags(&self, solidity_file: &Path) -> Vec<String> {
+        if let Some(ref flags) = self.raw_args {
+            flags.clone()
+        } else {
+            let mut flags: Vec<String> = vec![
+                solidity_file.to_str().unwrap().into(),
+                "--output-dir".into(),
+                self.output_directory.to_str().unwrap().into(),
+                "--overwrite".into(),
+            ];
 
-        if let Some(basepath) = &self.basepath {
-            flags.push(BASEPATH.into());
-            flags.push(basepath.clone());
-        }
-
-        if let Some(allow_paths) = &self.allow_paths {
-            flags.push(ALLOWPATHS.into());
-            for r in allow_paths {
-                flags.push(r.clone());
+            if let Some(basepath) = &self.basepath {
+                flags.push("--base-path".into());
+                flags.push(basepath.clone());
             }
-        }
 
-        if let Some(include_path) = &self.include_path {
-            flags.push(INCLUDEPATH.into());
-            flags.push(include_path.clone());
-        }
-
-        if let Some(remaps) = &self.remappings {
-            for r in remaps {
-                flags.push(r.clone());
+            if let Some(allow_paths) = &self.allow_paths {
+                flags.push(ALLOWPATH.into());
+                for r in allow_paths {
+                    flags.push(r.clone());
+                }
             }
-        }
 
-        if self.optimize {
-            flags.push(OPTIMIZE.into());
-        }
+            if let Some(remaps) = &self.remappings {
+                for r in remaps {
+                    flags.push(r.clone());
+                }
+            }
 
-        flags
+            if self.optimize {
+                flags.push(OPTIMIZE.into());
+            }
+
+            flags
+        }
     }
 }

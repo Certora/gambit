@@ -1,0 +1,19 @@
+[
+    {
+        "filename": "../Ops/AOR/AOR.sol",
+        "import_paths": [
+            ".."
+        ],
+        "contract": "AOR"
+    },
+    {
+        "filename": "../MultipleContracts/C.sol",
+        "import_paths": [
+            ".."
+        ],
+        "contract": "C",
+        "functions": [
+            "getarray"
+        ]
+    }
+]

@@ -1,27 +1,105 @@
-use crate::{get_indent, SolAST, Source};
+use crate::{get_indent, get_vfs_path, print_error, print_warning, Mutator};
 use clap::ValueEnum;
+use num_bigint::BigInt;
+use num_traits::{One, Signed, Zero};
 use serde::{Deserialize, Serialize};
-use std::{error, fmt::Display, rc::Rc};
+use solang::{
+    file_resolver::FileResolver,
+    sema::ast::{CallTy, Expression, Function, Namespace, RetrieveType, Statement, Type},
+};
+use solang_parser::pt::{CodeLocation, Loc};
+use std::{
+    error,
+    fmt::{Debug, Display},
+    path::PathBuf,
+    rc::Rc,
+    sync::Arc,
+};
+
+/// MutantLoc describes all location-based data of a mutant, including which
+/// file the mutant mutates, the original solang Loc, and the line and column
+/// numbers
+#[derive(Clone)]
+pub struct MutantLoc {
+    /// The location of the node that is mutated
+    pub loc: Loc,
+    /// The (starting) line number of the mode being mutated 0-indexed
+    pub line_no: usize,
+    /// The column number of the node being mutated 0-indexed
+    pub col_no: usize,
+    /// The full path to the original source file
+    pub path: PathBuf,
+    /// The path in the Virtual File System. This is interpreted as the path of
+    /// the original source file relative to an import root
+    pub vfs_path: PathBuf,
+}
+
+impl Debug for MutantLoc {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MutantLoc")
+            .field("path", &self.path.display())
+            .field("loc", &self.loc)
+            .field("line_no", &self.line_no)
+            .field("col_no", &self.col_no)
+            .finish()
+    }
+}
+
+impl MutantLoc {
+    pub fn new(loc: Loc, resolver: &FileResolver, namespace: Rc<Namespace>) -> MutantLoc {
+        let file = namespace.files.get(loc.file_no()).unwrap();
+        let (line_no, col_no) = file.offset_to_line_column(loc.start());
+        let path = file.path.clone();
+
+        let vfs_path = if let Some(vfs_path) = get_vfs_path(resolver, &file.path) {
+            vfs_path
+        } else if let Ok(can_path) = file.path.canonicalize() {
+            print_warning(
+                "File Not In Import Paths",
+                format!(
+                    "File {} not a part of any import paths. Using canonical path {}",
+                    file.path.display(),
+                    can_path.display()
+                )
+                .as_str(),
+            );
+            can_path
+        } else {
+            print_error(
+                "File Not In Import Paths",
+                format!(
+                    "File {} not a part of any import paths and could not canonicalize.",
+                    file.path.display()
+                )
+                .as_str(),
+            );
+            std::process::exit(1);
+        };
+
+        MutantLoc {
+            loc,
+            line_no,
+            col_no,
+            path,
+            vfs_path,
+        }
+    }
+}
 
 /// This struct describes a mutant.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Mutant {
-    /// The original program's source
-    pub source: Rc<Source>,
+    /// The location of the mutant (including file number, start, and end)
+    pub mutant_loc: MutantLoc,
 
     /// The mutation operator that was applied to generate this mutant
     pub op: MutationType,
 
-    /// The string representation of the original node
+    /// Original file's source
+    pub source: Arc<str>,
+
+    /// Original text to be replaced
     pub orig: String,
-
-    /// The index into the program source marking the beginning (inclusive) of
-    /// the source to be replaced
-    pub start: usize,
-
-    /// The index into the program source marking the end (inclusive) of the
-    /// source to be replaced
-    pub end: usize,
 
     /// The string replacement
     pub repl: String,
@@ -29,21 +107,43 @@ pub struct Mutant {
 
 impl Mutant {
     pub fn new(
-        source: Rc<Source>,
+        resolver: &FileResolver,
+        namespace: Rc<Namespace>,
+        loc: Loc,
         op: MutationType,
-        start: usize,
-        end: usize,
+        orig: String,
         repl: String,
     ) -> Mutant {
-        let orig = String::from_utf8(source.contents()[start..end].to_vec()).unwrap();
-        Mutant {
-            source,
-            op,
-            orig,
-            start,
-            end,
-            repl,
+        if let Loc::File(file_no, _, _) = loc {
+            let source = resolver.get_contents_of_file_no(file_no).unwrap();
+            let mutant_loc = MutantLoc::new(loc, resolver, namespace);
+            Mutant {
+                mutant_loc,
+                op,
+                source,
+                orig,
+                repl,
+            }
+        } else {
+            panic!("Location must be Loc::File(...), but found {:?}", loc)
         }
+    }
+
+    pub fn loc(&self) -> &Loc {
+        &self.mutant_loc.loc
+    }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.mutant_loc.path
+    }
+
+    pub fn vfs_path(&self) -> &PathBuf {
+        &self.mutant_loc.vfs_path
+    }
+
+    pub fn get_line_column(&self) -> (usize, usize) {
+        let mloc = &self.mutant_loc;
+        (mloc.line_no, mloc.col_no)
     }
 
     /// Render this mutant as String with the full source file contents
@@ -51,31 +151,37 @@ impl Mutant {
     /// TODO: Cache these contents: this data might be needed multiple times,
     /// and if so this should be cached as it currently involves file IO (though
     /// Source::contents() should also be cached)
-    pub fn as_source_string(&self) -> Result<String, Box<dyn error::Error>> {
-        let contents = self.source.contents();
-        let prelude = &contents[0..self.start];
-        let postlude = &contents[self.end..contents.len()];
+    pub fn mutant_source(&self) -> Result<String, Box<dyn error::Error>> {
+        let loc = self.loc();
+        let start = loc.start();
+        let end = loc.end();
 
-        let res = [prelude, self.repl.as_bytes(), postlude].concat();
-        let mut_string = String::from_utf8(res)?;
+        let contents: Arc<str> = self.source.clone();
+        let orig = &contents[start..end];
+
+        let prelude = &contents[0..start];
+        let postlude = &contents[end..contents.len()];
+
+        let (line_no, _) = self.get_line_column();
+
+        let res = [prelude, self.repl.as_str(), postlude].concat();
+        let mut_string = res;
         let mut lines = mut_string.lines();
 
-        let (line, _) = self.source.get_line_column(self.start)?;
         let mut lines2 = vec![];
-        for _ in 1..line {
+        for _ in 1..line_no {
             lines2.push(lines.next().unwrap());
         }
 
         let mut_line = lines.next().unwrap();
-        let orig_string = String::from_utf8(contents.to_vec())?;
-        let orig_line = orig_string.lines().nth(line - 1).unwrap();
+        let orig_line = contents.lines().nth(line_no).unwrap();
 
         let indent = get_indent(mut_line);
         let comment = format!(
             "{}/// {}(`{}` |==> `{}`) of: `{}`",
             indent,
             self.op.to_string(),
-            self.orig.trim(),
+            orig.trim(),
             self.repl,
             orig_line.trim()
         );
@@ -87,369 +193,984 @@ impl Mutant {
         }
 
         // XXX: this is a hack to avoid trailing newline diffs
-        if contents.last().unwrap() == &b'\n' {
+        if contents.ends_with('\n') {
             lines2.push("");
         }
         Ok(lines2.join("\n"))
     }
 
-    pub fn get_line_column(&self) -> Result<(usize, usize), Box<dyn error::Error>> {
-        self.source.get_line_column(self.start)
+    pub fn original_source(&self) -> Arc<str> {
+        self.source.clone()
     }
 }
 
 impl Display for Mutant {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let contents = self.source.contents();
-        let (start, end) = (self.start, self.end);
-        let orig = &contents[start..end];
-        let repl = &self.repl;
         write!(
             f,
             "{}: {} |==> {}",
             self.op.to_string(),
-            String::from_utf8_lossy(orig),
-            repl
+            &self.orig,
+            &self.repl
         )
+    }
+}
+
+impl Debug for Mutant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Mutant")
+            .field("op", &self.op)
+            .field("orig", &self.orig)
+            .field("repl", &self.repl)
+            .field("mutant_loc", &self.mutant_loc)
+            .finish()
     }
 }
 
 /// Every kind of mutation implements this trait. A mutation can check if it
 /// applies to an AST node, and can mutate an AST node.
 pub trait Mutation {
-    /// Check if this mutation applies to this AST node
-    fn applies_to(&self, node: &SolAST) -> bool;
+    fn mutate_function(&self, mutator: &Mutator, func: &Function) -> Vec<Mutant>;
 
-    /// Generate all mutants of a given node by this agent
-    fn mutate(&self, node: &SolAST, source: Rc<Source>) -> Vec<Mutant>;
+    fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant>;
+
+    fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
+
+    fn mutate_expression_fallback(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant>;
+
+    /// Is a given mutation operator a fallback mutation?
+    fn is_fallback_mutation(&self, mutator: &Mutator) -> bool;
 }
 
 /// Kinds of mutations.
+///
+/// Note: to add another mutation, do the following steps:
+/// 1. Add a new entry to the `MutationType` enum
+/// 2. Update `MutationType::to_string` w/ new mutation type
+/// 3. Update `MutationType::shortname` w/ new mutation type
+/// 4. Update `normalize_mutation_operator_name()` in `utils.rs` w/ new mutation type
 #[derive(Hash, Eq, PartialEq, Clone, Copy, Debug, ValueEnum, Deserialize, Serialize)]
 pub enum MutationType {
-    AssignmentMutation,
-    BinaryOpMutation,
-    DeleteExpressionMutation,
-    ElimDelegateMutation,
-    FunctionCallMutation,
-    IfStatementMutation,
-    RequireMutation,
-    SwapArgumentsFunctionMutation,
-    SwapArgumentsOperatorMutation,
-    UnaryOperatorMutation,
+    ArithmeticOperatorReplacement,
+    BitwiseOperatorReplacement,
+    ElimDelegateCall,
+    LiteralValueReplacement,
+    LogicalOperatorReplacement,
+    RelationalOperatorReplacement,
+    ShiftOperatorReplacement,
+    StatementDeletion,
+    UnaryOperatorReplacement,
+    ExpressionValueReplacement,
 }
 
 impl ToString for MutationType {
     fn to_string(&self) -> String {
         let str = match self {
-            MutationType::AssignmentMutation => "AssignmentMutation",
-            MutationType::BinaryOpMutation => "BinaryOpMutation",
-            MutationType::DeleteExpressionMutation => "DeleteExpressionMutation",
-            MutationType::ElimDelegateMutation => "ElimDelegateMutation",
-            MutationType::FunctionCallMutation => "FunctionCallMutation",
-            MutationType::IfStatementMutation => "IfStatementMutation",
-            MutationType::RequireMutation => "RequireMutation",
-            MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
-            MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
-            MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
+            MutationType::ArithmeticOperatorReplacement => "ArithmeticOperatorReplacement",
+            MutationType::BitwiseOperatorReplacement => "ConditionalOperatorReplacement",
+            MutationType::ElimDelegateCall => "ElimDelegateCall",
+            MutationType::ExpressionValueReplacement => "ExpressionValueReplacement",
+            MutationType::LiteralValueReplacement => "LiteralValueReplacement",
+            MutationType::LogicalOperatorReplacement => "LogicalOperatorReplacement",
+            MutationType::RelationalOperatorReplacement => "RelationalOperatorReplacement",
+            MutationType::ShiftOperatorReplacement => "ShiftOperatorReplacement",
+            MutationType::StatementDeletion => "StatementDeletion",
+            MutationType::UnaryOperatorReplacement => "UnaryOperatorReplacement",
         };
         str.into()
     }
 }
 
 impl Mutation for MutationType {
-    fn applies_to(&self, node: &SolAST) -> bool {
-        match self {
-            MutationType::AssignmentMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "Assignment";
-                }
-            }
-            MutationType::BinaryOpMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "BinaryOperation";
-                }
-            }
-            MutationType::DeleteExpressionMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "ExpressionStatement";
-                }
-            }
-            MutationType::ElimDelegateMutation => {
-                return node.node_type().map_or_else(
-                    || false,
-                    |n| {
-                        n == "FunctionCall"
-                            && (node
-                                .expression()
-                                .node_type()
-                                .map_or_else(|| false, |nt| nt == "MemberAccess"))
-                            && (node
-                                .expression()
-                                .get_string("memberName")
-                                .map_or_else(|| false, |mn| mn == "delegatecall"))
-                    },
-                );
-            }
-            MutationType::FunctionCallMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && !node.arguments().is_empty();
-                }
-            }
-            MutationType::IfStatementMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "IfStatement";
-                }
-            }
-            MutationType::RequireMutation => {
-                return node.node_type().map_or_else(
-                    || false,
-                    |n| {
-                        n == "FunctionCall"
-                            && (node
-                                .expression()
-                                .name()
-                                .map_or_else(|| false, |nm| nm == "require"))
-                            && !node.arguments().is_empty()
-                    },
-                );
-            }
-            MutationType::SwapArgumentsFunctionMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "FunctionCall" && node.arguments().len() > 1;
-                }
-            }
-            MutationType::SwapArgumentsOperatorMutation => {
-                let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
-                if let Some(n) = node.node_type() {
-                    return n == "BinaryOperation"
-                        && non_comm_ops.contains(
-                            &node
-                                .operator()
-                                .unwrap_or_else(|| panic!("Expression does not have operator"))
-                                .as_str(),
-                        );
-                }
-            }
-            MutationType::UnaryOperatorMutation => {
-                if let Some(n) = node.node_type() {
-                    return n == "UnaryOperation";
-                }
-            }
-        }
-        false
+    fn mutate_function(&self, _mutator: &Mutator, _func: &Function) -> Vec<Mutant> {
+        vec![]
     }
 
-    /// Produce all mutants at the given node
-    ///
-    /// # Arguments
-    ///
-    /// * `node` - The Solidity AST node to mutate
-    /// * `source` - The original source file: we use this to generate a new
-    ///   source file
-    fn mutate(&self, node: &SolAST, source: Rc<Source>) -> Vec<Mutant> {
-        if !self.applies_to(node) {
+    fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant> {
+        let file_no = stmt.loc().file_no();
+        let resolver = &mutator.file_resolver;
+        let ns = mutator
+            .namespace
+            .as_ref()
+            .expect("Cannot mutate an expression without a set namespace")
+            .clone();
+        let contents = resolver.get_contents_of_file_no(file_no).unwrap();
+        let loc = stmt.loc();
+        if loc.try_file_no().is_none() {
             return vec![];
         }
         match self {
-            MutationType::AssignmentMutation => {
-                let rhs = node.right_hand_side();
-                let node_kind = rhs.node_kind();
-                let orig = rhs.get_text(source.contents());
-                let replacements: Vec<&str> = if let Some(kind) = node_kind {
-                    if &kind == "bool" {
-                        vec!["true", "false"]
-                    } else if rhs.is_literal_number() {
-                        vec!["(-1)", "0", "1"]
-                    } else {
-                        vec!["0", "(-1)", "1", "true", "false"]
-                    }
-                } else {
-                    vec!["0", "(-1)", "1", "true", "false"]
-                }
-                .iter()
-                .filter(|v| !orig.eq(*v))
-                .copied()
-                .collect();
-
-                let (s, e) = rhs.get_bounds();
-                replacements
-                    .iter()
-                    .map(|r| Mutant::new(source.clone(), *self, s, e, r.to_string()))
-                    .collect()
+            MutationType::StatementDeletion => {
+                statement_deletion(self, resolver, ns, stmt, &contents)
             }
-            MutationType::BinaryOpMutation => {
-                let orig = node.operator().unwrap();
-                let orig = String::from(orig.trim());
-
-                let ops: Vec<&str> = vec!["+", "-", "*", "/", "%", "**"]
-                    .iter()
-                    .filter(|v| !orig.eq(*v))
-                    .copied()
-                    .collect();
-
-                let (_, endl) = node.left_expression().get_bounds();
-                let (startr, _) = node.right_expression().get_bounds();
-                ops.iter()
-                    .map(|op| Mutant::new(source.clone(), *self, endl, startr, op.to_string()))
-                    .collect()
-            }
-
-            MutationType::DeleteExpressionMutation => {
-                let (start, end) = node.get_bounds();
-                let empty_expression_statement = "assert(true)".to_string();
-                vec![Mutant::new(
-                    source,
-                    *self,
-                    start,
-                    end,
-                    empty_expression_statement,
-                )]
-            }
-            MutationType::ElimDelegateMutation => {
-                let (_, endl) = node.expression().expression().get_bounds();
-                let (_, endr) = node.expression().get_bounds();
-
-                vec![Mutant::new(
-                    source,
-                    *self,
-                    endl + 1,
-                    endr,
-                    "call".to_string(),
-                )]
-            }
-
-            // TODO: Should we enable this? I'm not sure if this is the best mutation operator
-            MutationType::FunctionCallMutation => {
-                // if let Some(arg) = node.arguments().choose(rand) {
-                //     node.replace_in_source(source, arg.get_text(source))
-                // } else {
-                //     node.get_text(source)
-                // }
-
-                vec![] // For now I'm removing this operator: not sure what it does!
-            }
-
-            MutationType::IfStatementMutation => {
-                let cond = node.condition();
-                let orig = cond.get_text(source.contents());
-                let bs: Vec<&str> = vec!["true", "false"]
-                    .iter()
-                    .filter(|v| !orig.eq(*v))
-                    .copied()
-                    .collect();
-
-                let (start, end) = cond.get_bounds();
-
-                bs.iter()
-                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
-                    .collect()
-            }
-
-            MutationType::RequireMutation => {
-                let arg = &node.arguments()[0];
-                let orig = arg.get_text(source.contents());
-                let bs: Vec<&str> = vec!["true", "false"]
-                    .iter()
-                    .filter(|v| !orig.eq(*v))
-                    .copied()
-                    .collect();
-                let (start, end) = arg.get_bounds();
-                bs.iter()
-                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
-                    .collect()
-            }
-
-            MutationType::SwapArgumentsFunctionMutation => {
-                vec![]
-
-                // TODO: I'm removing this operator for now as I'm not sure how
-                // to implement it deterministically. I'm also faily convinced
-                // that this operator should be removed
-
-                // let mut children = node.arguments();
-                // children.shuffle(rand);
-
-                // if children.len() == 2 {
-                //     node.replace_multiple(
-                //         source,
-                //         vec![
-                //             (children[0].clone(), children[1].get_text(source)),
-                //             (children[1].clone(), children[0].get_text(source)),
-                //         ],
-                //     )
-                // } else {
-                //     node.get_text(source)
-                // }
-            }
-
-            MutationType::SwapArgumentsOperatorMutation => {
-                let left = node.left_expression();
-                let right = node.right_expression();
-                let (left_start, left_end) = left.get_bounds();
-                let (right_start, right_end) = right.get_bounds();
-                let start = left_start;
-                let end = right_end;
-                let op = node.operator().unwrap();
-                let op = format!(" {} ", op.trim());
-                let contents = source.contents();
-                let left_contents =
-                    String::from_utf8(contents[left_start..left_end].to_vec()).unwrap();
-                let right_contents =
-                    String::from_utf8(contents[right_start..right_end].to_vec()).unwrap();
-
-                let mut repl: String = right_contents;
-                repl.push_str(&op);
-                repl.push_str(&left_contents);
-
-                vec![Mutant::new(source.clone(), *self, start, end, repl)]
-            }
-
-            MutationType::UnaryOperatorMutation => {
-                let prefix_ops = vec!["++", "--", "~"];
-                let suffix_ops = vec!["++", "--"];
-
-                let op = node
-                    .operator()
-                    .expect("Unary operation must have an operator!");
-
-                let (start, end) = node.get_bounds();
-                let is_prefix = source.contents()[start] == op.as_bytes()[0];
-                let replacements: Vec<&str> = if is_prefix { prefix_ops } else { suffix_ops }
-                    .iter()
-                    .filter(|v| !op.eq(*v))
-                    .copied()
-                    .collect();
-                let (start, end) = if is_prefix {
-                    (start, start + op.len())
-                } else {
-                    (end - op.len(), end)
-                };
-
-                replacements
-                    .iter()
-                    .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
-                    .collect()
-            }
+            _ => vec![],
         }
+    }
+
+    fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
+        self._mutate_expression_helper(mutator, expr, false)
+    }
+
+    fn mutate_expression_fallback(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
+        self._mutate_expression_helper(mutator, expr, true)
+    }
+
+    fn is_fallback_mutation(&self, mutator: &Mutator) -> bool {
+        mutator.conf.fallback_operators.contains(self)
     }
 }
 
 impl MutationType {
     pub fn default_mutation_operators() -> Vec<MutationType> {
         vec![
-            MutationType::AssignmentMutation,
-            MutationType::BinaryOpMutation,
-            MutationType::DeleteExpressionMutation,
-            MutationType::ElimDelegateMutation,
-            MutationType::FunctionCallMutation,
-            MutationType::IfStatementMutation,
-            MutationType::RequireMutation,
-            // MutationType::SwapArgumentsFunctionMutation,
-            MutationType::SwapArgumentsOperatorMutation,
-            MutationType::UnaryOperatorMutation,
+            MutationType::ArithmeticOperatorReplacement,
+            MutationType::BitwiseOperatorReplacement,
+            MutationType::ElimDelegateCall,
+            MutationType::LiteralValueReplacement,
+            MutationType::LogicalOperatorReplacement,
+            MutationType::RelationalOperatorReplacement,
+            MutationType::ShiftOperatorReplacement,
+            MutationType::StatementDeletion,
+            MutationType::UnaryOperatorReplacement,
         ]
     }
+
+    pub fn default_fallback_mutation_operators() -> Vec<MutationType> {
+        vec![]
+    }
+
+    pub fn short_name(&self) -> String {
+        match self {
+            MutationType::ArithmeticOperatorReplacement => "AOR",
+            MutationType::BitwiseOperatorReplacement => "BOR",
+            MutationType::ElimDelegateCall => "EDC",
+            MutationType::ExpressionValueReplacement => "EVR",
+            MutationType::LiteralValueReplacement => "LVR",
+            MutationType::LogicalOperatorReplacement => "LOR",
+            MutationType::RelationalOperatorReplacement => "ROR",
+            MutationType::ShiftOperatorReplacement => "SOR",
+            MutationType::StatementDeletion => "STD",
+            MutationType::UnaryOperatorReplacement => "UOR",
+        }
+        .to_string()
+    }
+
+    /// Perform actual mutation. Expects a `mutator` and and `expr`, as well
+    /// as a `bool` telling us if we should be performing fallback mutations
+    /// or regular mutations
+    fn _mutate_expression_helper(
+        &self,
+        mutator: &Mutator,
+        expr: &Expression,
+        is_fallback: bool,
+    ) -> Vec<Mutant> {
+        if self.is_fallback_mutation(mutator) != is_fallback {
+            return vec![];
+        }
+        let file_no = expr.loc().file_no();
+        let resolver = &mutator.file_resolver;
+        let contents = &resolver.get_contents_of_file_no(file_no).unwrap();
+        let ns = mutator
+            .namespace
+            .as_ref()
+            .expect("Cannot mutate an expression without a set namespace")
+            .clone();
+        match self {
+            // Binary Operators
+            MutationType::ArithmeticOperatorReplacement => {
+                arith_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::ShiftOperatorReplacement => {
+                shift_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::BitwiseOperatorReplacement => {
+                bitwise_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::RelationalOperatorReplacement => {
+                rel_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::LogicalOperatorReplacement => {
+                logical_op_replacement(self, resolver, ns, expr, contents)
+            }
+            // Other
+            MutationType::LiteralValueReplacement => {
+                literal_value_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::UnaryOperatorReplacement => {
+                unary_op_replacement(self, resolver, ns, expr, contents)
+            }
+            MutationType::ExpressionValueReplacement => {
+                expression_value_replacement(self, resolver, ns, expr, contents)
+            }
+
+            // Old Operators
+            MutationType::ElimDelegateCall => {
+                elim_delegate_mutation(self, resolver, ns, expr, contents)
+            }
+            _ => vec![],
+        }
+    }
+}
+
+/// Find the location of an operator. This is not explicitly represented in an
+/// AST node, so we have to do some digging.
+fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Option<Loc> {
+    Some(match expr {
+        // Regular Binary operator
+        Expression::Add { left, right, .. }
+        | Expression::Subtract { left, right, .. }
+        | Expression::Multiply { left, right, .. }
+        | Expression::Divide { left, right, .. }
+        | Expression::Modulo { left, right, .. }
+        | Expression::BitwiseOr { left, right, .. }
+        | Expression::BitwiseAnd { left, right, .. }
+        | Expression::BitwiseXor { left, right, .. }
+        | Expression::ShiftLeft { left, right, .. }
+        | Expression::ShiftRight { left, right, .. }
+        | Expression::Assign { left, right, .. }
+        | Expression::More { left, right, .. }
+        | Expression::Less { left, right, .. }
+        | Expression::MoreEqual { left, right, .. }
+        | Expression::LessEqual { left, right, .. }
+        | Expression::Equal { left, right, .. }
+        | Expression::NotEqual { left, right, .. }
+        | Expression::Or { left, right, .. }
+        | Expression::And { left, right, .. } => {
+            let start = left.loc().end();
+            let end = right.loc().start();
+            if start >= end {
+                // Okay, we gotta do this the hard way. Here is what happened:
+                // We had an op+assignment expression like `a += b`, which got
+                // desugared to `a = a + b`. There is a bug in Solang's
+                // desugaring https://github.com/hyperledger/solang/issues/1521
+                // that triggers when the LHS of a += b is a storage access.
+                // This bug causes the location of the LHS to be that of the
+                // entire expression, so LHS.end() is actually the end of the
+                // entire expression (so printing source[LHS.start()..LHS.end()]
+                // would print a += b).
+                //
+                // We detect this, issue a warning with the logger, and continue
+                log::warn!(
+                    "Error: invalid location generated by Solang for LHS of expression {}",
+                    &source[expr.loc().start()..expr.loc().end()],
+                );
+                log::warn!(
+                    "expr.start()..lhs.end(): {}",
+                    &source[expr.loc().start()..start]
+                );
+                log::warn!(
+                    "lhs.start()..expr.end(): {}",
+                    &source[end..expr.loc().end()]
+                );
+                log::warn!("left: {}", &source[left.loc().start()..left.loc().end()]);
+                log::warn!("right: {}", &source[right.loc().start()..right.loc().end()]);
+                log::warn!("No mutants generated for this node");
+                return None;
+            }
+            let op = get_operator(expr);
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = match substr.chars().position(|c| c == first_op_char) {
+                Some(x) => x,
+                None => {
+                    print_error(format!("Could not find start/end to operator {:?}", op).as_str(),
+                format!(
+                    "Error finding start/end to operator {:?} in substring {}\nExpression: {:?}\nFile: {}, Pos: {:?}",
+                    op,
+                    substr,
+                    expr,
+                    left.loc().file_no(),
+                    (start, end)
+                )
+                .as_str()
+                );
+                    std::process::exit(1);
+                }
+            };
+
+            let op_start = start + (op_offset_in_substr as usize);
+            let op_end = op_start + op.len();
+            left.loc().with_start(op_start).with_end(op_end)
+        }
+        Expression::StringConcat { .. } | Expression::StringCompare { .. } => todo!(),
+
+        Expression::Power { base, exp, .. } => {
+            let start = base.loc().end();
+            let end = exp.loc().start();
+            let op = get_operator(expr);
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
+            let op_start = start + op_offset_in_substr;
+            let op_end = op_start + op.len();
+            base.loc().with_start(op_start).with_end(op_end)
+        }
+        Expression::PreIncrement { loc, .. } | Expression::PreDecrement { loc, .. } => {
+            loc.with_end(loc.start() + get_operator(expr).len())
+        }
+        Expression::PostIncrement { loc, .. } | Expression::PostDecrement { loc, .. } => {
+            loc.with_start(loc.end() - get_operator(expr).len())
+        }
+
+        Expression::Not { loc, .. }
+        | Expression::BitwiseNot { loc, .. }
+        | Expression::Negate { loc, .. } => loc.with_end(loc.start() + get_operator(expr).len()),
+
+        Expression::ConditionalOperator {
+            cond, true_option, ..
+        } => {
+            let start = cond.loc().end();
+            let end = true_option.loc().start();
+            let op = get_operator(expr);
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
+            let op_start = start + op_offset_in_substr;
+            let op_end = op_start + op.len();
+            cond.loc().with_start(op_start).with_end(op_end)
+        }
+
+        _ => panic!("No op location for {:?}", expr),
+    })
+}
+
+/// Get a string representation of an operator
+fn get_operator(expr: &Expression) -> &str {
+    match expr {
+        Expression::Add { .. } => "+",
+        Expression::Subtract { .. } => "-",
+        Expression::Multiply { .. } => "*",
+        Expression::Divide { .. } => "/",
+        Expression::Modulo { .. } => "%",
+        Expression::Power { .. } => "**",
+        Expression::BitwiseOr { .. } => "|",
+        Expression::BitwiseAnd { .. } => "&",
+        Expression::BitwiseXor { .. } => "^",
+        Expression::ShiftLeft { .. } => "<<",
+        Expression::ShiftRight { .. } => ">>",
+        Expression::PreIncrement { .. } => "++",
+        Expression::PreDecrement { .. } => "--",
+        Expression::PostIncrement { .. } => "++",
+        Expression::PostDecrement { .. } => "--",
+        Expression::More { .. } => ">",
+        Expression::Less { .. } => "<",
+        Expression::MoreEqual { .. } => ">=",
+        Expression::LessEqual { .. } => "<=",
+        Expression::Equal { .. } => "==",
+        Expression::NotEqual { .. } => "!=",
+        Expression::Not { .. } => "!",
+        Expression::BitwiseNot { .. } => "~",
+        Expression::Negate { .. } => "-",
+        Expression::ConditionalOperator { .. } => "?",
+        Expression::Or { .. } => "||",
+        Expression::And { .. } => "&&",
+        _ => "",
+    }
+}
+
+fn arith_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    contents: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let arith_op = get_operator(expr);
+    let mut replacements: Vec<&str> = ["+", "-", "*", "/", "**", "%"]
+        .iter()
+        .filter(|x| **x != arith_op)
+        .copied()
+        .collect();
+
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+    match expr {
+        Expression::Divide { .. }
+        | Expression::Modulo { .. }
+        | Expression::Multiply { .. }
+        | Expression::Subtract { .. }
+        | Expression::Add { .. } => {
+            if let Type::Int(_) = expr.ty() {
+                // When we're signed, filter out `**`, which is illegal
+                replacements.retain(|x| *x != "**");
+            };
+
+            let op_loc = get_op_loc(expr, contents);
+            if let Some(op_loc) = op_loc {
+                replacements
+                    .iter()
+                    .map(|r| {
+                        Mutant::new(
+                            file_resolver,
+                            namespace.clone(),
+                            op_loc,
+                            *op,
+                            arith_op.to_string(),
+                            r.to_string(),
+                        )
+                    })
+                    .collect()
+            } else {
+                vec![]
+            }
+        }
+        Expression::Power { .. } => {
+            let op_loc = get_op_loc(expr, contents);
+            if let Some(op_loc) = op_loc {
+                replacements
+                    .iter()
+                    .map(|r| {
+                        Mutant::new(
+                            file_resolver,
+                            namespace.clone(),
+                            op_loc,
+                            *op,
+                            arith_op.to_string(),
+                            r.to_string(),
+                        )
+                    })
+                    .collect()
+            } else {
+                vec![]
+            }
+        }
+        _ => vec![],
+    }
+}
+
+fn bitwise_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+    match expr {
+        Expression::BitwiseOr { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            if let Some(op_loc) = op_loc {
+                vec![Mutant::new(
+                    file_resolver,
+                    namespace,
+                    op_loc,
+                    *op,
+                    "|".to_string(),
+                    "&".to_string(),
+                )]
+            } else {
+                vec![]
+            }
+        }
+        Expression::BitwiseAnd { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            if let Some(op_loc) = op_loc {
+                vec![Mutant::new(
+                    file_resolver,
+                    namespace,
+                    op_loc,
+                    *op,
+                    "&".to_string(),
+                    "|".to_string(),
+                )]
+            } else {
+                vec![]
+            }
+        }
+        Expression::BitwiseXor { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            if let Some(op_loc) = op_loc {
+                vec![Mutant::new(
+                    file_resolver,
+                    namespace,
+                    op_loc,
+                    *op,
+                    "^".to_string(),
+                    "&".to_string(),
+                )]
+            } else {
+                vec![]
+            }
+        }
+        _ => vec![],
+    }
+}
+
+fn literal_value_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    let orig = source[loc.start()..loc.end()].to_string();
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+    // We are only replacing BoolLiterals, NumberLiterals, and
+    // RationalNumberLiterals. It's not clear what other literals we should
+    // replace
+    let replacements = match expr {
+        Expression::BoolLiteral { value, .. } => vec![(!value).to_string()],
+        Expression::NumberLiteral { ty, value, .. } => match ty {
+            solang::sema::ast::Type::Address(_) => vec![],
+            solang::sema::ast::Type::Int(_) => {
+                if value.is_zero() {
+                    vec!["-1".to_string(), "1".to_string()]
+                } else if value.is_positive() {
+                    vec![
+                        "0".to_string(),
+                        (-value).to_string(),
+                        (value + BigInt::one()).to_string(),
+                    ]
+                } else {
+                    vec![
+                        "0".to_string(),
+                        (-value).to_string(),
+                        (value - BigInt::one()).to_string(),
+                    ]
+                }
+            }
+            solang::sema::ast::Type::Uint(_) => {
+                if value.is_zero() {
+                    vec!["1".to_string()]
+                } else {
+                    vec!["0".to_string(), (value + BigInt::one()).to_string()]
+                }
+            }
+            _ => vec![],
+        },
+        Expression::RationalNumberLiteral { value: _, .. } => vec![],
+        Expression::BytesLiteral { .. } => vec![],
+        Expression::CodeLiteral { .. } => vec![],
+        Expression::StructLiteral { .. } => vec![],
+        Expression::ArrayLiteral { .. } => vec![],
+        Expression::ConstArrayLiteral { .. } => vec![],
+        _ => vec![],
+    };
+    let mut mutants = vec![];
+    for r in replacements {
+        mutants.push(Mutant::new(
+            file_resolver,
+            namespace.clone(),
+            loc,
+            *op,
+            orig.clone(),
+            r.clone(),
+        ));
+    }
+    mutants
+}
+
+fn logical_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+
+    // First, compile a list of replacements for this logical operator. Each replacement is either
+    // LHS, RHS, true, or false, as well as the location of the replacing
+    // expression (this is only used for RHS and LHS, since we need to compute
+    // the replacement value)
+    let replacements = match expr {
+        Expression::And { left, right, .. } => {
+            vec![("LHS", left.loc()), ("RHS", right.loc()), ("false", loc)]
+        }
+        Expression::Or { left, right, .. } => {
+            vec![("LHS", left.loc()), ("RHS", right.loc()), ("true", loc)]
+        }
+        Expression::Not { .. } => {
+            vec![("true", expr.loc()), ("false", expr.loc())]
+        }
+        _ => {
+            return vec![];
+        }
+    };
+
+    // Now, apply each replacement to create a mutant
+    let mut mutants = vec![];
+    let orig = source[loc.start()..loc.end()].to_string();
+    for (r, sub_loc) in replacements {
+        mutants.push(match r {
+            "LHS" | "RHS" => {
+                let repl = source[sub_loc.start()..sub_loc.end()].to_string();
+                Mutant::new(
+                    file_resolver,
+                    namespace.clone(),
+                    loc,
+                    *op,
+                    orig.clone(),
+                    repl,
+                )
+            }
+            "true" | "false" => Mutant::new(
+                file_resolver,
+                namespace.clone(),
+                loc,
+                *op,
+                orig.clone(),
+                r.to_string(),
+            ),
+            _ => panic!("Illegal State"),
+        });
+    }
+    mutants
+}
+
+fn rel_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+
+    let replacements = match expr {
+        Expression::Less { .. } => vec!["<=", "!=", "false"],
+        Expression::LessEqual { .. } => vec!["<", "==", "true"],
+        Expression::More { .. } => vec![">=", "!=", "false"],
+        Expression::MoreEqual { .. } => vec![">", "==", "true"],
+        Expression::Equal { left, .. } => {
+            // Assuming that we only need the left type to determine legal mutations
+            match left.ty() {
+                // The following types are orderable, so we use those for better mutation operators
+                solang::sema::ast::Type::Int(_)
+                | solang::sema::ast::Type::Uint(_)
+                | solang::sema::ast::Type::Rational => vec!["<=", ">=", "false"],
+
+                // The following types are not orderable, so we replace with true and false
+                // TODO: Can Addresses be ordered?
+                solang::sema::ast::Type::Address(_) => vec!["false"],
+                _ => vec!["false"],
+            }
+        }
+        Expression::NotEqual { left, .. } => {
+            // Assuming that we only need the left type to determine legal mutations
+            match left.ty() {
+                // The following types are orderable, so we use those for better mutation operators
+                solang::sema::ast::Type::Int(_)
+                | solang::sema::ast::Type::Uint(_)
+                | solang::sema::ast::Type::Rational => vec!["<", ">", "true"],
+
+                // The following types are not orderable, so we replace with true and false
+                // TODO: Can Addresses be ordered?
+                solang::sema::ast::Type::Address(_) => vec!["true"],
+                _ => vec!["true"],
+            }
+        }
+        _ => return vec![],
+    };
+
+    // Now, apply the replacements. Some replacements will replace the entire
+    // expression, while others will replace only the operator.
+    let mut mutants = vec![];
+    let expr_start = loc.start();
+    let expr_end = loc.end();
+    let expr_string = &source[expr_start..expr_end].to_string();
+
+    let rel_op_loc = get_op_loc(expr, source);
+    if rel_op_loc.is_none() {
+        return vec![];
+    }
+    let rel_op_loc = rel_op_loc.unwrap();
+    let rel_op_start = rel_op_loc.start();
+    let rel_op_end = rel_op_loc.end();
+    let rel_op_string = source[rel_op_start..rel_op_end].to_string();
+    for r in replacements {
+        mutants.push(match r {
+            // true and false replacements replace the entire expression, so use
+            // the expression's location (`loc`) and the expression's raw strin
+            // (`expr_string`)
+            "true" | "false" => Mutant::new(
+                file_resolver,
+                namespace.clone(),
+                loc,
+                *op,
+                expr_string.to_string(),
+                r.to_string(),
+            ),
+            // other replacements replace only the relational operator, so use
+            // the rel op location (`rel_op_loc`) and the rel op's raw string
+            // (`expr_string`)
+            _ => Mutant::new(
+                file_resolver,
+                namespace.clone(),
+                rel_op_loc,
+                *op,
+                rel_op_string.clone(),
+                r.to_string(),
+            ),
+        });
+    }
+    mutants
+}
+
+fn shift_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+    match expr {
+        Expression::ShiftLeft { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            if let Some(op_loc) = op_loc {
+                vec![Mutant::new(
+                    file_resolver,
+                    namespace,
+                    op_loc,
+                    *op,
+                    "<<".to_string(),
+                    ">>".to_string(),
+                )]
+            } else {
+                vec![]
+            }
+        }
+        Expression::ShiftRight { .. } => {
+            let op_loc = get_op_loc(expr, source);
+            if let Some(op_loc) = op_loc {
+                vec![Mutant::new(
+                    file_resolver,
+                    namespace,
+                    op_loc,
+                    *op,
+                    ">>".to_string(),
+                    "<<".to_string(),
+                )]
+            } else {
+                vec![]
+            }
+        }
+        _ => vec![],
+    }
+}
+
+fn statement_deletion(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    stmt: &Statement,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = stmt.loc();
+    let orig = source[loc.start()..loc.end()].to_string();
+    match stmt {
+        // Do not delete complex/nested statements
+        Statement::Block { .. }
+        | Statement::Destructure(..)
+        | Statement::VariableDecl(..)
+        | Statement::If(..)
+        | Statement::While(..)
+        | Statement::For { .. }
+        | Statement::DoWhile(..)
+        | Statement::Assembly(..)
+        | Statement::TryCatch(..)
+        // Also do not delete underscore statement
+        | Statement::Underscore(_) => vec![],
+
+        Statement::Expression(..)
+        | Statement::Delete(..)
+        | Statement::Continue(..)
+        | Statement::Break(..)
+        | Statement::Revert { .. }
+        | Statement::Return(..)
+        | Statement::Emit { .. } => vec![Mutant::new(
+            file_resolver,
+            namespace,
+            loc,
+            *op,
+            orig,
+            "assert(true)".to_string(),
+        )]
+    }
+}
+
+fn unary_op_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+    let muts = match expr {
+        Expression::BitwiseNot { .. } | Expression::Negate { .. } => {
+            let unary_op = get_operator(expr);
+            let replacements: Vec<&&str> = ["-", "~"].iter().filter(|x| **x != unary_op).collect();
+            let op_loc = get_op_loc(expr, source);
+            if let Some(op_loc) = op_loc {
+                let muts = replacements
+                    .iter()
+                    .map(|r| {
+                        Mutant::new(
+                            file_resolver,
+                            namespace.clone(),
+                            op_loc,
+                            *op,
+                            unary_op.to_string(),
+                            r.to_string(),
+                        )
+                    })
+                    .collect();
+                muts
+            } else {
+                vec![]
+            }
+        }
+        _ => vec![],
+    };
+    muts
+}
+
+#[allow(dead_code)]
+fn elim_delegate_mutation(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    // TODO: implement
+    match expr {
+        Expression::ExternalFunctionCallRaw {
+            loc,
+            ty: CallTy::Delegate,
+            address,
+            ..
+        } => {
+            // Ugh, okay, so we need to do messy string manipulation to get the
+            // location of the function name because that isn't tracked in the
+            // AST. The idea is that we start scanning from the right of the
+            // address (e.g., `foo` in `foo.bar()`), and look for the first
+            // index of `delegatecall`. We then add an offset of 12 (length of
+            // "delegatecall").
+            let addr_loc = address.loc();
+            let idx = addr_loc.end() + 1;
+            let no_address = &source[idx..loc.end()];
+            let delegate_call_start = idx + no_address.find("delegatecall").unwrap();
+            let delegate_call_end = delegate_call_start + 12;
+
+            vec![Mutant::new(
+                file_resolver,
+                namespace,
+                Loc::File(loc.file_no(), delegate_call_start, delegate_call_end),
+                *op,
+                "delegatecall".to_string(),
+                "call".to_string(),
+            )]
+        }
+        _ => vec![],
+    }
+}
+
+fn defaults_by_type(ty: &Type) -> Vec<&str> {
+    match ty {
+        Type::Bool => vec!["true", "false"],
+        Type::Int(_) => vec!["-1", "0", "1"],
+        Type::Uint(_) => vec!["0", "1"],
+        _ => vec![],
+    }
+}
+
+#[allow(dead_code)]
+fn expression_value_replacement(
+    op: &MutationType,
+    file_resolver: &FileResolver,
+    namespace: Rc<Namespace>,
+    expr: &Expression,
+    source: &Arc<str>,
+) -> Vec<Mutant> {
+    // TODO: implement
+    let replacements = match expr {
+        Expression::Add { ty, .. }
+        | Expression::Subtract { ty, .. }
+        | Expression::Multiply { ty, .. }
+        | Expression::Divide { ty, .. }
+        | Expression::Modulo { ty, .. }
+        | Expression::Power { ty, .. }
+        | Expression::BitwiseOr { ty, .. }
+        | Expression::BitwiseAnd { ty, .. }
+        | Expression::BitwiseXor { ty, .. }
+        | Expression::ShiftLeft { ty, .. }
+        | Expression::ShiftRight { ty, .. }
+        | Expression::ConstantVariable { ty, .. }
+        | Expression::StorageVariable { ty, .. }
+        | Expression::Load { ty, .. }
+        | Expression::GetRef { ty, .. }
+        | Expression::BitwiseNot { ty, .. }
+        | Expression::Negate { ty, .. }
+        | Expression::ConditionalOperator { ty, .. }
+        | Expression::StorageLoad { ty, .. } => defaults_by_type(ty),
+        Expression::Variable { ty, .. } => defaults_by_type(ty),
+
+        Expression::ZeroExt { to, .. }
+        | Expression::Cast { to, .. }
+        | Expression::BytesCast { to, .. }
+        | Expression::CheckingTrunc { to, .. }
+        | Expression::Trunc { to, .. }
+        | Expression::SignExt { to, .. } => defaults_by_type(to),
+
+        Expression::More { .. }
+        | Expression::Less { .. }
+        | Expression::MoreEqual { .. }
+        | Expression::LessEqual { .. }
+        | Expression::Equal { .. }
+        | Expression::NotEqual { .. }
+        | Expression::Not { .. }
+        | Expression::Or { .. }
+        | Expression::And { .. } => defaults_by_type(&Type::Bool),
+
+        Expression::InternalFunctionCall { returns, .. }
+        | Expression::ExternalFunctionCall { returns, .. } => match &returns[..] {
+            [ty] => defaults_by_type(ty),
+            _ => vec![],
+        },
+
+        _ => vec![],
+    };
+    let mut mutants = vec![];
+    let loc = expr.loc();
+    let expr_start = loc.start();
+    let expr_end = loc.end();
+    let expr_string = &source[expr_start..expr_end];
+
+    for r in replacements {
+        mutants.push(Mutant::new(
+            file_resolver,
+            namespace.clone(),
+            loc,
+            *op,
+            expr_string.to_string(),
+            r.to_string(),
+        ));
+    }
+    mutants
 }
 
 /// This testing module defines and uses the testing infrastructure, allowing
@@ -486,86 +1207,16 @@ impl MutationType {
 #[cfg(test)]
 mod test {
     use crate::test_util::*;
-    use crate::{MutationType, MutationType::*, Mutator, MutatorConf, Solc, Source};
+    use crate::{MutationType, Mutator, MutatorConf, Solc};
+    use solang::file_resolver::FileResolver;
     use std::collections::HashSet;
+    use std::error;
     use std::path::PathBuf;
-    use std::rc::Rc;
-    use std::{error, path::Path};
     use tempfile::Builder;
 
     #[test]
-    pub fn test_assignment_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![AssignmentMutation];
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 x;", "x = 3;"],
-            &ops,
-            &vec!["(-1)", "0", "1"],
-        );
-        assert_exact_mutants_for_statements(&vec!["int256 x;", "x = 1;"], &ops, &vec!["(-1)", "0"]);
-        assert_exact_mutants_for_statements(&vec!["int256 x;", "x = 0;"], &ops, &vec!["(-1)", "1"]);
-        // FIXME: The following three test cases are BROKEN!! Currently these
-        // all get mutated to [-1, 1, 0, false, true] because they are not
-        // 'number's. Validation would strip out the true/false. We would want
-        // constant propagation to strip out the 0 in `x = -0`
-        assert_num_mutants_for_statements(
-            &vec!["int256 x;", "x = -2;"],
-            &vec![AssignmentMutation],
-            5,
-        );
-        assert_num_mutants_for_statements(
-            &vec!["int256 x;", "x = -1;"],
-            &vec![AssignmentMutation],
-            5,
-        );
-        assert_num_mutants_for_statements(
-            &vec!["int256 x;", "x = -0;"],
-            &vec![AssignmentMutation],
-            5,
-        );
-
-        assert_exact_mutants_for_statements(&vec!["bool b;", "b = true;"], &ops, &vec!["false"]);
-        assert_exact_mutants_for_statements(&vec!["bool b;", "b = false;"], &ops, &vec!["true"]);
-
-        Ok(())
-    }
-
-    #[test]
-    pub fn test_binary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![BinaryOpMutation];
-        let repls = vec!["+", "-", "*", "/", "%", "**"];
-        // Closure to drop the given operator for he set of replacements
-        let without = |s: &str| {
-            let r: Vec<&str> = repls
-                .iter()
-                .filter(|r| !s.eq(**r))
-                .map(|s| s.clone())
-                .collect();
-            r
-        };
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 + 2;"], &ops, &without("+"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 2 - 1;"], &ops, &without("-"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 * 2;"], &ops, &without("*"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 2 / 1;"], &ops, &without("/"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 % 2;"], &ops, &without("%"));
-        assert_exact_mutants_for_statements(&vec!["uint256 x = 1 ** 2;"], &ops, &without("**"));
-        Ok(())
-    }
-
-    #[test]
-    pub fn test_delete_expression_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![DeleteExpressionMutation];
-        assert_exact_mutants_for_statements(&vec!["gasleft();"], &ops, &vec!["assert(true)"]);
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 x = 0;", "x = 3;"],
-            &ops,
-            &vec!["assert(true)"],
-        );
-        Ok(())
-    }
-
-    #[test]
     pub fn test_elim_delegate_mutation() -> Result<(), Box<dyn error::Error>> {
-        let _ops = vec![ElimDelegateMutation];
+        let ops = vec![MutationType::ElimDelegateCall];
         // TODO: how should I test this?
         let code = "\
 // SPDX-License-Identifier: GPL-3.0-only
@@ -577,6 +1228,8 @@ contract B {
     uint public value;
 
     function setVars(uint _num) public payable {
+        uint c = 1 + 2;
+
         num = _num;
         sender = msg.sender;
         value = msg.value;
@@ -600,168 +1253,373 @@ contract A {
     }
 }
 ";
-        let ops = vec![MutationType::ElimDelegateMutation];
         let expected = vec!["call"];
         assert_exact_mutants_for_source(code, &ops, &expected);
         Ok(())
     }
 
     #[test]
-    pub fn test_function_call_mutation() -> Result<(), Box<dyn error::Error>> {
-        let _ops = vec![FunctionCallMutation];
-        // TODO: how should I test this?
-        Ok(())
+    fn test_aor() {
+        let ops = vec![MutationType::ArithmeticOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a + b;"],
+            &ops,
+            &vec!["-", "*", "/", "**", "%"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a", "int256 b"],
+            &vec!["int256 c = a + b;"],
+            &ops,
+            &vec!["-", "*", "/", "%"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a - b;"],
+            &ops,
+            &vec!["+", "*", "/", "**", "%"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a * b;"],
+            &ops,
+            &vec!["+", "-", "/", "**", "%"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a ** b;"],
+            &ops,
+            &vec!["+", "-", "/", "*", "%"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a % b;"],
+            &ops,
+            &vec!["+", "-", "/", "*", "**"],
+        );
     }
 
     #[test]
-    pub fn test_if_statement_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![IfStatementMutation];
-        assert_num_mutants_for_statements(
-            &vec!["uint256 x;", "if (true) { x = 1; } else { x = 2 ;}"],
+    fn test_bor() {
+        let ops = vec![MutationType::BitwiseOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a | b;"],
             &ops,
-            1,
+            &vec!["&"],
         );
-        assert_num_mutants_for_statements(&vec!["if (true) {}"], &ops, 1);
-        Ok(())
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a & b;"],
+            &ops,
+            &vec!["|"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a ^ b;"],
+            &ops,
+            &vec!["&"],
+        );
     }
 
     #[test]
-    pub fn test_require_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![RequireMutation];
-        assert_num_mutants_for_statements(&vec!["bool c = true;", "require(c);"], &ops, 2);
-        assert_num_mutants_for_statements(&vec!["require(true);"], &ops, 1);
-        assert_num_mutants_for_statements(
-            &vec!["bool a = true;", "bool b = false;", "require(a && b);"],
+    fn test_lvr() {
+        let ops = vec![MutationType::LiteralValueReplacement];
+        // Numbers
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a * b + 11;"],
             &ops,
-            2,
+            &vec!["0", "12"],
         );
-        Ok(())
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a * b + 0;"],
+            &ops,
+            &vec!["1"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a", "int256 b"],
+            &vec!["int256 c = a * b + 11;"],
+            &ops,
+            &vec!["0", "-11", "12"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a", "int256 b"],
+            &vec!["int256 c = a * b + 0;"],
+            &ops,
+            &vec!["1", "-1"],
+        );
+
+        // Booleans
+        assert_exact_mutants_for_statements(&vec![], &vec!["bool b = true;"], &ops, &vec!["false"]);
+        assert_exact_mutants_for_statements(&vec![], &vec!["bool b = false;"], &ops, &vec!["true"]);
     }
 
     #[test]
-    pub fn test_unary_op_mutation() -> Result<(), Box<dyn error::Error>> {
-        let ops = vec![UnaryOperatorMutation];
-        let prefix = vec!["++", "--", "~"];
-        let suffix = vec!["++", "--"];
+    fn test_lor() {
+        let ops = vec![MutationType::LogicalOperatorReplacement];
 
-        // Closure to drop the given operator for he set of replacements
-        let without_prefix = |s: &str| {
-            let r: Vec<&str> = prefix
-                .iter()
-                .filter(|r| !s.eq(**r))
-                .map(|s| s.clone())
-                .collect();
-            r
-        };
-        let without_suffix = |s: &str| {
-            let r: Vec<&str> = suffix
-                .iter()
-                .filter(|r| !s.eq(**r))
-                .map(|s| s.clone())
-                .collect();
-            r
-        };
         assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = ++a;"],
+            &vec!["bool a", "bool b"],
+            &vec!["bool c = a || b;"],
             &ops,
-            &without_prefix("++"),
+            &vec!["a", "b", "true"],
         );
+
         assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = --a;"],
+            &vec!["bool a", "bool b"],
+            &vec!["bool c = a && b;"],
             &ops,
-            &without_prefix("--"),
+            &vec!["a", "b", "false"],
         );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = ~a;"],
-            &ops,
-            &without_prefix("~"),
-        );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = a--;"],
-            &ops,
-            &without_suffix("--"),
-        );
-        assert_exact_mutants_for_statements(
-            &vec!["uint256 a = 10;", "uint256 x = a++;"],
-            &ops,
-            &without_suffix("++"),
-        );
-        Ok(())
     }
 
+    #[test]
+    fn test_ror() {
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a < b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<=", "false", "!="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a == b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<=", "false", ">="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a > b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["!=", "false", ">="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a <= b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<", "true", "=="],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a != b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["<", "true", ">"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["if (a >= b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["==", "true", ">"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["bool a", "bool b"],
+            &vec!["if (a != b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["true"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["bool a", "bool b"],
+            &vec!["if (a == b) {}"],
+            &vec![MutationType::RelationalOperatorReplacement],
+            &vec!["false"],
+        );
+    }
+
+    #[test]
+    fn test_std() {
+        let ops = vec![MutationType::StatementDeletion];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a + b;"],
+            &ops,
+            &vec![],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c;", "c = a + b;"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["bool a"],
+            &vec!["while (a) { continue; }"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["bool a"],
+            &vec!["while (a) { break; }"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["bool a"],
+            &vec!["revert();"],
+            &ops,
+            &vec!["assert(true)"],
+        );
+        // TODO: add a test for `delete expr`
+        // TODO: add a test for `emit ...`
+    }
+
+    #[test]
+    fn test_sor() {
+        let ops = vec![MutationType::ShiftOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a << b;"],
+            &ops,
+            &vec![">>"],
+        );
+
+        assert_exact_mutants_for_statements(
+            &vec!["uint256 a", "uint256 b"],
+            &vec!["uint256 c = a >> b;"],
+            &ops,
+            &vec!["<<"],
+        );
+    }
+
+    #[test]
+    fn test_uor() {
+        let ops = vec![MutationType::UnaryOperatorReplacement];
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a"],
+            &vec!["int256 b = -a;"],
+            &ops,
+            &vec!["~"],
+        );
+        assert_exact_mutants_for_statements(
+            &vec!["int256 a"],
+            &vec!["int256 b = ~a;"],
+            &ops,
+            &vec!["-"],
+        );
+    }
+
+    #[allow(dead_code)]
     fn assert_num_mutants_for_statements(
+        params: &Vec<&str>,
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
         expected: usize,
     ) {
-        let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
+        let (mutator, sol_source) =
+            apply_mutation_to_statements(statements, params, None, ops).unwrap();
         assert_eq!(
             expected,
             mutator.mutants().len(),
             "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
             ops,
             statements.join("   "),
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
+            sol_source
         );
     }
 
+    #[allow(dead_code)]
     fn assert_exact_mutants_for_statements(
+        params: &Vec<&str>,
         statements: &Vec<&str>,
         ops: &Vec<MutationType>,
         expected: &Vec<&str>,
     ) {
-        let mutator = apply_mutation_to_statements(statements, None, ops).unwrap();
+        let (mutator, sol_file) =
+            apply_mutation_to_statements(statements, params, None, ops).unwrap();
+        let expected_set: HashSet<&str> = expected.iter().map(|s| s.trim()).collect();
+        let actuals_set: HashSet<&str> = mutator
+            .mutants()
+            .iter()
+            .map(|m| m.repl.as_str().trim())
+            .collect();
+        let expected_str = expected_set
+            .iter()
+            .cloned()
+            .collect::<Vec<&str>>()
+            .join(", ");
+        let actuals_str = actuals_set
+            .iter()
+            .cloned()
+            .collect::<Vec<&str>>()
+            .join(", ");
+        let program =
+            ansi_term::Color::Yellow.paint(format!("```\n{}\n```", statements.join(";\n")));
         assert_eq!(
             expected.len(),
             mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+            "Error: applied ops:
+               -> {:?}
+            to program:\n{}\n
+            [+] Expected mutants: {}
+            [X] Actual mutants: {}
+            See {} for more info",
             ops,
-            statements.join("   "),
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
+            program,
+            ansi_term::Color::Green.paint(expected_str),
+            ansi_term::Color::Red.paint(actuals_str),
+            sol_file
         );
 
-        let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
-        let expected: HashSet<&str> = expected.iter().map(|s| *s).collect();
-        assert_eq!(actuals, expected);
+        assert_eq!(
+            actuals_set,
+            expected_set,
+            "Error: applied ops:
+               -> {:?}
+            to program:\n{}\n
+            [+] Expected mutants: {}
+            [X]   Actual mutants: {}
+            See {} for more info",
+            ops,
+            program,
+            ansi_term::Color::Green.paint(expected_str),
+            ansi_term::Color::Red.paint(actuals_str),
+            sol_file
+        );
     }
 
     fn apply_mutation_to_statements(
         statements: &Vec<&str>,
+        params: &Vec<&str>,
         returns: Option<&str>,
         ops: &Vec<MutationType>,
-    ) -> Result<Mutator, Box<dyn error::Error>> {
-        let source = wrap_and_write_solidity_to_temp_file(statements, returns).unwrap();
+    ) -> Result<(Mutator, String), Box<dyn error::Error>> {
+        let source = wrap_and_write_solidity_to_temp_file(statements, params, returns).unwrap();
+        let prefix = format!(
+            "gambit-compile-dir-{}",
+            source.file_name().unwrap().to_str().unwrap()
+        );
         let outdir = Builder::new()
-            .prefix("gambit-compile-dir")
+            .prefix(prefix.as_str())
             .rand_bytes(5)
-            .tempdir()?;
-        let mut mutator = make_mutator(ops, source, outdir.into_path());
-        mutator.mutate()?;
+            .tempdir_in(source.parent().unwrap())?;
+        let mut mutator = make_mutator(ops, &vec![], outdir.into_path());
+        let source_name = source.to_str().unwrap().to_string();
+        mutator.mutate(vec![source_name.clone()])?;
 
-        Ok(mutator)
+        Ok((mutator, source_name))
     }
 
     fn _assert_num_mutants_for_source(source: &str, ops: &Vec<MutationType>, expected: usize) {
-        let mutator = apply_mutation_to_source(source, ops).unwrap();
+        let (mutator, sol_file) = apply_mutation_to_source(source, ops).unwrap();
         assert_eq!(
             expected,
             mutator.mutants().len(),
             "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\n\nSee {:?} for more info",
             ops,
             source,
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
+            sol_file
         );
     }
 
@@ -770,18 +1628,14 @@ contract A {
         ops: &Vec<MutationType>,
         expected: &Vec<&str>,
     ) {
-        let mutator = apply_mutation_to_source(source, ops).unwrap();
+        let (mutator, sol_file) = apply_mutation_to_source(source, ops).unwrap();
         assert_eq!(
             expected.len(),
             mutator.mutants().len(),
-            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {:?} for more info",
+            "Error: applied ops\n   -> {:?}\nto program\n  -> {:?}\nat {} for more info",
             ops,
             source,
-            mutator
-                .sources
-                .iter()
-                .map(|s| s.filename())
-                .collect::<Vec<&Path>>()
+            sol_file
         );
 
         let actuals: HashSet<&str> = mutator.mutants().iter().map(|m| m.repl.as_str()).collect();
@@ -792,32 +1646,37 @@ contract A {
     fn apply_mutation_to_source(
         source: &str,
         ops: &Vec<MutationType>,
-    ) -> Result<Mutator, Box<dyn error::Error>> {
+    ) -> Result<(Mutator, String), Box<dyn error::Error>> {
         let source = write_solidity_to_temp_file(source.to_string()).unwrap();
+        let source_filename = source.to_str().unwrap().to_string();
         let outdir = Builder::new()
             .prefix("gambit-compile-dir")
             .rand_bytes(5)
             .tempdir()?;
-        let mut mutator = make_mutator(ops, source, outdir.into_path());
-        mutator.mutate()?;
+        let mut mutator = make_mutator(ops, &vec![], outdir.into_path());
+        mutator.file_resolver.add_import_path(&PathBuf::from("/"));
+        mutator.mutate(vec![source_filename.clone()])?;
 
-        Ok(mutator)
+        Ok((mutator, source_filename))
     }
 
     /// Create a mutator for a single file, creating required components (e.g.,
     /// Solc, creating Sources and rapping them in a Vec<Rc<Source>>, etc)
-    fn make_mutator(ops: &Vec<MutationType>, filename: PathBuf, outdir: PathBuf) -> Mutator {
+    fn make_mutator(
+        ops: &Vec<MutationType>,
+        fallback: &Vec<MutationType>,
+        outdir: PathBuf,
+    ) -> Mutator {
         let conf = MutatorConf {
             mutation_operators: ops.clone(),
+            fallback_operators: fallback.clone(),
             funcs_to_mutate: None,
             contract: None,
         };
-        let sourceroot = filename.parent().unwrap();
 
-        let source = Source::new(filename.clone(), sourceroot.to_path_buf())
-            .expect(format!("Could not build source from {}", filename.display()).as_str());
-        let sources = vec![Rc::new(source)];
         let solc = Solc::new("solc".into(), PathBuf::from(outdir));
-        Mutator::new(conf, sources, solc)
+        let mut cache = FileResolver::default();
+        cache.add_import_path(&PathBuf::from(""));
+        Mutator::new(conf, cache, solc)
     }
 }
