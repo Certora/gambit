@@ -1,3 +1,4 @@
+use itertools::join;
 use crate::invoke_command;
 use crate::SolAST;
 use serde_json::Value;
@@ -299,9 +300,9 @@ impl Solc {
 
         if let Some(allow_paths) = &self.allow_paths {
             flags.push(ALLOWPATHS.into());
-            for r in allow_paths {
-                flags.push(r.clone());
-            }
+            let comma_separated = join(allow_paths, ",");
+            flags.push(comma_separated);
+            
         }
 
         if let Some(include_path) = &self.include_path {
