@@ -7,11 +7,14 @@ use solang::{
     file_resolver::FileResolver,
     sema::ast::{CallTy, Expression, Function, Namespace, RetrieveType, Statement, Type},
 };
-use solang_parser::pt::{CodeLocation, Loc};
+use solang_parser::pt::{
+    CodeLocation, Expression as PTExpression, FunctionDefinition as PTFunction, Loc,
+    Statement as PTStatement,
+};
 use std::{
     error,
     fmt::{Debug, Display},
-    path::PathBuf,
+    path::{Path, PathBuf},
     rc::Rc,
     sync::Arc,
 };
@@ -84,6 +87,22 @@ impl MutantLoc {
             vfs_path,
         }
     }
+
+    /// Like new, but for parse tree mutants
+    pub fn new2(loc: Loc, file_path: &Path, source: Arc<str>) -> MutantLoc {
+        let (line_no, col_no) = todo!();
+        let path = file_path.to_path_buf();
+
+        let vfs_path = todo!();
+
+        MutantLoc {
+            loc,
+            line_no,
+            col_no,
+            path,
+            vfs_path,
+        }
+    }
 }
 
 /// This struct describes a mutant.
@@ -129,6 +148,28 @@ impl Mutant {
         }
     }
 
+    /// Like new, but for pt mutants
+    pub fn new2(
+        loc: Loc,
+        file_path: &Path,
+        source: Arc<str>,
+        op: MutationType,
+        orig: String,
+        repl: String,
+    ) -> Mutant {
+        if let Loc::File(_, _, _) = loc {
+            let mutant_loc = MutantLoc::new2(loc, file_path, source.clone());
+            Mutant {
+                mutant_loc,
+                op,
+                source,
+                orig,
+                repl,
+            }
+        } else {
+            panic!("Location must be Loc::File(...), but found {:?}", loc)
+        }
+    }
     pub fn loc(&self) -> &Loc {
         &self.mutant_loc.loc
     }
@@ -240,6 +281,28 @@ pub trait Mutation {
 
     /// Is a given mutation operator a fallback mutation?
     fn is_fallback_mutation(&self, mutator: &Mutator) -> bool;
+
+    fn mutate_pt_function(
+        &self,
+        mutator: &Mutator,
+        func: &PTFunction,
+        file_name: &Path,
+        source: Arc<str>,
+    ) -> Vec<Mutant>;
+    fn mutate_pt_statement(
+        &self,
+        mutator: &Mutator,
+        stmt: &PTStatement,
+        file_name: &Path,
+        source: Arc<str>,
+    ) -> Vec<Mutant>;
+    fn mutate_pt_expression(
+        &self,
+        mutator: &Mutator,
+        expr: &PTExpression,
+        file_name: &Path,
+        source: Arc<str>,
+    ) -> Vec<Mutant>;
 }
 
 /// Kinds of mutations.
@@ -286,6 +349,16 @@ impl Mutation for MutationType {
         vec![]
     }
 
+    fn mutate_pt_function(
+        &self,
+        _mutator: &Mutator,
+        _func: &PTFunction,
+        _file_name: &Path,
+        _source: Arc<str>,
+    ) -> Vec<Mutant> {
+        vec![]
+    }
+
     fn mutate_statement(&self, mutator: &Mutator, stmt: &Statement) -> Vec<Mutant> {
         let file_no = stmt.loc().file_no();
         let resolver = &mutator.file_resolver;
@@ -301,7 +374,26 @@ impl Mutation for MutationType {
         }
         match self {
             MutationType::StatementDeletion => {
-                statement_deletion(self, resolver, ns, stmt, &contents)
+                statement_deletion_pt(self, resolver, ns, stmt, &contents)
+            }
+            _ => vec![],
+        }
+    }
+
+    fn mutate_pt_statement(
+        &self,
+        mutator: &Mutator,
+        stmt: &PTStatement,
+        file_name: &Path,
+        source: Arc<str>,
+    ) -> Vec<Mutant> {
+        let loc = stmt.loc();
+        if loc.try_file_no().is_none() {
+            return vec![];
+        }
+        match self {
+            MutationType::StatementDeletion => {
+                statement_deletion(self, resolver, ns, stmt, &source)
             }
             _ => vec![],
         }
@@ -309,6 +401,16 @@ impl Mutation for MutationType {
 
     fn mutate_expression(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
         self._mutate_expression_helper(mutator, expr, false)
+    }
+
+    fn mutate_pt_expression(
+        &self,
+        mutator: &Mutator,
+        expr: &PTExpression,
+        file_name: &Path,
+        source: Arc<str>,
+    ) -> Vec<Mutant> {
+        todo!()
     }
 
     fn mutate_expression_fallback(&self, mutator: &Mutator, expr: &Expression) -> Vec<Mutant> {
@@ -534,6 +636,120 @@ fn get_op_loc(expr: &Expression, source: &Arc<str>) -> Option<Loc> {
     })
 }
 
+/// Like get_op_loc, but for parse tree expressions
+fn get_op_loc_pt(expr: &PTExpression, source: &Arc<str>) -> Option<Loc> {
+    Some(match expr {
+        // Binary Ops
+        PTExpression::Multiply(_, left, right)
+        | PTExpression::Divide(_, left, right)
+        | PTExpression::Modulo(_, left, right)
+        | PTExpression::Add(_, left, right)
+        | PTExpression::Subtract(_, left, right)
+        | PTExpression::ShiftLeft(_, left, right)
+        | PTExpression::ShiftRight(_, left, right)
+        | PTExpression::BitwiseAnd(_, left, right)
+        | PTExpression::BitwiseXor(_, left, right)
+        | PTExpression::BitwiseOr(_, left, right)
+        | PTExpression::Less(_, left, right)
+        | PTExpression::More(_, left, right)
+        | PTExpression::LessEqual(_, left, right)
+        | PTExpression::MoreEqual(_, left, right)
+        | PTExpression::Equal(_, left, right)
+        | PTExpression::NotEqual(_, left, right)
+        | PTExpression::And(_, left, right)
+        | PTExpression::Or(_, left, right)
+        | PTExpression::Assign(_, left, right)
+        | PTExpression::AssignOr(_, left, right)
+        | PTExpression::AssignAnd(_, left, right)
+        | PTExpression::AssignXor(_, left, right)
+        | PTExpression::AssignShiftLeft(_, left, right)
+        | PTExpression::AssignShiftRight(_, left, right)
+        | PTExpression::AssignAdd(_, left, right)
+        | PTExpression::AssignSubtract(_, left, right)
+        | PTExpression::AssignMultiply(_, left, right)
+        | PTExpression::AssignDivide(_, left, right)
+        | PTExpression::AssignModulo(_, left, right) => {
+            let start = left.loc().end();
+            let end = right.loc().start();
+            if start >= end {
+                log::warn!(
+                    "Error: invalid location generated by Solang for LHS of expression {}",
+                    &source[expr.loc().start()..expr.loc().end()],
+                );
+                return None;
+            }
+            let op = get_operator_pt(expr);
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = match substr.chars().position(|c| c == first_op_char) {
+                Some(x) => x,
+                None => {
+                    print_error(format!("Could not find start/end to operator {:?}", op).as_str(),
+                format!(
+                    "Error finding start/end to operator {:?} in substring {}\nExpression: {:?}\nFile: {}, Pos: {:?}",
+                    op,
+                    substr,
+                    expr,
+                    left.loc().file_no(),
+                    (start, end)
+                )
+                .as_str()
+                );
+                    std::process::exit(1);
+                }
+            };
+
+            let op_start = start + (op_offset_in_substr as usize);
+            let op_end = op_start + op.len();
+            left.loc().with_start(op_start).with_end(op_end)
+        }
+
+        PTExpression::Power(_, base, exp) => {
+            let start = base.loc().end();
+            let end = exp.loc().start();
+            let op = get_operator_pt(expr);
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
+            let op_start = start + op_offset_in_substr;
+            let op_end = op_start + op.len();
+            base.loc().with_start(op_start).with_end(op_end)
+        }
+        // Pre
+        PTExpression::PreIncrement(loc, expr) | PTExpression::PreDecrement(loc, expr) => {
+            loc.with_end(loc.start() + get_operator_pt(expr).len())
+        }
+
+        // Post
+        PTExpression::PostIncrement(loc, expr) | PTExpression::PostDecrement(loc, expr) => {
+            loc.with_end(loc.end() - get_operator_pt(expr).len())
+        }
+
+        PTExpression::UnaryPlus(loc, expr) => todo!(),
+        PTExpression::Not(loc, expr)
+        | PTExpression::BitwiseNot(loc, expr)
+        | PTExpression::Negate(loc, expr) => {
+            loc.with_end(loc.start() + get_operator_pt(expr).len())
+        }
+
+        // Other
+        PTExpression::ConditionalOperator(loc, cond, true_option, _) => {
+            let start = cond.loc().end();
+            let end = true_option.loc().start();
+            let op = get_operator_pt(expr);
+            let substr = &source[start..end];
+            let first_op_char = op.chars().next().unwrap();
+            let op_offset_in_substr = substr.chars().position(|c| c == first_op_char).unwrap();
+            let op_start = start + op_offset_in_substr;
+            let op_end = op_start + op.len();
+            cond.loc().with_start(op_start).with_end(op_end)
+        }
+        _ => {
+            return None;
+        }
+    })
+}
+
 /// Get a string representation of an operator
 fn get_operator(expr: &Expression) -> &str {
     match expr {
@@ -568,6 +784,38 @@ fn get_operator(expr: &Expression) -> &str {
     }
 }
 
+fn get_operator_pt(expr: &PTExpression) -> &str {
+    match expr {
+        PTExpression::Add { .. } => "+",
+        PTExpression::Subtract { .. } => "-",
+        PTExpression::Multiply { .. } => "*",
+        PTExpression::Divide { .. } => "/",
+        PTExpression::Modulo { .. } => "%",
+        PTExpression::Power { .. } => "**",
+        PTExpression::BitwiseOr { .. } => "|",
+        PTExpression::BitwiseAnd { .. } => "&",
+        PTExpression::BitwiseXor { .. } => "^",
+        PTExpression::ShiftLeft { .. } => "<<",
+        PTExpression::ShiftRight { .. } => ">>",
+        PTExpression::PreIncrement { .. } => "++",
+        PTExpression::PreDecrement { .. } => "--",
+        PTExpression::PostIncrement { .. } => "++",
+        PTExpression::PostDecrement { .. } => "--",
+        PTExpression::More { .. } => ">",
+        PTExpression::Less { .. } => "<",
+        PTExpression::MoreEqual { .. } => ">=",
+        PTExpression::LessEqual { .. } => "<=",
+        PTExpression::Equal { .. } => "==",
+        PTExpression::NotEqual { .. } => "!=",
+        PTExpression::Not { .. } => "!",
+        PTExpression::BitwiseNot { .. } => "~",
+        PTExpression::Negate { .. } => "-",
+        PTExpression::ConditionalOperator { .. } => "?",
+        PTExpression::Or { .. } => "||",
+        PTExpression::And { .. } => "&&",
+        _ => "",
+    }
+}
 fn arith_op_replacement(
     op: &MutationType,
     file_resolver: &FileResolver,
@@ -1007,6 +1255,47 @@ fn statement_deletion(
     }
 }
 
+fn statement_deletion_pt(
+    op: &MutationType,
+    stmt: &PTStatement,
+    source: &Arc<str>,
+    file_path: &Path,
+) -> Vec<Mutant> {
+    let loc = stmt.loc();
+    let orig = source[loc.start()..loc.end()].to_string();
+    match stmt {
+        PTStatement::Block {
+            loc,
+            unchecked,
+            statements,
+        } => vec![],
+        PTStatement::Assembly { .. }
+        | PTStatement::Args(_, _)
+        | PTStatement::If(_, _, _, _)
+        | PTStatement::For(_, _, _, _, _)
+        | PTStatement::DoWhile(_, _, _)
+        | PTStatement::Expression(_, _)
+        | PTStatement::Try(_, _, _, _)
+        | PTStatement::Error(_)
+        | PTStatement::While(_, _, _) => vec![],
+        PTStatement::VariableDefinition(_, _, _) => todo!(),
+
+        PTStatement::Continue(_)
+        | PTStatement::Break(_)
+        | PTStatement::Return(_, _)
+        | PTStatement::Revert(_, _, _)
+        | PTStatement::RevertNamedArgs(_, _, _)
+        | PTStatement::Emit(_, _) => vec![Mutant::new2(
+            loc,
+            file_path,
+            source.clone(),
+            *op,
+            orig,
+            "assert(true)".to_string(),
+        )],
+    }
+}
+
 fn unary_op_replacement(
     op: &MutationType,
     file_resolver: &FileResolver,
@@ -1032,6 +1321,46 @@ fn unary_op_replacement(
                             file_resolver,
                             namespace.clone(),
                             op_loc,
+                            *op,
+                            unary_op.to_string(),
+                            r.to_string(),
+                        )
+                    })
+                    .collect();
+                muts
+            } else {
+                vec![]
+            }
+        }
+        _ => vec![],
+    };
+    muts
+}
+
+fn unary_op_replacement_pt(
+    op: &MutationType,
+    expr: &PTExpression,
+    source: &Arc<str>,
+    file_path: &Path,
+) -> Vec<Mutant> {
+    let loc = expr.loc();
+
+    if loc.try_file_no().is_none() {
+        return vec![];
+    }
+    let muts = match expr {
+        PTExpression::BitwiseNot { .. } | PTExpression::Negate { .. } => {
+            let unary_op = get_operator_pt(expr);
+            let replacements: Vec<&&str> = ["-", "~"].iter().filter(|x| **x != unary_op).collect();
+            let op_loc = get_op_loc_pt(expr, source);
+            if let Some(op_loc) = op_loc {
+                let muts = replacements
+                    .iter()
+                    .map(|r| {
+                        Mutant::new2(
+                            op_loc,
+                            file_path,
+                            source.clone(),
                             *op,
                             unary_op.to_string(),
                             r.to_string(),
