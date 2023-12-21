@@ -234,7 +234,8 @@ file to mutate.
 ```bash
 gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol
 ```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+
+This will generate:
 <pre>
 Generated 34 mutants in 0.69 seconds
 </pre>
@@ -253,6 +254,8 @@ provides a way to randomly downsample the number of mutants with the
 ```bash
 gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 3
 ```
+
+which will generate:
 <pre>
 Generated 3 mutants in 0.15 seconds
 </pre>
@@ -266,7 +269,8 @@ Gambit outputs all of its results in `gambit_out`:
 ```bash
 tree -L 2 gambit_out
 ```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+
+This produces:
 <pre>
 gambit_out
 ├── gambit_results.json
@@ -371,7 +375,7 @@ Here are some examples of using the `--sourceroot` option.
    ```
 
    This should output the following:
-   <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+
    <pre>
    Generated 1 mutants in 0.13 seconds
    1,BinaryOpMutation,benchmarks/BinaryOpMutation/BinaryOpMutation.sol,23:10, % ,*
@@ -394,7 +398,6 @@ Here are some examples of using the `--sourceroot` option.
 
    which will output:
 
-   <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
    <pre>
    Generated 1 mutants in 0.13 seconds
    1,BinaryOpMutation,BinaryOpMutation.sol,23:10, % ,*
@@ -410,10 +413,10 @@ Here are some examples of using the `--sourceroot` option.
    ```bash
    gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 1 --sourceroot scripts
    ```
+
    This will try to find the specified file inside of `scripts`, and since it
    doesn't exist Gambit reports the error:
 
-   <!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
    <pre>
    [ERROR gambit] [!!] Illegal Configuration: Resolved filename `/Users/USER/Gambit/benchmarks/BinaryOpMutation/BinaryOpMutation.sol` is not prefixed by the derived source root /Users/USER/Gambit/scripts
    </pre>
@@ -521,7 +524,9 @@ to the `benchmarks/` directory the `"filename"` would need to be updated to
 gambit mutate -f benchmarks/BinaryOpMutation/BinaryOpMutation.sol -n 5
 tree gambit_out -L 2
 ```
-<!-- Code output: using `pre` to avoid the Copy To Clipboard feature -->
+
+which produces:
+
 <pre>
 Generated 5 mutants in 0.15 seconds
 
