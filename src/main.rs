@@ -277,7 +277,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     params.solc_base_path = basepath;
                     params.solc_remappings = remapping;
                 }
-                run_mutate(mutate_params)?;
+                execute_mutation(mutate_params)?;
             } else {
                 log::debug!("Running CLI MutateParams: {:#?}", &params);
                 // # Path Resolution for CLI Provided Parameters
@@ -469,8 +469,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.solc_include_path = solc_include_path;
                 params.solc_base_path = solc_basepath;
                 params.solc_remappings = solc_remapping;
-
-                run_mutate(vec![*params])?;
+                
+                execute_mutation(vec![*params])?;
             }
         }
         Command::Summary(params) => {
@@ -480,6 +480,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+
+/// Execute mutation
+fn execute_mutation(params: Vec<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
+    let start = std::time::Instant::now();
+    let result = run_mutate(params)?;
+    let total_num_mutants = result.values().flat_map(|x|x).count();
+    let t = start.elapsed().as_secs_f64();
+    println!(
+        "Generated {} mutants in {:.2} seconds",
+        total_num_mutants, t
+    );
+
+    Ok(())
+}
 /// Resolve a filename with respect to the directory containing the config file
 fn resolve_config_file_path(
     path: &String,

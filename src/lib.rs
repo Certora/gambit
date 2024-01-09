@@ -183,10 +183,6 @@ pub fn run_mutate(
     }
 
     let t = start.elapsed().as_secs_f64();
-    // println!(
-    //     "Generated {} mutants in {:.2} seconds",
-    //     total_num_mutants, t
-    // );
     log::info!("Generated {} mutants in {}", total_num_mutants, t);
     Ok(results)
 }
