@@ -485,8 +485,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn execute_mutation(params: Vec<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
     let result = run_mutate(params)?;
-    let total_num_mutants = result.values().flat_map(|x|x).count();
     let t = start.elapsed().as_secs_f64();
+    let total_num_mutants = result.values().flat_map(|x|x).count();
     println!(
         "Generated {} mutants in {:.2} seconds",
         total_num_mutants, t
