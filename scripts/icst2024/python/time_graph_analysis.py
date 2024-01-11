@@ -1,6 +1,15 @@
 import matplotlib.pyplot as plt
 import csv
 import sys
+import os
+from os import path as osp
+
+THIS_DIR = osp.dirname(__file__)
+ROOT_DIR = osp.join(THIS_DIR, "..")
+DATA_DIR = osp.join(ROOT_DIR, "data")
+PLOT_DIR = osp.join(ROOT_DIR, "plots")
+
+
 
 def extract_data_from_csv(file_path):
     addresses = []
@@ -49,9 +58,13 @@ def create_comparison_graph(addresses, ot_durations, mt_durations, output_file="
     
     plt.savefig(output_file)
     plt.close() 
-    
-file_path = sys.argv[1]
-addresses, ot_durations, mt_durations, ot_failed_tests, mt_failed_tests = extract_data_from_csv(file_path)
-create_comparison_graph(addresses, ot_durations, mt_durations)
-average_difference = calculate_average_difference(ot_failed_tests, mt_failed_tests)
-print(f"% OTf - % MTf : {round(average_difference, 2)}%")
+
+def main():
+    file_path = osp.join(DATA_DIR, "OTvsMT.csv")
+    plot_path = osp.join(PLOT_DIR, "OTvsMT_time_graph.png")
+    addresses, ot_durations, mt_durations, ot_failed_tests, mt_failed_tests = extract_data_from_csv(file_path)
+    create_comparison_graph(addresses, ot_durations, mt_durations, output_file=plot_path)
+    average_difference = calculate_average_difference(ot_failed_tests, mt_failed_tests)
+    print(f"% OTf - % MTf : {round(average_difference, 2)}%")
+
+main()
