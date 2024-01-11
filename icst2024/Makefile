@@ -4,7 +4,7 @@
 plots: clean install plots/OTvsMT_time_graph.png plots/OTvsMT.png
 
 install:
-	source path/to/virtualenv/bin/activate
+	. .venv/bin/activate
 	pip install -r requirements.txt
 
 plots/OTvsMT_time_graph.png:
