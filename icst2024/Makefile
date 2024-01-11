@@ -3,9 +3,12 @@
 
 plots: clean install plots/OTvsMT_time_graph.png plots/OTvsMT.png
 
-install:
+install: venv
 	. .venv/bin/activate
 	pip install -r requirements.txt
+
+venv:
+	python3 -m virtualenv .venv
 
 plots/OTvsMT_time_graph.png:
 	python3 python/plot_time_analysis.py
