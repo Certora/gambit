@@ -25,7 +25,7 @@ z = gaussian_kde(xy)(xy)
 
 
 plt.figure(figsize=(8, 8))
-plt.scatter(df["% OTf"], df["% MTf"], s=8000 * z, color="blue")
+plt.scatter(df["% OTf"], df["% MTf"], s=5*(8000 * z), color="red")
 
 
 plt.title("Original vs Minimized Tests")
@@ -34,4 +34,4 @@ plt.ylabel("Minimized Test Failure Rate")
 # plt.show()
 
 # Write plot to file
-plt.savefig(osp.join(PLOT_DIR, "OTvsMT.png"))
+plt.savefig(osp.join(PLOT_DIR, "OTvsMT.pdf"))
