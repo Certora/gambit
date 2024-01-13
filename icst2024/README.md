@@ -29,4 +29,4 @@ python3 python/plot_test_failure_rates.py
 python3 python/plot_time_analysis.py
 ```
 
-If this fails then we are doomed but please reach out to us and we will figure out the issue together!
+If this fails then we are doomed but please reach out to us and we will figure out the issue together ;)
