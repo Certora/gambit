@@ -1,7 +1,7 @@
 # ICST2024 Data Repo
 
 This directory has the scripts for reproducing the plots for our [ICST 2024 paper](https://conf.researchr.org/details/icst-2024/icst-2024-industry/2/Towards-Mutation-guided-Test-Suites-for-Smart-Contracts).
-You can find out more about ERCx's test suite [here](https://ercx.runtimeverification.com/).
+You can find out more about ERCx's test suite [here](https://ercx.runtimeverification.com/). The mutants for this paper were generated using commit `88e145b`. It will produce 64 mutants; as we mentioned in the paper, we manually inspected them and used 48 for the paper's evaluation. The ones that were removed are undetectable because they were changes in an internal function that only impacted other internal functions.
 
 We provide the following results here:
 
