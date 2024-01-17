@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import csv
-import sys
-import os
 from os import path as osp
 
 THIS_DIR = osp.dirname(__file__)
