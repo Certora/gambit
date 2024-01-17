@@ -28,7 +28,7 @@ def extract_data_from_csv(file_path):
     return addresses, ot_durations, mt_durations, ot_failed_tests, mt_failed_tests
 
 def convert_to_seconds(duration):
-    return float(duration[:-1])
+    return float(duration.rstrip('s'))
 
 def calculate_average_difference(ot_failed_tests, mt_failed_tests):
     differences = [ot - mt for ot, mt in zip(ot_failed_tests, mt_failed_tests)]
@@ -48,14 +48,14 @@ def create_comparison_graph(addresses, ot_durations, mt_durations, output_file="
     plt.bar([truncate_address(addr) for addr in addresses], ot_seconds, width=bar_width, label='OT Duration', color='blue', alpha=0.7)
     plt.bar([truncate_address(addr) for addr in addresses], mt_seconds, width=bar_width, label='MT Duration', color='red', alpha=0.7)
     
-    plt.xlabel('Token Name')
+    plt.xlabel('Tokens')
     plt.ylabel('Duration (seconds)')
     plt.title('OT and MT Durations Comparison')
     plt.legend()
     plt.xticks(rotation=45, ha='right')
     
     plt.savefig(output_file)
-    plt.show()
+    # plt.show()
     plt.close() 
 
 def main():
