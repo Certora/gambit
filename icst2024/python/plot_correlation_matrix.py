@@ -4,14 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
-# Lire les données du fichier CSV
 file1 = sys.argv[1]
 data1 = pd.read_csv(file1, index_col=0)
 
-# Calculer la matrice de corrélation
 corr_matrix = data1.corr()
 
-# Créer la figure et l'axe pour la heatmap
 fig, ax = plt.subplots(figsize=(10, 10))
 im = ax.imshow(corr_matrix, cmap='coolwarm', vmin=-1, vmax=1)
 
