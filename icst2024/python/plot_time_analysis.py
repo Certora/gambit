@@ -41,7 +41,7 @@ def truncate_address(address):
     return address[:12]
 
 
-def create_comparison_graph(
+def create_comparison_bar_chart(
     addresses, ot_durations, mt_durations, output_file="fig.png"
 ):
     ot_seconds = [convert_to_seconds(ot) for ot in ot_durations]
@@ -49,7 +49,7 @@ def create_comparison_graph(
 
     plt.figure(figsize=(22, 12))
 
-    bar_width = 0.8
+    bar_width = 0.58
     plt.bar(
         [truncate_address(addr) for addr in addresses],
         ot_seconds,
@@ -88,7 +88,7 @@ def main():
         ot_failed_tests,
         mt_failed_tests,
     ) = extract_data_from_csv(file_path)
-    create_comparison_graph(
+    create_comparison_bar_chart(
         addresses, ot_durations, mt_durations, output_file=plot_path
     )
     average_difference = calculate_average_difference(ot_failed_tests, mt_failed_tests)
