@@ -49,7 +49,7 @@ def create_comparison_graph(
 
     plt.figure(figsize=(30, 10))
 
-    bar_width = 0.4
+    bar_width = 0.8
     plt.bar(
         [truncate_address(addr) for addr in addresses],
         ot_seconds,

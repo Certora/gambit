@@ -18,19 +18,46 @@ df = pd.read_csv(ORIG_VS_MINIMIZED_TESTS_CSV)
 
 df["% OTf"] = pd.to_numeric(df["% OTf"], errors="coerce")
 df["% MTf"] = pd.to_numeric(df["% MTf"], errors="coerce")
+df["Failing tests OT"] = pd.to_numeric(df["Failing tests OT"], errors="coerce")
+df["Failing tests MT"] = pd.to_numeric(df["Failing tests MT"], errors="coerce")
 
-# Point Density
-xy = np.vstack([df["% OTf"], df["% MTf"]])
-z = gaussian_kde(xy)(xy)
+groupings = {}
+# Iterate through rows and group by (Failing tests OT, Failing tests MT)
+for index, row in df.iterrows():
+    key = (row["Failing tests OT"], row["Failing tests MT"])
+    if key not in groupings:
+        groupings[key] = []
+    groupings[key].append(row)
 
+sizes = []
+otfs = []
+mtfs = []
+
+for key, rows in groupings.items():
+    row = rows[0]
+    otf = row["% OTf"]
+    mtf = row["% MTf"]
+
+    otfs.append(otf)
+    mtfs.append(mtf)
+    sizes.append(len(rows))
+
+print("Sizes:")
+print(sizes, sum(sizes))
+
+# Scale sizes so the areas increase linear to the bubble size
+sizes = [s**0.5 for s in sizes]
+
+print("Scaled sizes:")
+print(sizes)
+sizes = np.array(sizes)
 
 plt.figure(figsize=(8, 8))
-plt.scatter(df["% OTf"], df["% MTf"], s=5*(8000 * z), color="red")
+plt.scatter(otfs, mtfs, alpha=0.5, s=30 * sizes, color="red")
 
-
-plt.title("Original vs Minimized Tests")
-plt.xlabel("Original Test Failure Rate")
-plt.ylabel("Minimized Test Failure Rate")
+plt.title("Failure Rates of Full vs Minimized Tests")
+plt.xlabel("Full Test Suite Failure Rate")
+plt.ylabel("Minimized Test Suite Failure Rate")
 # plt.show()
 
 # Write plot to file
