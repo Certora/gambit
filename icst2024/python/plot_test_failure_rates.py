@@ -52,7 +52,7 @@ print("Scaled sizes:")
 print(sizes)
 sizes = np.array(sizes)
 
-plt.figure(figsize=(8, 8))
+plt.figure(figsize=(24, 35))
 
 fig, ax = plt.subplots()
 ax.set_ylim(0, 101)
@@ -78,4 +78,4 @@ plt.ylabel("Minimized Test Suite Failure Rate")
 # plt.show()
 
 # Write plot to file
-plt.savefig(osp.join(PLOT_DIR, "OTvsMT.pdf"))
+plt.savefig(osp.join(PLOT_DIR, "OTvsMT.pdf"), bbox_inches="tight")

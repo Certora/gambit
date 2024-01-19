@@ -54,7 +54,7 @@ def create_comparison_graph(
         [truncate_address(addr) for addr in addresses],
         ot_seconds,
         width=bar_width,
-        label="OT Duration",
+        label="Full Test Suite",
         color="blue",
         alpha=0.7,
     )
@@ -62,18 +62,18 @@ def create_comparison_graph(
         [truncate_address(addr) for addr in addresses],
         mt_seconds,
         width=bar_width,
-        label="MT Duration",
+        label="Minimized Test Suite",
         color="red",
         alpha=0.7,
     )
 
     plt.xlabel("Tokens")
-    plt.ylabel("Duration (seconds)")
-    plt.title("OT and MT Durations Comparison")
+    plt.ylabel("Runtimes (seconds)")
+    plt.title("Full and Minimized Test Suite Run Times for Real World Contracts")
     plt.legend()
     plt.xticks(rotation=45, ha="right")
 
-    plt.savefig(output_file)
+    plt.savefig(output_file, bbox_inches="tight")
     # plt.show()
     plt.close()
 
