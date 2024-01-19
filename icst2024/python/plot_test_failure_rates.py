@@ -53,6 +53,23 @@ print(sizes)
 sizes = np.array(sizes)
 
 plt.figure(figsize=(8, 8))
+
+fig, ax = plt.subplots()
+ax.set_ylim(0, 101)
+ax.set_xlim(0, 101)
+# ax.axline((0, 0), slope=1, color="blue", linestyle="--")
+
+lims = [
+    np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+    np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+]
+
+# now plot both limits against eachother
+ax.plot(lims, lims, alpha=0.5, zorder=0, color="blue", linestyle="dotted")
+ax.set_aspect("equal")
+ax.set_xlim(lims)
+ax.set_ylim(lims)
+
 plt.scatter(otfs, mtfs, alpha=0.5, s=30 * sizes, color="red")
 
 plt.title("Failure Rates of Full vs Minimized Tests")
