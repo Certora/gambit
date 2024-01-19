@@ -47,7 +47,7 @@ def create_comparison_graph(
     ot_seconds = [convert_to_seconds(ot) for ot in ot_durations]
     mt_seconds = [convert_to_seconds(mt) for mt in mt_durations]
 
-    plt.figure(figsize=(30, 10))
+    plt.figure(figsize=(22, 12))
 
     bar_width = 0.8
     plt.bar(
