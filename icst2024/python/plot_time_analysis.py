@@ -78,9 +78,44 @@ def create_comparison_bar_chart(
     plt.close()
 
 
+def create_comparison_scatter_plot(
+    addresses, ot_durations, mt_durations, output_file="fig.png"
+):
+    ot_seconds = [convert_to_seconds(ot) for ot in ot_durations]
+    mt_seconds = [convert_to_seconds(mt) for mt in mt_durations]
+
+    plt.figure(figsize=(22, 12))
+
+    plt.scatter(
+        [truncate_address(addr) for addr in addresses],
+        ot_seconds,
+        label="Full Test Suite",
+        color="blue",
+        alpha=0.7,
+    )
+    plt.scatter(
+        [truncate_address(addr) for addr in addresses],
+        mt_seconds,
+        label="Minimized Test Suite",
+        color="red",
+        alpha=0.7,
+    )
+
+    plt.xlabel("Tokens")
+    plt.ylabel("Runtimes (seconds)")
+    plt.title("Full and Minimized Test Suite Run Times for Real World Contracts")
+    plt.legend()
+    plt.xticks(rotation=45, ha="right")
+
+    plt.savefig(output_file, bbox_inches="tight")
+    # plt.show()
+    plt.close()
+
+
 def main():
     file_path = osp.join(DATA_DIR, "OTvsMT.csv")
-    plot_path = osp.join(PLOT_DIR, "OTvsMTtimegraph.pdf")
+    bar_chart_path = osp.join(PLOT_DIR, "OTvsMTtimegraph.pdf")
+    scatter_plot_path = osp.join(PLOT_DIR, "OTvsMTtimegraph_scatter.pdf")
     (
         addresses,
         ot_durations,
@@ -89,7 +124,10 @@ def main():
         mt_failed_tests,
     ) = extract_data_from_csv(file_path)
     create_comparison_bar_chart(
-        addresses, ot_durations, mt_durations, output_file=plot_path
+        addresses, ot_durations, mt_durations, output_file=bar_chart_path
+    )
+    create_comparison_scatter_plot(
+        addresses, ot_durations, mt_durations, output_file=scatter_plot_path
     )
     average_difference = calculate_average_difference(ot_failed_tests, mt_failed_tests)
     print(f"% OTf - % MTf : {round(average_difference, 2)}%")
