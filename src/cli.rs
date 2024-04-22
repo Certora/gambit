@@ -141,6 +141,10 @@ pub struct MutateParams {
     #[serde(default = "default_solc_optimize")]
     pub solc_optimize: bool,
 
+    /// Run solc with the `--evm-version` flag
+    #[arg(long)]
+    pub solc_evm_version: Option<String>,
+
     /// Specify function names to mutate
     #[arg(long, num_args(1..))]
     pub functions: Option<Vec<String>>,

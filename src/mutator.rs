@@ -75,6 +75,10 @@ impl From<&MutateParams> for Mutator {
                 .into(),
         );
         solc.with_optimize(value.solc_optimize);
+
+        if let Some(evm_version) = value.solc_evm_version.clone() {
+            solc.with_evm_version(evm_version);
+        }
         if let Some(basepath) = value.solc_base_path.clone() {
             solc.with_basepath(basepath);
         }

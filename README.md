@@ -161,8 +161,11 @@ Mutants can be used to evaluate test suites or specs used for formal
 
 ## Installation
 
-You can download prebuilt Gambit binaries for Mac and Linux from our
-[releases](https://github.com/Certora/gambit/releases) page.
+You can download prebuilt Gambit binaries for Linux x86-64 and Mac from our
+[releases](https://github.com/Certora/gambit/releases) page. For Windows and Linux ARM, you must build Gambit from source.
+
+<!-- ANCHOR: (build-gambit-from-source)= -->
+### Building Gambit from source
 
 To build Gambit from source, clone [the Gambit repository](https://github.com/Certora/gambit) and run
 
@@ -317,6 +320,10 @@ For projects that have complex dependencies and imports, you may need to:
     --solc_remappings @openzeppelin=node_modules/@openzeppelin @foo=node_modules/@foo
   ```
 
+  ```{warning}
+  The paths should ***NOT*** end with a trailing /
+  ```
+
 * **Specify allow paths:** To include additional allowed paths via `solc`'s
   [`--allow-paths`][allowed] argument, use `--solc_allow_paths`:
 
@@ -344,9 +351,7 @@ For projects that have complex dependencies and imports, you may need to:
 [basepath]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#base-path-and-include-paths
 [allowed]: https://docs.soliditylang.org/en/v0.8.17/path-resolution.html#allowed-paths
 
-
-<!-- ANCHOR: (gambit-config)= -->
-### Example 5: The `--sourceroot`  option
+### Example 5: The `--sourceroot` option
 
 Gambit needs to track the location of source files that it mutates within a
 project: for instance, imagine there are files `foo/Foo.sol` and `bar/Foo.sol`.
@@ -423,6 +428,7 @@ Here are some examples of using the `--sourceroot` option.
 
    Gambit prints an error and exits.
 
+<!-- ANCHOR: (gambit-config)= -->
 ### Example 6: Running Gambit using a configuration file
 
 To run gambit with a configuration file, use the `--json` argument:

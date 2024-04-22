@@ -20,6 +20,7 @@ static INCLUDEPATH: &str = "--include-path";
 static BASEPATH: &str = "--base-path";
 static OPTIMIZE: &str = "--optimize";
 static DOT_JSON: &str = ".json";
+static EVM_VERSION: &str = "--evm-version";
 
 /// Compilation configurations. This exists across compilations of individual
 /// files
@@ -33,6 +34,7 @@ pub struct Solc {
     include_path: Option<String>,
     remappings: Option<Vec<String>>,
     optimize: bool,
+    evm_version: Option<String>,
 }
 
 impl Solc {
@@ -45,18 +47,12 @@ impl Solc {
             include_path: None,
             remappings: None,
             optimize: false,
+            evm_version: None,
         }
     }
 
     pub fn output_directory(&self) -> &Path {
         &self.output_directory
-    }
-
-    pub fn basepath(&self) -> Option<&String> {
-        match &self.basepath {
-            Some(bp) => Some(bp),
-            None => None,
-        }
     }
 
     pub fn with_basepath(&mut self, basepath: String) -> &Self {
@@ -81,6 +77,11 @@ impl Solc {
 
     pub fn with_optimize(&mut self, optimize: bool) -> &Self {
         self.optimize = optimize;
+        self
+    }
+
+    pub fn with_evm_version(&mut self, evm_version: String) -> &Self {
+        self.evm_version = Some(evm_version);
         self
     }
 }
@@ -318,6 +319,11 @@ impl Solc {
 
         if self.optimize {
             flags.push(OPTIMIZE.into());
+        }
+
+        if let Some(evm_version) = &self.evm_version {
+            flags.push(EVM_VERSION.into());
+            flags.push(evm_version.clone());
         }
 
         flags
