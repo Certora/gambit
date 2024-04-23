@@ -184,7 +184,6 @@ impl Solc {
             .map(|x| x.to_string())
             .collect::<Vec<_>>()
             .join(" ");
-
         log::debug!(
             "Invoking solc on {}: `{} {}`",
             solidity_file.display(),
