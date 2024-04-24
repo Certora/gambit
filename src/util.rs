@@ -82,7 +82,21 @@ pub fn repair_remapping(remap_str: &str, resolve_against: Option<&str>) -> Strin
         "repair_remappings: remapping must have the shape @foo=bar/baz/blip, please check {}.",
         remap_str
     );
-    let lhs = parts[0];
+    /*
+    We remove any trailing slashes on the lhs.
+    solc has strange behavior when it comes to remappings:
+        solmate=lib/solmate/src : solc likes this
+        solmate=lib/solmate/src/ : solc likes this
+        solmate/=lib/solmate/src/ : solc likes this
+        solmate/=lib/solmate/src : solc does not like this
+    So we remove the trailing / from the lhs always.
+    NOTE: this will not work if there is an import in a file for example that
+    is like: `import solmate//A.sol`.
+    This is rare so we are not handling it for now but
+    this is something to revisit in the future.
+    */
+    let left: Vec<&str> = parts[0].split("/").collect();
+    let lhs = left[0];
     let rhs = parts[1];
     let resolved_path = PathBuf::from(against_path_str)
         .join(rhs)
