@@ -71,7 +71,9 @@ jobs:
                 sudo mv solc-macos /usr/local/bin/solc
               fi
       - name: Build and Test
-        run: make all_macos
+        run:  |
+          rustup target add x86_64-apple-darwin
+          make all_macos
 
       - name: Darwin link as Universal
         run: lipo -create -output gambit-macos target/aarch64-apple-darwin/release/gambit target/x86_64-apple-darwin/release/gambit
