@@ -101,7 +101,6 @@ pub fn repair_remapping(remap_str: &str, resolve_against: Option<&str>) -> Strin
         parts[0]
     };
     let rhs = parts[1];
-    log::debug!("lhslololol: {lhs} and rhs: {rhs}");
     let resolved_path = PathBuf::from(against_path_str)
         .join(rhs)
         .canonicalize()
