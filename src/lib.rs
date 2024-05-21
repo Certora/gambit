@@ -51,7 +51,7 @@ pub fn run_mutate(
         let outdir = &params.outdir;
         outdir_map
             .entry(outdir.clone().unwrap_or(default_gambit_output_directory()))
-            .or_insert(vec![])
+            .or_default()
             .push(params);
     }
 
