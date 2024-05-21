@@ -1,6 +1,6 @@
-use itertools::join;
 use crate::invoke_command;
 use crate::SolAST;
+use itertools::join;
 use serde_json::Value;
 use std::{
     error,
@@ -302,7 +302,6 @@ impl Solc {
             flags.push(ALLOWPATHS.into());
             let comma_separated = join(allow_paths, ",");
             flags.push(comma_separated);
-            
         }
 
         if let Some(include_path) = &self.include_path {

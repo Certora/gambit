@@ -469,7 +469,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 params.solc_include_path = solc_include_path;
                 params.solc_base_path = solc_basepath;
                 params.solc_remappings = solc_remapping;
-                
+
                 execute_mutation(vec![*params])?;
             }
         }
@@ -480,13 +480,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
 /// Execute mutation
 fn execute_mutation(params: Vec<MutateParams>) -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
     let result = run_mutate(params)?;
     let t = start.elapsed().as_secs_f64();
-    let total_num_mutants = result.values().flat_map(|x|x).count();
+    let total_num_mutants = result.values().flatten().count();
     println!(
         "Generated {} mutants in {:.2} seconds",
         total_num_mutants, t

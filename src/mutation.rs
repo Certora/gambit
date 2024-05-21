@@ -220,7 +220,7 @@ impl Mutation for MutationType {
                 }
             }
             MutationType::SwapArgumentsOperatorMutation => {
-                let non_comm_ops = vec!["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
+                let non_comm_ops = ["-", "/", "%", "**", ">", "<", ">=", "<=", "<<", ">>"];
                 if let Some(n) = node.node_type() {
                     return n == "BinaryOperation"
                         && non_comm_ops.contains(
@@ -282,7 +282,7 @@ impl Mutation for MutationType {
                 let orig = node.operator().unwrap();
                 let orig = String::from(orig.trim());
 
-                let ops: Vec<&str> = vec!["+", "-", "*", "/", "%", "**"]
+                let ops: Vec<&str> = ["+", "-", "*", "/", "%", "**"]
                     .iter()
                     .filter(|v| !orig.eq(*v))
                     .copied()
@@ -333,7 +333,7 @@ impl Mutation for MutationType {
             MutationType::IfStatementMutation => {
                 let cond = node.condition();
                 let orig = cond.get_text(source.contents());
-                let bs: Vec<&str> = vec!["true", "false"]
+                let bs: Vec<&str> = ["true", "false"]
                     .iter()
                     .filter(|v| !orig.eq(*v))
                     .copied()
@@ -349,7 +349,7 @@ impl Mutation for MutationType {
             MutationType::RequireMutation => {
                 let arg = &node.arguments()[0];
                 let orig = arg.get_text(source.contents());
-                let bs: Vec<&str> = vec!["true", "false"]
+                let bs: Vec<&str> = ["true", "false"]
                     .iter()
                     .filter(|v| !orig.eq(*v))
                     .copied()

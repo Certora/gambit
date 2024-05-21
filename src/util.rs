@@ -95,8 +95,11 @@ pub fn repair_remapping(remap_str: &str, resolve_against: Option<&str>) -> Strin
     This is rare so we are not handling it for now but
     this is something to revisit in the future.
     */
-    let left: Vec<&str> = parts[0].split("/").collect();
-    let lhs = left[0];
+    let lhs = if parts[0].ends_with('/') {
+        parts[0].rsplit_once('/').unwrap().0
+    } else {
+        parts[0]
+    };
     let rhs = parts[1];
     let resolved_path = PathBuf::from(against_path_str)
         .join(rhs)
