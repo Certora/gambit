@@ -12,14 +12,14 @@ jobs:
     env:
       TAG: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check rust
         run: |
           rustup --version
           cargo --version
           rustc --version
       - name: Cache cargo bin
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
@@ -40,7 +40,7 @@ jobs:
         run: mv ./target/x86_64-unknown-linux-gnu/release/gambit ./target/x86_64-unknown-linux-gnu/release/gambit-linux-$TAG
 
       - name: Upload artifact to action
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         with:
           name: gambit-linux-${{ env.TAG }}
@@ -51,14 +51,14 @@ jobs:
     env:
       TAG: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check rust
         run: |
           rustup --version
           cargo --version
           rustc --version
       - name: Cache cargo bin
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
@@ -104,7 +104,7 @@ jobs:
         run: mv gambit-macos gambit-macos-$TAG
 
       - name: Upload artifact to action
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: startsWith(github.event.ref, 'refs/tags/v') # only on new tag creation
         with:
           name: gambit-macos-${{ env.TAG }}
@@ -117,9 +117,9 @@ jobs:
     env:
       TAG: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       - name: Create a release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       
       - name: PIP install
         run: pip install ansi
