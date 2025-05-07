@@ -265,6 +265,15 @@ impl SolASTVisitor<Rc<Source>, Vec<Mutant>> for Mutator {
                             return false;
                         }
                     }
+                } else if node.node_kind() == Some("constructor".to_string()) {
+                    match &self.conf.funcs_to_mutate {
+                        Some(fns) => {
+                            return !fns.contains(&"constructor".to_string());
+                        }
+                        None => {
+                            return false;
+                        }
+                    }
                 }
             }
         }
