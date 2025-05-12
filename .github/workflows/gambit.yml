@@ -24,11 +24,10 @@ jobs:
       TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
-      # install dependencies
       - name: Install dependencies
         run: |
           apt update
-          apt install -y curl wget make
+          apt install -y curl wget build-essential
       - name: Install rust
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
