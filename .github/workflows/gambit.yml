@@ -24,6 +24,13 @@ jobs:
       TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install rust
+        run: |
+          apt update; apt install -y curl
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+          echo "$HOME/.cargo/bin/rustc" >> $GITHUB_PATH
+          echo "$HOME/.cargo/bin/cargo" >> $GITHUB_PATH
       - name: Check rust
         run: |
           rustup --version
