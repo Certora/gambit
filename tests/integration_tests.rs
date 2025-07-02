@@ -100,22 +100,22 @@ fn multiple_contracts_1() {
                 "assert(true)",
                 (7, 9),
             ),
-            ("BinaryOpMutation", "**", "+", (24, 24)),
-            ("BinaryOpMutation", "**", "-", (24, 24)),
-            ("BinaryOpMutation", "**", "*", (24, 24)),
-            ("BinaryOpMutation", "**", "/", (24, 24)),
-            ("BinaryOpMutation", "**", "%", (24, 24)),
+            ("BinaryOpMutation", "**", "+", (26, 24)),
+            ("BinaryOpMutation", "**", "-", (26, 24)),
+            ("BinaryOpMutation", "**", "*", (26, 24)),
+            ("BinaryOpMutation", "**", "/", (26, 24)),
+            ("BinaryOpMutation", "**", "%", (26, 24)),
             (
                 "SwapArgumentsOperatorMutation",
                 "a ** decimals",
                 "decimals ** a",
-                (24, 23),
+                (26, 23),
             ),
             (
                 "DeleteExpressionMutation",
                 "assert(c[0] == e)",
                 "assert(true)",
-                (29, 9),
+                (31, 9),
             ),
         ],
     )
@@ -132,16 +132,16 @@ fn multiple_contracts_2() {
             ("BinaryOpMutation", "+", "/", (11, 17)),
             ("BinaryOpMutation", "+", "%", (11, 17)),
             /* C.get10PowerDecimals */
-            ("BinaryOpMutation", "**", "+", (24, 24)),
-            ("BinaryOpMutation", "**", "-", (24, 24)),
-            ("BinaryOpMutation", "**", "*", (24, 24)),
-            ("BinaryOpMutation", "**", "/", (24, 24)),
-            ("BinaryOpMutation", "**", "%", (24, 24)),
+            ("BinaryOpMutation", "**", "+", (26, 24)),
+            ("BinaryOpMutation", "**", "-", (26, 24)),
+            ("BinaryOpMutation", "**", "*", (26, 24)),
+            ("BinaryOpMutation", "**", "/", (26, 24)),
+            ("BinaryOpMutation", "**", "%", (26, 24)),
             (
                 "SwapArgumentsOperatorMutation",
                 "a ** decimals",
                 "decimals ** a",
-                (24, 23),
+                (26, 23),
             ),
         ],
     )
@@ -168,39 +168,45 @@ fn multiple_contracts_3() {
                 "DeleteExpressionMutation",
                 "a[0] = msg.sender",
                 "assert(true)",
-                (18, 9),
+                (20, 9),
             ),
             /* C.get10PowerDecimals */
-            ("BinaryOpMutation", "**", "+", (24, 24)),
-            ("BinaryOpMutation", "**", "-", (24, 24)),
-            ("BinaryOpMutation", "**", "*", (24, 24)),
-            ("BinaryOpMutation", "**", "/", (24, 24)),
-            ("BinaryOpMutation", "**", "%", (24, 24)),
+            ("BinaryOpMutation", "**", "+", (26, 24)),
+            ("BinaryOpMutation", "**", "-", (26, 24)),
+            ("BinaryOpMutation", "**", "*", (26, 24)),
+            ("BinaryOpMutation", "**", "/", (26, 24)),
+            ("BinaryOpMutation", "**", "%", (26, 24)),
             (
                 "SwapArgumentsOperatorMutation",
                 "a ** decimals",
                 "decimals ** a",
-                (24, 23),
+                (26, 23),
             ),
             (
                 "DeleteExpressionMutation",
                 "assert(c[0] == e)",
                 "assert(true)",
-                (29, 9),
+                (31, 9),
             ),
             (
                 "DeleteExpressionMutation",
                 "Utils.getarray(b, address(this))",
                 "assert(true)",
-                (34, 9),
+                (36, 9),
             ),
             /* C.getarray */
             /* C.callmyself */
             /* C.add */
-            ("BinaryOpMutation", "+", "-", (38, 17)),
-            ("BinaryOpMutation", "+", "*", (38, 17)),
-            ("BinaryOpMutation", "+", "/", (38, 17)),
-            ("BinaryOpMutation", "+", "%", (38, 17)),
+            (
+                "DeleteEmitMutation",
+                "emit Called()",
+                "assert(true)",
+                (37, 9),
+            ),
+            ("BinaryOpMutation", "+", "-", (41, 17)),
+            ("BinaryOpMutation", "+", "*", (41, 17)),
+            ("BinaryOpMutation", "+", "/", (41, 17)),
+            ("BinaryOpMutation", "+", "%", (41, 17)),
         ],
     )
 }
@@ -220,10 +226,10 @@ fn multiple_contracts_4() {
             /* C.getarray */
             /* C.callmyself */
             /* C.add */
-            ("BinaryOpMutation", "+", "-", (38, 17)),
-            ("BinaryOpMutation", "+", "*", (38, 17)),
-            ("BinaryOpMutation", "+", "/", (38, 17)),
-            ("BinaryOpMutation", "+", "%", (38, 17)),
+            ("BinaryOpMutation", "+", "-", (41, 17)),
+            ("BinaryOpMutation", "+", "*", (41, 17)),
+            ("BinaryOpMutation", "+", "/", (41, 17)),
+            ("BinaryOpMutation", "+", "%", (41, 17)),
         ],
     )
 }
