@@ -13,6 +13,8 @@ library Utils {
 }
 
 contract C {
+    event Called();
+
     function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
         a[0] = msg.sender;
@@ -29,13 +31,14 @@ contract C {
         assert(c[0] == e);
     }
 
-    function callmyself() external view {
+    function callmyself() external {
         address[] memory b = this.foo();
         Utils.getarray(b, address(this));
+        /// DeleteEmitMutation(`emit Called()` |==> `assert(true)`) of: `emit Called();`
+        assert(true);
     }
 
     function add(int8 c, int8 d) public pure returns (int8) {
-        /// BinaryOpMutation(`+` |==> `-`) of: `return c + d;`
-        return c-d;
+        return c + d;
     }
 }

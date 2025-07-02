@@ -2,9 +2,9 @@
 2,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
 3,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
 4,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%
-5,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,+
-6,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,-
-7,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,*
-8,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,/
-9,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,%
-10,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,24:23,a ** decimals,decimals ** a
+5,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,+
+6,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,-
+7,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,*
+8,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,/
+9,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,%
+10,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,26:23,a ** decimals,decimals ** a
