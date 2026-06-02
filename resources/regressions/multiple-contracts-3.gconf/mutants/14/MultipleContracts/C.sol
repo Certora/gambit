@@ -13,6 +13,8 @@ library Utils {
 }
 
 contract C {
+    event Called();
+
     function foo() external view returns (address[] memory) {
         address[] memory a = new address[](1);
         a[0] = msg.sender;
@@ -29,10 +31,11 @@ contract C {
         assert(c[0] == e);
     }
 
-    function callmyself() external view {
+    function callmyself() external {
         address[] memory b = this.foo();
         /// DeleteExpressionMutation(`Utils.getarray(b, address(this))` |==> `assert(true)`) of: `Utils.getarray(b, address(this));`
         assert(true);
+        emit Called();
     }
 
     function add(int8 c, int8 d) public pure returns (int8) {

@@ -137,6 +137,7 @@ pub enum MutationType {
     SwapArgumentsFunctionMutation,
     SwapArgumentsOperatorMutation,
     UnaryOperatorMutation,
+    DeleteEmitMutation,
 }
 
 impl ToString for MutationType {
@@ -152,6 +153,7 @@ impl ToString for MutationType {
             MutationType::SwapArgumentsFunctionMutation => "SwapArgumentsFunctionMutation",
             MutationType::SwapArgumentsOperatorMutation => "SwapArgumentsOperatorMutation",
             MutationType::UnaryOperatorMutation => "UnaryOperatorMutation",
+            MutationType::DeleteEmitMutation => "DeleteEmitMutation",
         };
         str.into()
     }
@@ -235,6 +237,14 @@ impl Mutation for MutationType {
                 if let Some(n) = node.node_type() {
                     return n == "UnaryOperation";
                 }
+            }
+            MutationType::DeleteEmitMutation => {
+                if let Some(node_type) = node.node_type() {
+                    if node_type == "EmitStatement" {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
         false
@@ -431,6 +441,18 @@ impl Mutation for MutationType {
                     .map(|r| Mutant::new(source.clone(), *self, start, end, r.to_string()))
                     .collect()
             }
+
+            MutationType::DeleteEmitMutation => {
+                let (start, end) = node.get_bounds();
+                let empty_expression_statement = "assert(true)".to_string();
+                vec![Mutant::new(
+                    source.clone(),
+                    *self,
+                    start,
+                    end,
+                    empty_expression_statement,
+                )]
+            }
         }
     }
 }
@@ -448,6 +470,7 @@ impl MutationType {
             // MutationType::SwapArgumentsFunctionMutation,
             MutationType::SwapArgumentsOperatorMutation,
             MutationType::UnaryOperatorMutation,
+            MutationType::DeleteEmitMutation,
         ]
     }
 }
@@ -686,6 +709,15 @@ contract A {
             &ops,
             &without_suffix("++"),
         );
+        Ok(())
+    }
+
+    #[test]
+    pub fn test_delete_emit_mutation() -> Result<(), Box<dyn error::Error>> {
+        let ops = vec![DeleteEmitMutation];
+        let stmts = vec!["uint256 x = 0;", "emit Log(x);"];
+        let expected = vec!["assert(true)"];
+        assert_exact_mutants_for_statements(&stmts, &ops, &expected);
         Ok(())
     }
 

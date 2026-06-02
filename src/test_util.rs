@@ -48,6 +48,7 @@ pub fn wrap_solidity(statements: &[&str], returns: Option<&str>) -> String {
 pragma solidity ^0.8.0;
 
 contract Wrapper {{
+    event Log(uint256);
     function wrapped() public {} {{
         {}
     }}

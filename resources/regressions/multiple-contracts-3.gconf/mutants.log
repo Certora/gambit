@@ -3,16 +3,17 @@
 3,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,*
 4,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,/
 5,BinaryOpMutation,MultipleContracts/C.sol,11:17, + ,%
-6,DeleteExpressionMutation,MultipleContracts/C.sol,18:9,a[0] = msg.sender,assert(true)
-7,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,+
-8,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,-
-9,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,*
-10,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,/
-11,BinaryOpMutation,MultipleContracts/C.sol,24:24, ** ,%
-12,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,24:23,a ** decimals,decimals ** a
-13,DeleteExpressionMutation,MultipleContracts/C.sol,29:9,assert(c[0] == e),assert(true)
-14,DeleteExpressionMutation,MultipleContracts/C.sol,34:9,"Utils.getarray(b, address(this))",assert(true)
-15,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,-
-16,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,*
-17,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,/
-18,BinaryOpMutation,MultipleContracts/C.sol,38:17, + ,%
+6,DeleteExpressionMutation,MultipleContracts/C.sol,20:9,a[0] = msg.sender,assert(true)
+7,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,+
+8,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,-
+9,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,*
+10,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,/
+11,BinaryOpMutation,MultipleContracts/C.sol,26:24, ** ,%
+12,SwapArgumentsOperatorMutation,MultipleContracts/C.sol,26:23,a ** decimals,decimals ** a
+13,DeleteExpressionMutation,MultipleContracts/C.sol,31:9,assert(c[0] == e),assert(true)
+14,DeleteExpressionMutation,MultipleContracts/C.sol,36:9,"Utils.getarray(b, address(this))",assert(true)
+15,DeleteEmitMutation,MultipleContracts/C.sol,37:9,emit Called(),assert(true)
+16,BinaryOpMutation,MultipleContracts/C.sol,41:17, + ,-
+17,BinaryOpMutation,MultipleContracts/C.sol,41:17, + ,*
+18,BinaryOpMutation,MultipleContracts/C.sol,41:17, + ,/
+19,BinaryOpMutation,MultipleContracts/C.sol,41:17, + ,%
